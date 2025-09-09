@@ -1,155 +1,142 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+// app/dashboard/page.tsx
 import Link from "next/link";
-import { SignOutButton } from "@/components/SignOutButton";
-import { authOptions } from "@/lib/auth";
+import { SectionCard } from "@/components/surface/SectionCard";
+
+// Optional (uncomment when NextAuth is wired):
+// import { getServerSession } from "next-auth";
+// import { authOptions } from "@/lib/auth-options"; // <- adjust path
+
+type Metric = { key: string; value: string };
+type Activity = { id: string; text: string; date: string };
+
+const metrics: Metric[] = [
+  { key: "Impact score", value: "1,284" },
+  { key: "Total given", value: "$742.50" },
+  { key: "Monthly streak", value: "4 months" },
+  { key: "Causes followed", value: "12" },
+];
+
+const recentActivity: Activity[] = [
+  { id: "1", text: "Donated $10 to Loggerhead Turtles", date: "Aug 28" },
+  { id: "2", text: "Followed Coral Restoration Foundation", date: "Aug 26" },
+  { id: "3", text: "Shared “Beach Cleanup” campaign", date: "Aug 24" },
+];
+
+// Small internal components
+function MetricTile({ m }: { m: Metric }) {
+  return (
+    <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+      <div className="text-xs text-white/60">{m.key}</div>
+      <div className="text-lg font-semibold">{m.value}</div>
+    </div>
+  );
+}
+
+function EmptyState({
+  title,
+  actionHref,
+  actionText,
+}: {
+  title: string;
+  actionHref?: string;
+  actionText?: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/80">
+      <p>{title}</p>
+      {actionHref && actionText && (
+        <Link
+          href={actionHref}
+          className="mt-3 inline-flex rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10"
+        >
+          {actionText}
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
-
-  // If middleware is active this should already be authed,
-  // but we’ll handle the edge case with a soft message.
-  if (!session) {
-    return (
-      <main className="mx-auto max-w-xl p-8">
-        <p>Not signed in. <Link href="/signin">Sign in</Link></p>
-      </main>
-    );
-  }
-
+  // Optional session (safe fallback if auth isn’t ready)
+  // const session = await getServerSession(authOptions).catch(() => null);
+  const session = null as any; // remove this line and uncomment above when ready
   const firstName =
-    (session.user?.name?.split(" ")[0] ?? "") ||
-    (session.user?.email?.split("@")[0] ?? "Friend");
+    session?.user?.name?.split(" ")[0] ??
+    session?.user?.email?.split("@")[0] ??
+    "Friend";
 
-    
   return (
-    <main className="p-6 space-y-6">
-      {/* Hero */}
-      <section className="rounded-2xl border p-6">
+    <main className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+      {/* Header / identity */}
+      <section className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-semibold">Welcome, {firstName} 👋</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          The Penny Effect lets you automate tiny donations that add up over time.
-          Connect an account, pick causes, and set a cadence. We’ll handle the rest.
-        </p>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="ms-auto flex items-center gap-2">
           <Link
-            href="/nonprofits"
-            className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white"
+            href="/discover"
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
           >
-            Browse nonprofits
+            Discover causes
           </Link>
           <Link
-            href="/donate"
-            className="inline-flex items-center rounded-lg border px-4 py-2"
+            href="/settings"
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
           >
-            Make a quick donation
+            Edit profile
           </Link>
-          <Link
-            href="/profile"
-            className="inline-flex items-center rounded-lg border px-4 py-2"
-          >
-            Complete profile
-          </Link>
-
-          <div className="ms-auto">
-            <SignOutButton />
-          </div>
         </div>
       </section>
 
-      {/* Quick Start checklist */}
-      <section className="rounded-2xl border p-6">
-        <h2 className="text-lg font-semibold">Quick start</h2>
-        <ol className="mt-3 list-decimal space-y-2 ps-5 text-sm">
-          <li>
-            <span className="font-medium">Pick your causes:</span>{" "}
-            choose 1–3 nonprofits you care about.
-            <Link href="/nonprofits" className="ms-2 text-blue-600 underline">
-              Choose now
-            </Link>
-          </li>
-          <li>
-            <span className="font-medium">Set a cadence:</span>{" "}
-            daily penny, weekly $0.25, or monthly $1—whatever fits.
-            <Link href="/settings/donations" className="ms-2 text-blue-600 underline">
-              Configure
-            </Link>
-          </li>
-          <li>
-            <span className="font-medium">Connect payments (MVP):</span>{" "}
-            Stripe for fiat (crypto later).
-            <Link href="/settings/payments" className="ms-2 text-blue-600 underline">
-              Connect
-            </Link>
-          </li>
-        </ol>
-      </section>
+      {/* Impact overview */}
+      <SectionCard title="Impact overview">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {metrics.map((m) => (
+            <MetricTile key={m.key} m={m} />
+          ))}
+        </div>
+      </SectionCard>
 
-      {/* Two-up: Recent donations & Suggested nonprofits */}
-      <section className="grid gap-6 md:grid-cols-2">
-        {/* Recent donations (placeholder) */}
-        <div className="rounded-2xl border p-6">
-          <h3 className="text-lg font-semibold">Recent donations</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            You don’t have any donations yet.
+      {/* Two-up: activity + receipts */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <SectionCard title="Recent activity">
+          {recentActivity.length === 0 ? (
+            <EmptyState
+              title="No activity yet. Follow 3 causes to kickstart your feed."
+              actionHref="/discover"
+              actionText="Find causes"
+            />
+          ) : (
+            <ul className="space-y-2 list-disc list-inside text-white/80">
+              {recentActivity.map((a) => (
+                <li key={a.id} className="flex items-baseline justify-between gap-3">
+                  <span>{a.text}</span>
+                  <time className="text-xs text-white/60">{a.date}</time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Receipts">
+          <p className="text-white/80">
+            Export-ready receipts for tax season will appear here.
           </p>
-          <Link
-            href="/donate"
-            className="mt-3 inline-flex rounded-lg bg-blue-600 px-3 py-2 text-white"
-          >
-            Donate your first penny
-          </Link>
-          {/* TODO: replace with server data:
-              - Query last 10 donations for session.user.id
-              - Show date, amount, recipient */}
-        </div>
-
-        {/* Suggested nonprofits (placeholder) */}
-        <div className="rounded-2xl border p-6">
-          <h3 className="text-lg font-semibold">Suggested nonprofits</h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-center justify-between rounded border p-3">
-              <div>
-                <div className="font-medium">GiveDirectly</div>
-                <div className="text-gray-600">Direct cash transfers</div>
-              </div>
-              <Link href="/nonprofits/givedirectly" className="text-blue-600 underline">
-                View
-              </Link>
-            </li>
-            <li className="flex items-center justify-between rounded border p-3">
-              <div>
-                <div className="font-medium">Against Malaria Foundation</div>
-                <div className="text-gray-600">Bed nets, proven impact</div>
-              </div>
-              <Link href="/nonprofits/amf" className="text-blue-600 underline">
-                View
-              </Link>
-            </li>
-            <li className="flex items-center justify-between rounded border p-3">
-              <div>
-                <div className="font-medium">GiveWell</div>
-                <div className="text-gray-600">High-impact recommendations</div>
-              </div>
-              <Link href="/nonprofits/givewell" className="text-blue-600 underline">
-                View
-              </Link>
-            </li>
-          </ul>
-          {/* TODO: replace with real list from DB */}
-        </div>
-      </section>
-
-      {/* What’s new / Roadmap */}
-      <section className="rounded-2xl border p-6">
-        <h3 className="text-lg font-semibold">What’s new</h3>
-        <ul className="mt-3 list-disc space-y-1 ps-5 text-sm text-gray-700">
-          <li>Google sign-in is live ✅</li>
-          <li>Email/password sign-up available ✅</li>
-          <li>Next up: connect payments (Stripe) and crypto wallets</li>
-        </ul>
-      </section>
+          <div className="mt-3 flex gap-2">
+            <Link
+              href="/receipts"
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
+            >
+              View all
+            </Link>
+            <button
+              type="button"
+              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white"
+              // onClick={() => startReceiptExport()} // wire later
+            >
+              Export CSV
+            </button>
+          </div>
+        </SectionCard>
+      </div>
     </main>
   );
 }
