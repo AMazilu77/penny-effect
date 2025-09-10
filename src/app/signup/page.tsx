@@ -49,7 +49,7 @@ export default function SignUpPage() {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
-        <button className="w-full bg-blue-600 text-white p-2 rounded" type="submit">
+        <button className="w-full bg-blue-600   p-2 rounded" type="submit">
           Sign up
         </button>
       </form>

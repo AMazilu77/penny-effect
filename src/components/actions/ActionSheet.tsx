@@ -14,17 +14,17 @@ role="dialog"
 aria-modal
 aria-label="Quick actions"
 >
-<h3 className="text-white font-semibold mb-3">Quick actions</h3>
+<h3 className="  font-semibold mb-3">Quick actions</h3>
 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
 {[{ label: "Donate", desc: "Give now to a cause" },{ label: "Pledge", desc: "Schedule a gift" },{ label: "Share", desc: "Spread the word" },{ label: "Volunteer", desc: "Offer time" }].map((a) => (
 <button key={a.label} className="rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-left p-3 transition">
-<div className="text-white font-medium">{a.label}</div>
-<div className="text-xs text-white/70">{a.desc}</div>
+<div className="  font-medium">{a.label}</div>
+<div className="text-xs  /70">{a.desc}</div>
 </button>
 ))}
 </div>
 <div className="flex justify-end mt-4">
-<button onClick={onClose} className="px-3 py-1.5 text-sm rounded-md bg-white/10 hover:bg-white/20 text-white">Close</button>
+<button onClick={onClose} className="px-3 py-1.5 text-sm rounded-md bg-white/10 hover:bg-white/20  ">Close</button>
 </div>
 </div>
 </div>

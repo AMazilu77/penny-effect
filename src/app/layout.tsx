@@ -1,26 +1,24 @@
-"use client";
-import React, { useState } from "react";
-import { ActionSheet } from "@/components/actions/ActionSheet";
-import { TopNav } from "@/components/nav/TopNav";
-import { BottomNav } from "@/components/nav/BottomNav";
+import type { Metadata } from "next";
+import "./globals.css";
+import ShellLayout from "@/components/ShellLayout";
 
+// 👇 New: client-side provider wrapper
+import Providers from "../components/Providers";
 
-export default function ShellLayout({ children }: { children: React.ReactNode }) {
-const [actionsOpen, setActionsOpen] = useState(false);
+export const metadata: Metadata = {
+  title: "Penny Effect",
+  description: "Micro-donations that add up.",
+};
 
-
-return (
-<div className="min-h-screen bg-gradient-to-b from-neutral-950 to-neutral-900 text-white">
-<TopNav onOpenActions={() => setActionsOpen(true)} />
-
-
-<main className="mx-auto max-w-6xl px-4 py-6 pb-28 md:pb-10">
-{children}
-</main>
-
-
-<BottomNav onOpenActions={() => setActionsOpen(true)} />
-<ActionSheet open={actionsOpen} onClose={() => setActionsOpen(false)} />
-</div>
-);
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body className="antialiased">
+        {/* Wrap your whole app in <SessionProvider> */}
+        <Providers>
+          <ShellLayout>{children}</ShellLayout>
+        </Providers>
+      </body>
+    </html>
+  );
 }

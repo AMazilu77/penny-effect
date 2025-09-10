@@ -115,7 +115,7 @@ export default function SignInPage() {
           required
         />
         <button
-          className="w-full bg-blue-600 text-white p-2 rounded disabled:opacity-60"
+          className="w-full bg-blue-600   p-2 rounded disabled:opacity-60"
           type="submit"
           disabled={submitting}
         >

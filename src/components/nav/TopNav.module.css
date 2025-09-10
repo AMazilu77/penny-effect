@@ -1,0 +1,151 @@
+/* Uses tokens you already set in globals.css (:root) */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  backdrop-filter: saturate(180%) blur(10px);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  border-bottom: 1px solid var(--border);
+}
+
+/* center the contents, limit width */
+.inner {
+  max-width: 72rem; /* ~ 1152px */
+  margin: 0 auto;
+  height: 3.5rem;   /* 56px */
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* brand */
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+/* --- desktop layout --- */
+.center {
+  display: none;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.actions {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* search box */
+.searchWrap {
+  position: relative;
+  width: 100%;
+  max-width: 40rem; /* 640px */
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1rem;
+  width: 1rem;
+  opacity: 0.5;
+  color: var(--foreground);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem; /* left space for icon */
+  border-radius: 0.5rem;
+  background: color-mix(in oklab, var(--card) 92%, var(--background) 8%);
+  border: 1px solid var(--border);
+  outline: none;
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+.searchInput::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
+}
+
+/* buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.btnPrimary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.btnPrimary:hover { opacity: 0.9; }
+
+.btnGhost {
+  color: var(--foreground);
+  background: transparent;
+}
+
+.btnGhost:hover {
+  background: color-mix(in oklab, var(--secondary) 100%, transparent);
+}
+
+.btnOutline {
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.btnOutline:hover {
+  background: color-mix(in oklab, var(--secondary) 90%, transparent);
+}
+
+.iconBtn {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--foreground);
+}
+
+.iconBtn:hover {
+  background: color-mix(in oklab, var(--secondary) 100%, transparent);
+}
+
+.active {
+  background: color-mix(in oklab, var(--secondary) 100%, transparent);
+}
+
+/* --- mobile search area --- */
+.mobile {
+  padding: 0 1rem 0.75rem;
+  display: block;
+}
+
+.mobileRow {
+  position: relative;
+}
+
+/* --- responsive --- */
+@media (min-width: 768px) {
+  .center { display: flex; }
+  .actions { display: flex; }
+  .mobile { display: none; }
+}
+.btnDanger {
+  background: var(--destructive);
+  color: white;
+}
+.btnDanger:hover { opacity: 0.9; }

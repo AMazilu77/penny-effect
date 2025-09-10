@@ -26,7 +26,7 @@ const recentActivity: Activity[] = [
 function MetricTile({ m }: { m: Metric }) {
   return (
     <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-      <div className="text-xs text-white/60">{m.key}</div>
+      <div className="text-xs    /60">{m.key}</div>
       <div className="text-lg font-semibold">{m.value}</div>
     </div>
   );
@@ -42,7 +42,7 @@ function EmptyState({
   actionText?: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-white/80">
+    <div className="rounded-xl border border-white/10 bg-white/5 p-4    /80">
       <p>{title}</p>
       {actionHref && actionText && (
         <Link
@@ -105,11 +105,11 @@ export default async function DashboardPage() {
               actionText="Find causes"
             />
           ) : (
-            <ul className="space-y-2 list-disc list-inside text-white/80">
+            <ul className="space-y-2 list-disc list-inside    /80">
               {recentActivity.map((a) => (
                 <li key={a.id} className="flex items-baseline justify-between gap-3">
                   <span>{a.text}</span>
-                  <time className="text-xs text-white/60">{a.date}</time>
+                  <time className="text-xs    /60">{a.date}</time>
                 </li>
               ))}
             </ul>
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
         </SectionCard>
 
         <SectionCard title="Receipts">
-          <p className="text-white/80">
+          <p className="   /80">
             Export-ready receipts for tax season will appear here.
           </p>
           <div className="mt-3 flex gap-2">
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
             </Link>
             <button
               type="button"
-              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white"
+              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-sm font-medium    "
               // onClick={() => startReceiptExport()} // wire later
             >
               Export CSV
