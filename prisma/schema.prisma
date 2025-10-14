@@ -24,6 +24,9 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
+
+  donations     Donation[]
+
 }
 
 model Account {
@@ -44,6 +47,35 @@ model Account {
 
   @@unique([provider, providerAccountId])
 }
+
+model Organization {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  website     String?
+  logoUrl     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relation: one organization can have many donations
+  donations   Donation[]
+}
+
+model Donation {
+  id            String      @id @default(cuid())
+  amount        Float
+  message       String?
+  createdAt     DateTime    @default(now())
+
+  // Foreign keys
+  userId        String
+  organizationId String
+
+  // Relations
+  user          User         @relation(fields: [userId], references: [id])
+  organization  Organization @relation(fields: [organizationId], references: [id])
+}
+
 
 model Session {
   id           String   @id @default(cuid())
