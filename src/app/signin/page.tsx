@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession, signIn, signOut } from "next-auth/react";
 
-export default function SignInPage() {
-  const { status, data } = useSession(); // "authenticated" | "unauthenticated" | "loading"
+// 🧱 Extracted inner component for hooks like useSearchParams()
+function SignInInner() {
+  const { status, data } = useSession();
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -17,7 +18,7 @@ export default function SignInPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // If already signed in, show a friendly panel (no auto-redirect)
+  // 🧭 Already signed in → simple panel
   if (status === "authenticated") {
     return (
       <div className="mx-auto max-w-sm p-6 space-y-4">
@@ -53,7 +54,7 @@ export default function SignInPage() {
         </p>
       )}
 
-      {/* Google sign-in (redirects immediately, which is fine) */}
+      {/* Google sign-in */}
       <button
         className="w-full border p-2 rounded"
         onClick={() => signIn("google", { callbackUrl })}
@@ -64,7 +65,7 @@ export default function SignInPage() {
 
       <div className="h-px bg-gray-200" />
 
-      {/* Email/Password sign-in (no auto-redirect to avoid loop) */}
+      {/* Email/Password sign-in */}
       <form
         className="space-y-2"
         onSubmit={async (e) => {
@@ -75,16 +76,15 @@ export default function SignInPage() {
           const res = await signIn("credentials", {
             email,
             password,
-            redirect: false, // <- key to prevent the redirect loop
+            redirect: false,
             callbackUrl,
           });
 
           setSubmitting(false);
 
           if (res?.ok) {
-            // Cookie is set; now navigate. Use returned url if present.
             router.replace(res.url ?? callbackUrl);
-            router.refresh(); // make SessionProvider update immediately
+            router.refresh();
           } else {
             const msg =
               res?.error === "CredentialsSignin"
@@ -115,7 +115,7 @@ export default function SignInPage() {
           required
         />
         <button
-          className="w-full bg-blue-600   p-2 rounded disabled:opacity-60"
+          className="w-full bg-blue-600 text-white p-2 rounded disabled:opacity-60"
           type="submit"
           disabled={submitting}
         >
@@ -127,5 +127,14 @@ export default function SignInPage() {
         Need an account? Create one
       </a>
     </div>
+  );
+}
+
+// 🧩 Outer component wraps inner one in Suspense boundary
+export default function SignInPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-center">Loading sign-in...</div>}>
+      <SignInInner />
+    </Suspense>
   );
 }
