@@ -1,6 +1,8 @@
 // app/dashboard/page.tsx
 import Link from "next/link";
 import { SectionCard } from "@/components/surface/SectionCard";
+import DonationForm from "@/components/DonationForm";
+
 
 // Optional (uncomment when NextAuth is wired):
 // import { getServerSession } from "next-auth";
@@ -116,6 +118,8 @@ export default async function DashboardPage() {
           )}
         </SectionCard>
 
+
+
         <SectionCard title="Receipts">
           <p className="   /80">
             Export-ready receipts for tax season will appear here.
@@ -137,6 +141,10 @@ export default async function DashboardPage() {
           </div>
         </SectionCard>
       </div>
+
+          <SectionCard title="Make a donation">
+            <DonationForm />
+          </SectionCard>
     </main>
   );
 }
