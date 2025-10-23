@@ -1,16 +1,14 @@
-// src/app/signin/SignInClient.tsx
 "use client";
 
-import { useState, Suspense } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 
-function Inner() {
-  const { status } = useSession();
+function SignInForm() {
   const sp = useSearchParams();
   const router = useRouter();
+  const { status } = useSession();
 
-  // ✅ Guard against self-redirects
   const raw = sp.get("callbackUrl");
   const callbackUrl =
     !raw || raw.includes("/signin") ? "/dashboard" : raw;
@@ -80,10 +78,11 @@ function Inner() {
   );
 }
 
+// ✅ The Suspense boundary must wrap the part that calls useSearchParams()
 export default function SignInClient() {
   return (
     <Suspense fallback={<div className="p-6 text-center">Loading sign-in…</div>}>
-      <Inner />
+      <SignInForm />
     </Suspense>
   );
 }
