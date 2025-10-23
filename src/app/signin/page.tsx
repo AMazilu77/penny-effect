@@ -10,7 +10,10 @@ function SignInInner() {
   const sp = useSearchParams();
   const router = useRouter();
 
-  const callbackUrl = sp.get("callbackUrl") || "/dashboard";
+  const raw = sp.get("callbackUrl");
+  const callbackUrl =
+  !raw || raw.includes("/signin") ? "/dashboard" : raw;
+
   const errorFromQuery = sp.get("error");
 
   const [email, setEmail] = useState("");

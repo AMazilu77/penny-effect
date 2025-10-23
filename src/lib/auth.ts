@@ -59,15 +59,16 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     
-    async redirect({ url, baseUrl }) {
-      if (url.includes("/signin")) return `${baseUrl}/dashboard`;
+   async redirect({ url, baseUrl }) {
+  // Prevent self-redirects and loops
+  if (url.startsWith("/signin")) return `${baseUrl}/dashboard`;
+  if (url.startsWith("/")) return `${baseUrl}${url}`;
+  try {
+    const u = new URL(url);
+    if (u.origin === baseUrl) return url;
+  } catch {}
+  return baseUrl;
+}
 
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      try { 
-        const u = new URL(url);
-        if (u.origin === baseUrl) return url; 
-      } catch {}
-      return baseUrl;
-    },
   },
 };
