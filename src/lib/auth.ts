@@ -61,14 +61,14 @@ export const authOptions: NextAuthOptions = {
     
    async redirect({ url, baseUrl }) {
   // Prevent self-redirects and loops
-  if (url.startsWith("/signin")) return `${baseUrl}/dashboard`;
-  if (url.startsWith("/")) return `${baseUrl}${url}`;
-  try {
-    const u = new URL(url);
-    if (u.origin === baseUrl) return url;
-  } catch {}
-  return baseUrl;
-}
+    try {
+      const u = new URL(url);
+      if (u.origin === baseUrl) return u.toString(); // same-origin
+    } catch {
+      if (url.startsWith("/")) return `${baseUrl}${url}`; // relative
+    }
+    return baseUrl;
+  },
 
   },
 };

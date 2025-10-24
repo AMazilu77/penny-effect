@@ -18,20 +18,19 @@ function SignInForm() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  if (status === "authenticated") {
-    return (
-      <div className="mx-auto max-w-sm p-6 text-center space-y-4">
-        <h2 className="text-lg font-semibold">You’re already signed in.</h2>
-        <button
-          onClick={() => router.push("/dashboard")}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >
-          Go to Dashboard
-        </button>
-      </div>
-    );
+  // 1️⃣ Handle loading state
+  if (status === "loading") {
+    return <div className="p-6 text-center">Checking session…</div>;
   }
 
+  // 2️⃣ Handle already-authenticated user
+  if (status === "authenticated") {
+    // Push to dashboard, but render nothing (avoids stuck "already logged in" panel)
+    router.push("/dashboard");
+    return null;
+  }
+
+  // 3️⃣ Render the actual sign-in form for unauthenticated users
   return (
     <div className="mx-auto max-w-sm p-6 space-y-4">
       <h1 className="text-xl font-semibold">Sign in to Penny Effect</h1>
@@ -78,7 +77,7 @@ function SignInForm() {
   );
 }
 
-// ✅ The Suspense boundary must wrap the part that calls useSearchParams()
+// ✅ Wrap in Suspense for searchParams hydration
 export default function SignInClient() {
   return (
     <Suspense fallback={<div className="p-6 text-center">Loading sign-in…</div>}>
