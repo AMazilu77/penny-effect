@@ -3,18 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, PlusCircle, Search } from "lucide-react";
-import { signOut } from "next-auth/react"; // 👈 import
+import { useSession, signIn, signOut } from "next-auth/react";
 import styles from "./TopNav.module.css";
 
 export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
   const pathname = usePathname();
+  const { status } = useSession(); // 'loading' | 'authenticated' | 'unauthenticated'
   const isActive = (p: string) => pathname === p;
+
+  const handleAuthClick = () => {
+    if (status === "authenticated") signOut({ callbackUrl: "/" });
+    else signIn();
+  };
 
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
+        {/* Brand / Home link */}
         <Link href="/feed" className={styles.brand}>
           Penny Effect
+        </Link>
+
+
+        {/* Brand / Home link */}
+        <Link href="/about" className={styles.brand}>
+          About
         </Link>
 
         {/* Desktop center search */}
@@ -30,35 +43,45 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
 
         {/* Desktop right actions */}
         <div className={styles.actions}>
-          <button
-            onClick={onOpenActions}
-            className={`${styles.btn} ${styles.btnPrimary}`}
-          >
-            <PlusCircle className="h-4 w-4" />
-            Donate / Action
-          </button>
+          {/* Show Donate only when logged in */}
+          {status === "authenticated" && (
+            <button
+              onClick={onOpenActions}
+              className={`${styles.btn} ${styles.btnPrimary}`}
+            >
+              <PlusCircle className="h-4 w-4" />
+              Donate / Action
+            </button>
+          )}
 
-          <Link
-            href="/inbox"
-            className={`${styles.iconBtn} ${isActive("/inbox") ? styles.active : ""}`}
-            aria-label="Inbox"
-          >
-            <Bell className="h-5 w-5" />
-          </Link>
+          {/* Show notifications only when logged in */}
+          {status === "authenticated" && (
+            <Link
+              href="/inbox"
+              className={`${styles.iconBtn} ${
+                isActive("/inbox") ? styles.active : ""
+              }`}
+              aria-label="Inbox"
+            >
+              <Bell className="h-5 w-5" />
+            </Link>
+          )}
 
           <Link
             href="/dashboard"
-            className={`${styles.btn} ${styles.btnOutline} ${isActive("/dashboard") ? styles.active : ""}`}
+            className={`${styles.btn} ${styles.btnOutline} ${
+              isActive("/dashboard") ? styles.active : ""
+            }`}
           >
             Dashboard
           </Link>
 
-          {/* 👇 New logout button */}
+          {/* Login / Logout toggle */}
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={handleAuthClick}
             className={`${styles.btn} ${styles.btnOutline}`}
           >
-            Log out
+            {status === "authenticated" ? "Logout" : "Login"}
           </button>
         </div>
       </div>
