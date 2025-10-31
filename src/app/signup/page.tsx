@@ -1,3 +1,4 @@
+// app/signup/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,18 +8,19 @@ export default function SignUpPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [msg, setMsg] = useState<string | null>(null);
-  
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg(null);
+
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
+
     if (res.ok) {
-      setMsg("Account created. Redirecting to sign in...");
+      setMsg("Account created! Redirecting...");
       setTimeout(() => router.push("/signin"), 1500);
     } else {
       const data = await res.json();
@@ -27,7 +29,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm p-6 space-y-3">
+    <div className="max-w-sm mx-auto p-6 space-y-3">
       <h1 className="text-2xl font-semibold">Create Account</h1>
       <form onSubmit={submit} className="space-y-2">
         <input
@@ -49,11 +51,14 @@ export default function SignUpPage() {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
         />
-        <button className="w-full bg-blue-600   p-2 rounded" type="submit">
+        <button
+          type="submit"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded"
+        >
           Sign up
         </button>
       </form>
-      {msg && <p className="text-sm">{msg}</p>}
+      {msg && <p className="text-sm text-center">{msg}</p>}
     </div>
   );
 }

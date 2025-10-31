@@ -15,11 +15,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { name, email, password } = schema.parse(body);
 
-    // Prevent duplicates
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
+    if (existing)
       return NextResponse.json({ error: "Email already in use." }, { status: 409 });
-    }
 
     const passwordHash = await hash(password, 12);
 
@@ -28,7 +26,6 @@ export async function POST(req: Request) {
         name,
         email,
         passwordHash,
-        // 🔑 dev convenience to allow Google linking by email:
         emailVerified: new Date(),
       },
     });

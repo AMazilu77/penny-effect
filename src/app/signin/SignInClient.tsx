@@ -1,88 +1,100 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
-function SignInForm() {
-  const sp = useSearchParams();
+export default function SignInClient() {
   const router = useRouter();
-  const { status } = useSession();
-
-  const raw = sp.get("callbackUrl");
-  const callbackUrl = !raw || raw.includes("/signin") ? "/dashboard" : raw;
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Only run redirect after render
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      // ✅ Use redirect:false so we can control what happens next
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      console.log("🔹 signIn result:", result);
+
+      if (result?.error) {
+        setErrorMsg("Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      if (result?.ok) {
+        console.log("✅ Login successful — redirecting to /feed");
+        // ✅ Force redirect manually after short delay
+        setTimeout(() => {
+          router.push("/feed");
+          router.refresh();
+        }, 150);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrorMsg("Something went wrong. Please try again.");
+      setLoading(false);
     }
-  }, [status, router]);
-
-  if (status === "loading") {
-    return <div className="p-6 text-center">Checking session…</div>;
-  }
-
-  if (status === "authenticated") {
-    // Return nothing (redirect effect will handle)
-    return null;
   }
 
   return (
-    <div className="mx-auto max-w-sm p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Sign in to Penny Effect</h1>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setSubmitting(true);
-          const res = await signIn("credentials", {
-            email,
-            password,
-            callbackUrl,
-            redirect: false,
-          });
-          if (res?.error) setErrorMsg(res.error);
-          else router.push(callbackUrl);
-          setSubmitting(false);
-        }}
-      >
+    <div className="max-w-sm mx-auto p-6 space-y-4">
+      <h1 className="text-xl font-semibold text-center">
+        Sign in to <span className="text-emerald-600">Penny Effect</span>
+      </h1>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
         <input
           type="email"
-          className="border w-full p-2 rounded mb-2"
-          placeholder="Email"
+          className="w-full border border-gray-300 bg-white p-2 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
+
         <input
           type="password"
-          className="border w-full p-2 rounded mb-2"
+          className="w-full border border-gray-300 bg-white p-2 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {errorMsg && <p className="text-red-500">{errorMsg}</p>}
+
+        {errorMsg && (
+          <p className="text-red-500 text-sm text-center">{errorMsg}</p>
+        )}
+
         <button
-          disabled={submitting}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
+          type="submit"
+          disabled={loading}
+          className={`w-full p-2 rounded text-white font-medium transition-colors ${
+            loading
+              ? "bg-emerald-400 cursor-wait"
+              : "bg-emerald-600 hover:bg-emerald-700"
+          }`}
         >
-          {submitting ? "Signing in..." : "Sign In"}
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
-    </div>
-  );
-}
 
-export default function SignInClient() {
-  return (
-    <Suspense fallback={<div className="p-6 text-center">Loading sign-in…</div>}>
-      <SignInForm />
-    </Suspense>
+      <p className="text-center text-sm mt-3">
+        Don’t have an account?{" "}
+        <a href="/signup" className="text-emerald-600 hover:underline">
+          Create one
+        </a>
+      </p>
+    </div>
   );
 }
