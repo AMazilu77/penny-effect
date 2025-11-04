@@ -1,3 +1,7 @@
+// =======================================================
+//  Prisma Schema — The Penny Effect
+// =======================================================
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,26 +11,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =======================================================
+//  User Authentication & Sessions
+// =======================================================
+
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
+  passwordHash  String?   @db.Text
+  handle        String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  // For Credentials (email/password) users:
-  passwordHash  String?  @db.Text
+  // Relations
+  accounts  Account[]
+  sessions  Session[]
+  donations Donation[]
+  interests UserInterest[]
+  location  UserLocation?
 
-  // App-specific fields you can extend later:
-  handle        String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  accounts      Account[]
-  sessions      Session[]
-
-  donations     Donation[]
-
+  // Flags
+  hasCompletedOnboarding Boolean @default(false)
 }
 
 model Account {
@@ -43,39 +51,10 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
-
-model Organization {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  description String?
-  website     String?
-  logoUrl     String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relation: one organization can have many donations
-  donations   Donation[]
-}
-
-model Donation {
-  id            String      @id @default(cuid())
-  amount        Float
-  message       String?
-  createdAt     DateTime    @default(now())
-
-  // Foreign keys
-  userId        String
-  organizationId String
-
-  // Relations
-  user          User         @relation(fields: [userId], references: [id])
-  organization  Organization @relation(fields: [organizationId], references: [id])
-}
-
 
 model Session {
   id           String   @id @default(cuid())
@@ -89,5 +68,104 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
+}
+
+// =======================================================
+//  Donations & Organizations
+// =======================================================
+
+model Donation {
+  id        String   @id @default(cuid())
+  amount    Float
+  message   String?
+  createdAt DateTime @default(now())
+
+  // Foreign keys
+  userId         String
+  organizationId String
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Organization {
+  id              String   @id @default(cuid())
+  name            String   @unique
+  description     String?
+  website         String?
+  logoUrl         String?
+  cryptoWalletBTC String?
+  cryptoWalletETH String?
+  locationCity    String?
+  locationState   String?
+  locationCountry String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  donations  Donation[]
+  categories CauseCategory[] @relation("OrgCategories")
+  newsItems  NewsItem[]
+}
+
+// =======================================================
+//  Causes & User Interests
+// =======================================================
+
+model CauseCategory {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  description   String?
+  subcauses     SubCause[]
+  organizations Organization[] @relation("OrgCategories")
+  userInterests UserInterest[]
+}
+
+model SubCause {
+  id            String         @id @default(cuid())
+  name          String
+  categoryId    String
+  category      CauseCategory  @relation(fields: [categoryId], references: [id])
+  userInterests UserInterest[]
+}
+
+model UserInterest {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  subcauseId String?
+  createdAt  DateTime @default(now())
+
+  user     User          @relation(fields: [userId], references: [id])
+  category CauseCategory @relation(fields: [categoryId], references: [id])
+  subcause SubCause?     @relation(fields: [subcauseId], references: [id])
+}
+
+// =======================================================
+//  User Location (optional)
+// =======================================================
+
+model UserLocation {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  city      String?
+  state     String?
+  country   String?
+  latitude  Float?
+  longitude Float?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// news items
+model NewsItem {
+  id             String       @id @default(cuid())
+  title          String
+  content        String
+  createdAt      DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
