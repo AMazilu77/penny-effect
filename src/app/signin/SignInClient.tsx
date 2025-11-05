@@ -17,7 +17,7 @@ export default function SignInClient() {
     setLoading(true);
 
     try {
-      // ✅ Use redirect:false so we can control what happens next
+      // 👇 Use redirect: false so we can manually control routing
       const result = await signIn("credentials", {
         redirect: false,
         email,
@@ -33,16 +33,32 @@ export default function SignInClient() {
       }
 
       if (result?.ok) {
-        console.log("✅ Login successful — redirecting to /feed");
-        // ✅ Force redirect manually after short delay
-        setTimeout(() => {
-          router.push("/feed");
+        console.log("✅ Login successful — checking onboarding status...");
+        const res = await fetch("/api/user/status");
+
+        if (!res.ok) {
+          console.warn("⚠️ Could not fetch onboarding status — defaulting to feed");
+          router.replace("/feed");
           router.refresh();
-        }, 150);
+          return;
+        }
+
+        const data = await res.json();
+
+        if (data.hasCompletedOnboarding === false) {
+          console.log("🟢 New user detected — redirecting to onboarding");
+          router.replace("/onboarding/interests");
+        } else {
+          console.log("🟢 Returning user — redirecting to feed");
+          router.replace("/feed");
+        }
+
+        router.refresh();
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("❌ Login error:", err);
       setErrorMsg("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
     }
   }

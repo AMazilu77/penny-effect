@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         email,
         passwordHash,
         emailVerified: new Date(),
+        hasCompletedOnboarding: false,
       },
     });
 

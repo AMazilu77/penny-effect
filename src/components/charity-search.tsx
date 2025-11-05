@@ -58,7 +58,7 @@ export default function CharitySearch() {
         <button
           type="submit"
           disabled={!canSearch && touched}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className="rounded px-4 py-2 text-white disabled:opacity-50"
           title={!canSearch && touched ? "Type at least 2 characters" : ""}
         >
           {loading ? "Searching..." : "Search"}
@@ -69,7 +69,7 @@ export default function CharitySearch() {
         {items.map((c) => (
           <li
             key={c.ein}
-            className="rounded border p-4 hover:bg-gray-50 transition"
+            className="rounded border p-4 hover: transition"
           >
             <div className="flex items-baseline justify-between gap-4">
               <h3 className="font-semibold">
@@ -98,7 +98,7 @@ export default function CharitySearch() {
               </a>
             )}
             <div className="mt-3">
-              <button className="rounded border px-3 py-1 text-sm hover:bg-gray-100">
+              <button className="rounded border px-3 py-1 text-sm hover:-100">
                 Donate
               </button>
             </div>

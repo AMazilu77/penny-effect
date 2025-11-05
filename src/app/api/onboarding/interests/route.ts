@@ -6,9 +6,8 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user?.email) {
+    if (!session?.user?.email)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     const body = await req.json();
     const { causes, locationAllowed } = body as {
@@ -16,72 +15,70 @@ export async function POST(req: Request) {
       locationAllowed?: boolean;
     };
 
-    // Find user
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
-
-    if (!user) {
+    if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     const selectAll = causes.includes("all");
 
-    // Delete any old interests
-    await prisma.userInterest.deleteMany({
-      where: { userId: user.id },
-    });
+    // Clear existing interests
+    await prisma.userInterest.deleteMany({ where: { userId: user.id } });
 
     if (!selectAll) {
-      // Find existing cause categories
-      const existingCategories = await prisma.causeCategory.findMany({
+      // 1️⃣ Find existing categories
+      const existing = await prisma.causeCategory.findMany({
         where: { name: { in: causes } },
+        select: { name: true },
       });
+      const existingNames = existing.map((c) => c.name);
+      const missing = causes.filter((n) => !existingNames.includes(n));
 
-      // Create any that are missing
-      const existingNames = existingCategories.map((c) => c.name);
-      const missing = causes.filter((name) => !existingNames.includes(name));
-
+      // 2️⃣ Try to create missing ones, skip if duplicates found mid-transaction
       if (missing.length > 0) {
-        await prisma.causeCategory.createMany({
-          data: missing.map((name) => ({ name })),
-        });
+        try {
+          await prisma.causeCategory.createMany({
+            data: missing.map((name) => ({ name })),
+            skipDuplicates: true, // ✅ the important part
+          });
+        } catch (err: any) {
+          console.warn("⚠️ Skipping duplicate cause creation:", err.message);
+        }
       }
 
-      // Fetch all categories again
-      const allCategories = await prisma.causeCategory.findMany({
+      // 3️⃣ Fetch all again and link
+      const categories = await prisma.causeCategory.findMany({
         where: { name: { in: causes } },
+        select: { id: true },
       });
 
-      // Create user interests
       await prisma.userInterest.createMany({
-        data: allCategories.map((cat) => ({
+        data: categories.map((cat) => ({
           userId: user.id,
           categoryId: cat.id,
         })),
+        skipDuplicates: true,
       });
     }
 
-    // Update the user's onboarding flag
+    // 4️⃣ Mark onboarding complete
     await prisma.user.update({
       where: { id: user.id },
       data: {
         hasCompletedOnboarding: true,
-        // optionally create a blank location record
         location: locationAllowed
-          ? {
-              upsert: {
-                create: {},
-                update: {},
-              },
-            }
+          ? { upsert: { create: {}, update: {} } }
           : undefined,
       },
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Onboarding error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err.message ?? "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
