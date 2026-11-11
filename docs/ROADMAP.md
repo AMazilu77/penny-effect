@@ -23,7 +23,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [x] Unique constraint on `UserInterest(userId, categoryId)`; onboarding accepts only existing category IDs (zod)
 - [x] Remove the empty `UserLocation` upsert (location is out of scope) — upsert and "Enable location" button removed; table left in place
 - [x] Middleware protects all signed-in routes — `src/proxy.ts` + `lib/protected-routes.ts` (tested)
-- [ ] Dashboard: real totals/history from the DB, or real empty states
+- [x] Dashboard: real totals/history from the DB, or real empty states — paid vs "recorded, not yet paid" (D-011), causes followed, recent gifts
 - [x] Inbox: real donation receipts only, or hide the route — hidden (page and nav links removed) until Milestone 3 receipts
 - [x] Remove `console.log` of user data
 - [x] Add Google sign-in — no automatic account linking; verified Google emails only

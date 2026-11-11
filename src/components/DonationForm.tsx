@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { formatCents } from '@/lib/money';
 
 type OrganizationOption = { id: string; name: string; description: string | null };
 
 export default function DonationForm() {
+  const router = useRouter();
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [organizationId, setOrganizationId] = useState('');
   const [amount, setAmount] = useState('');
@@ -46,6 +48,8 @@ export default function DonationForm() {
         );
         setAmount('');
         setMessage('');
+        // Re-render the server parts of the page (totals, recent gifts) with the new row.
+        router.refresh();
       } else {
         const err = await res.json();
         setStatus(`Error: ${err.error || 'Something went wrong'}`);
@@ -58,8 +62,6 @@ export default function DonationForm() {
 
   return (
     <div className="rounded-xl bg-white/5 border border-white/10 p-4">
-      <h2 className="text-xl font-bold mb-4">Make a Donation</h2>
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <select
           value={organizationId}
