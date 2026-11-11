@@ -56,4 +56,5 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Brand pass using the Lorenz-attractor identity; mobile-first QA
 - [ ] Privacy policy, terms, clear statement that donations are processed by the partner
 - [ ] Error monitoring, basic analytics
+- [ ] Clear test donations and test accounts from production (owner's test data from Milestones 0–1, incl. duplicate PENDING donations recorded before the idempotency fix); confirm before deleting, never via the seed script
 - [ ] End-to-end real donation on production verified
