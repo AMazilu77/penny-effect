@@ -10,16 +10,16 @@ The Penny Effect is a micro-giving web app: small donations ("pennies that add u
 
 The owner is a solo developer who is new to React and Next.js and works mostly through agents. Explain non-obvious framework decisions briefly in PR/commit descriptions so the owner can follow along. Prefer boring, well-documented patterns over clever ones.
 
-## Stack (as of last commit, Dec 2025)
+## Stack (Milestone 0 upgrades in progress, Nov 2026)
 
-- Next.js 15.5.7 (App Router, `src/app`), React 19.1, TypeScript
+- Next.js 16.4.6 (App Router, `src/app`, Turbopack), React 19.3.1, TypeScript 5.9, Node 22 (`.nvmrc`, `engines`)
 - Tailwind CSS v4 (`@tailwindcss/postcss`), shadcn-style setup (`components.json`, `cva`, `clsx`, `tailwind-merge`), lucide-react, framer-motion
 - NextAuth v4 with Prisma adapter, **JWT sessions, Credentials provider only** (bcrypt). No Google provider yet despite the project description.
 - Prisma 6 → Neon Postgres (`DATABASE_URL`)
 - react-hook-form + zod, TanStack Query, zustand (installed; mostly unused)
 - Hosted on Vercel. Package manager: **pnpm** (pinned in `packageManager`).
 
-These versions are stale. Upgrading is Milestone 0 in `docs/ROADMAP.md` — check current stable versions and security advisories before changing anything else.
+Target versions and the reasoning live in D-007 (`../penny-effect-docs/DECISIONS.md`). Prisma 7 is still to come in Milestone 0.
 
 ## Commands
 
@@ -44,7 +44,7 @@ src/app/api/        route handlers: auth, register, donate, organizations, chari
                     onboarding/interests, user/status
 src/components/     UI; nav/, surface/, actions/
 src/lib/            auth.ts (authOptions), db.ts + prisma.ts (DUPLICATE clients — consolidate), utils.ts
-src/middleware.ts   route protection (currently only /dashboard)
+src/proxy.ts        route protection (Next 16's name for middleware; currently only /dashboard)
 prisma/             schema.prisma, migrations/, seed.ts
 docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-effect-docs, private)
 ```
@@ -74,7 +74,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 
 **Security**
 - No debug endpoints that expose env or config (the old `/api/debug/env` was removed in Milestone 0).
-- Protect every signed-in route in middleware (dashboard, feed, inbox, onboarding), plus API handlers check the session themselves.
+- Protect every signed-in route in `src/proxy.ts` (dashboard, feed, inbox, onboarding), plus API handlers check the session themselves.
 - Never log secrets, tokens, password hashes, or full user records. Remove `console.log` of user data.
 - Rate-limit `/api/register` and credential sign-in before launch.
 
