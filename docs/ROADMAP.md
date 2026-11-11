@@ -12,7 +12,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [x] Consolidate to one Prisma client (`@/lib/prisma`); delete `lib/db.ts`
 - [x] Import `authOptions` only from `@/lib/auth`
 - [x] Remove `ignoreDuringBuilds`; fix lint errors; remove `any`s in touched files — `pnpm lint` clean, no `any` left in `src/`
-- [ ] Add a test runner (Vitest) and CI (GitHub Actions: install, lint, typecheck, test, build)
+- [x] Add a test runner (Vitest) and CI (GitHub Actions: install, lint, typecheck, test, build)
 - [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping — _deferred by owner. Local dev uses the Neon `development` branch; Vercel Preview still uses production._
 - [ ] _Deferred:_ Migrate Neon project off Azure East US 2 (Neon has deprecated Azure regions)
 - [ ] Replace README with real setup instructions

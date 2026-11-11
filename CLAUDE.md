@@ -28,6 +28,8 @@ pnpm install             # also runs `prisma generate` (postinstall)
 pnpm dev                 # local dev server, http://localhost:3000
 pnpm build               # prisma generate && next build
 pnpm lint
+pnpm typecheck           # tsc --noEmit
+pnpm test                # vitest run (pnpm test:watch while editing)
 pnpm prisma migrate dev  # create/apply a migration locally
 pnpm prisma db seed      # runs prisma/seed.ts (WIPES orgs, categories, news first)
                          # Prisma 7: `migrate reset` no longer seeds automatically; run this after it
@@ -82,6 +84,6 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 
 **Workflow**
 - Work milestone by milestone from `docs/ROADMAP.md`. Small PRs, one concern each.
-- After a change: `pnpm lint` and `pnpm build` must pass. Add tests for business logic (amount handling, donation recording, onboarding) once a test runner exists (Milestone 0).
+- After a change: `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` must pass (CI runs all four on every PR). Add Vitest tests (`*.test.ts` next to the code) for business logic: amount handling, donation recording, onboarding.
 - Update `docs/STATUS.md` when something moves from "fake/missing" to "real", and record any product or architecture choice in `../penny-effect-docs/DECISIONS.md` (commit it in that repo, not this one).
 - If a task conflicts with the charter, stop and ask rather than quietly expanding scope.
