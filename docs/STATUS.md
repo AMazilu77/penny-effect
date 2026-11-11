@@ -34,7 +34,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0). `prisma/seed.ts` keeps its own client (standalone script).
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
 7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
-8. **Lint fails** (15 errors in app code: `any`s, unescaped quotes, and new React Compiler rules from eslint-config-next 16). Next 16 no longer runs lint during `next build`, so CI must run `pnpm lint` separately. `ignoreDuringBuilds` removed.
+8. ~~**Lint fails**~~ `pnpm lint` is clean (0 errors, 0 warnings) and there are no `any`s left in `src/`. Next 16 doesn't lint during `next build`, so CI must run `pnpm lint` separately.
 9. **Unvalidated API input** in donate and onboarding (no zod); onboarding returns raw `err.message`.
 10. **`UserInterest`** has no unique constraint on `(userId, categoryId)`; `skipDuplicates` does nothing there.
 11. **README** is the create-next-app default.

@@ -8,7 +8,7 @@ return (
 <ul className="list-disc list-inside space-y-2 text-white/85">
 <li>Receipt: $10 to Loggerhead Turtles (Aug 28)</li>
 <li>New post from Coral Restoration Foundation</li>
-<li>Alex followed "Reef Check"</li>
+<li>Alex followed &ldquo;Reef Check&rdquo;</li>
 </ul>
 </SectionCard>
 </div>
