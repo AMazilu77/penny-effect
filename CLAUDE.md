@@ -10,7 +10,7 @@ The Penny Effect is a micro-giving web app: small donations ("pennies that add u
 
 The owner is a solo developer who is new to React and Next.js and works mostly through agents. Explain non-obvious framework decisions briefly in PR/commit descriptions so the owner can follow along. Prefer boring, well-documented patterns over clever ones.
 
-## Stack (Milestone 0 upgrades in progress, Nov 2026)
+## Stack (after Milestone 0, Nov 2026)
 
 - Next.js 16.4.6 (App Router, `src/app`, Turbopack), React 19.3.1, TypeScript 5.9, Node 22 (`.nvmrc`, `engines`)
 - Tailwind CSS v4 (`@tailwindcss/postcss`), shadcn-style setup (`components.json`, `cva`, `clsx`, `tailwind-merge`), lucide-react, framer-motion

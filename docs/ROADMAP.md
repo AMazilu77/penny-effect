@@ -2,7 +2,7 @@
 
 Work top to bottom. Each milestone should leave the live site working. Check items off and update `docs/STATUS.md` as you go. D-numbers (D-001 etc.) refer to the private decisions log in `../penny-effect-docs/DECISIONS.md`.
 
-## Milestone 0 — Stabilize (no new features)
+## Milestone 0 — Stabilize (no new features) — ✅ done 2026-11-11 (two items deferred by owner)
 
 - [x] Check current stable Next.js, React, NextAuth/Auth.js, Prisma, Tailwind versions and open security advisories; write the target versions into the private decisions log (`../penny-effect-docs/DECISIONS.md`) — done 2026-11-10, see D-007
 - [x] Upgrade Next.js + React (follow official codemods/upgrade guides), align `eslint-config-next` — Next 16.4.6, React 19.3.1, Node 22
@@ -15,7 +15,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [x] Add a test runner (Vitest) and CI (GitHub Actions: install, lint, typecheck, test, build)
 - [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping — _deferred by owner. Local dev uses the Neon `development` branch; Vercel Preview still uses production._
 - [ ] _Deferred:_ Migrate Neon project off Azure East US 2 (Neon has deprecated Azure regions)
-- [ ] Replace README with real setup instructions
+- [x] Replace README with real setup instructions
 
 ## Milestone 1 — Honest foundation
 

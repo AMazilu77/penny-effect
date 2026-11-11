@@ -1,8 +1,10 @@
 # Current Status — what's real, what's fake, what's broken
 
-_Audit of commit a70453a (2025-12-08, "security patch - upgrade Next.js to 15.5.7"). Update this file as items change._
+_Originally an audit of commit a70453a (2025-12-08). Updated 2026-11-11 at the end of Milestone 0 (stabilize). Update this file as items change._
 
 ## Summary
+
+**Milestone 0 (stabilize) is done** except two items the owner deferred (separate preview database; moving Neon off Azure). Dependencies are current and patched (`pnpm audit --prod`: 0), lint/typecheck/build are clean, CI runs on every PR, and local development runs against a Neon `development` branch. No user-facing features changed.
 
 The skeleton is better than it looks: routing, a real Postgres schema with migrations, working email/password auth, onboarding that saves interests, a feed driven by real DB queries, and a donation form that writes rows. What's missing is the part that makes it a product: real money movement, real charity data, and honest user-facing numbers. No crypto or smart-contract code exists yet, and Google sign-in is not implemented despite the project description saying so.
 
@@ -31,14 +33,16 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.
-5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0). `prisma/seed.ts` keeps its own client (standalone script).
+5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0); the seed script uses it too.
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
 7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
 8. ~~**Lint fails**~~ `pnpm lint` is clean (0 errors, 0 warnings) and there are no `any`s left in `src/`. Next 16 doesn't lint during `next build`, so CI must run `pnpm lint` separately.
-9. **Unvalidated API input** in donate and onboarding (no zod); onboarding returns raw `err.message`.
+9. **Unvalidated API input** in donate and onboarding (no zod). Several handlers still look the user up by email instead of using `session.user.id`.
 10. **`UserInterest`** has no unique constraint on `(userId, categoryId)`; `skipDuplicates` does nothing there.
-11. **README** is the create-next-app default.
+11. ~~**README** is the create-next-app default.~~ Real setup instructions + `.env.example` (Milestone 0).
 12. Unused deps likely: zustand, TanStack Query (provider present?), react-hook-form, `Hero.tsx` mostly commented out.
+13. Dev-only: 1 moderate advisory (`minimatch` <11 inside `eslint-plugin-import`, needs an upstream major bump). ESLint 9 is past upstream support until Next's lint plugins support ESLint 10.
+14. Some Tailwind class strings in `BottomNav` are garbled (e.g. `" -400 hover:   hover:…"`), a leftover for the Milestone 5 brand pass.
 
 ## Infra
 
