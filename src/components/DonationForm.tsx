@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { formatCents } from '@/lib/money';
 
 type OrganizationOption = { id: string; name: string; description: string | null };
 
@@ -37,7 +38,12 @@ export default function DonationForm() {
       });
 
       if (res.ok) {
-        setStatus('Donation successful! 🎉');
+        const data: { donation: { amountCents: number; currency: string } } = await res.json();
+        // Honest wording: nothing is charged until the donation partner is integrated.
+        setStatus(
+          `Recorded your ${formatCents(data.donation.amountCents, data.donation.currency)} gift. ` +
+            'No payment was taken. Real payments arrive with our donation partner.',
+        );
         setAmount('');
         setMessage('');
       } else {
@@ -71,7 +77,8 @@ export default function DonationForm() {
 
         <input
           type="number"
-          min="0.01"
+          min="1"
+          max="10000"
           step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
@@ -91,8 +98,9 @@ export default function DonationForm() {
           type="submit"
           className="bg-green-600 hover:bg-green-700 rounded p-2 font-semibold"
         >
-          Donate
+          Record donation
         </button>
+        <p className="text-xs text-white/60">No payment is taken yet.</p>
       </form>
 
       {status && <p className="mt-4 text-sm">{status}</p>}

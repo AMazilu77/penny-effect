@@ -81,11 +81,29 @@ model VerificationToken {
 //  Donations & Organizations
 // =======================================================
 
+// Lifecycle of a gift. Today nothing is charged, so every donation stays
+// PENDING. With the donation partner (Milestone 3), it becomes COMPLETED or
+// FAILED only from the partner's server-side confirmation.
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
 model Donation {
-  id        String   @id @default(cuid())
-  amount    Float
-  message   String?
-  createdAt DateTime @default(now())
+  id          String         @id @default(cuid())
+  // LEGACY: dollars as a float. Still written for the previous deployment's
+  // sake; read `amountCents` instead. Dropped in a follow-up migration
+  // (add-then-remove), when `amountCents` also becomes required.
+  amount      Float
+  // Integer cents (D-004). Nullable only until the follow-up migration.
+  amountCents Int?
+  currency    String         @default("USD")
+  status      DonationStatus @default(PENDING)
+  // The donation partner's reference for this gift (Milestone 3).
+  externalId  String?        @unique
+  message     String?
+  createdAt   DateTime       @default(now())
 
   // Foreign keys
   userId         String

@@ -1,0 +1,36 @@
+import { z } from "zod";
+import { MAX_DONATION_CENTS, MIN_DONATION_CENTS, formatCents, parseDollarsToCents } from "@/lib/money";
+
+// Request body for POST /api/donate. `amount` is in dollars as the user typed
+// it ("5" or "5.50", or a JSON number). The parsed result has `amountCents`
+// (integer cents) instead, so dollars and cents can't be mixed up later.
+export const donationRequestSchema = z
+  .object({
+    organizationId: z.string().trim().min(1).max(64),
+    amount: z
+      .union([z.string(), z.number()])
+      .transform((value, ctx) => {
+        const cents = parseDollarsToCents(value);
+        if (cents === null) {
+          ctx.addIssue({ code: "custom", message: "Enter an amount like 5 or 5.50." });
+          return z.NEVER;
+        }
+        return cents;
+      })
+      .pipe(
+        z
+          .number()
+          .int()
+          .min(MIN_DONATION_CENTS, `The minimum gift is ${formatCents(MIN_DONATION_CENTS)}.`)
+          .max(MAX_DONATION_CENTS, `The maximum gift is ${formatCents(MAX_DONATION_CENTS)}.`),
+      ),
+    message: z
+      .string()
+      .trim()
+      .max(500, "Keep the message under 500 characters.")
+      .optional()
+      .transform((m) => (m ? m : undefined)),
+  })
+  .transform(({ amount, ...rest }) => ({ ...rest, amountCents: amount }));
+
+export type DonationRequest = z.infer<typeof donationRequestSchema>;
