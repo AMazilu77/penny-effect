@@ -147,6 +147,9 @@ model UserInterest {
   user     User          @relation(fields: [userId], references: [id])
   category CauseCategory @relation(fields: [categoryId], references: [id])
   subcause SubCause?     @relation(fields: [subcauseId], references: [id])
+
+  // A user follows each category at most once.
+  @@unique([userId, categoryId])
 }
 
 // =======================================================

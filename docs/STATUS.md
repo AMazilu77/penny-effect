@@ -14,7 +14,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 |---|---|---|
 | Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth v4.24.15 Credentials, JWT sessions (staying on v4 — D-003). No rate limiting. |
 | Google sign-in | ❌ Missing | Described in project blurb; not in `lib/auth.ts`. |
-| Onboarding (choose causes) | 🟡 Works, unsafe | Creates new `CauseCategory` rows from any client-supplied string (no zod yet). No longer leaks raw error messages. Location "upsert" stores an empty row. |
+| Onboarding (choose causes) | ✅ Real | Categories loaded from the DB; API accepts only existing category ids (zod, tested), uses `session.user.id`, saves in one transaction. One row per user+category (unique constraint). No location. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
 | Donate | 🟡 Records only | `/api/donate` writes a `Donation` row. No payment happens. `amount` is `Float`, no min/max/validation. |
@@ -37,8 +37,8 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
 7. ~~**Proxy protects only `/dashboard`.**~~ `src/proxy.ts` now protects dashboard, feed, inbox and onboarding (`lib/protected-routes.ts`, unit-tested). API handlers still check the session themselves.
 8. ~~**Lint fails**~~ `pnpm lint` is clean (0 errors, 0 warnings) and there are no `any`s left in `src/`. Next 16 doesn't lint during `next build`, so CI must run `pnpm lint` separately.
-9. **Unvalidated API input** in donate and onboarding (no zod). Several handlers still look the user up by email instead of using `session.user.id`.
-10. **`UserInterest`** has no unique constraint on `(userId, categoryId)`; `skipDuplicates` does nothing there.
+9. **Unvalidated API input** in donate (onboarding now validated with zod). Several handlers still look the user up by email instead of using `session.user.id`.
+10. ~~**`UserInterest`** has no unique constraint~~ Unique on `(userId, categoryId)`; migration removes exact duplicates first.
 11. ~~**README** is the create-next-app default.~~ Real setup instructions + `.env.example` (Milestone 0).
 12. Unused deps likely: zustand, TanStack Query (provider present?), react-hook-form, `Hero.tsx` mostly commented out.
 13. Dev-only: 1 moderate advisory (`minimatch` <11 inside `eslint-plugin-import`, needs an upstream major bump). ESLint 9 is past upstream support until Next's lint plugins support ESLint 10.
