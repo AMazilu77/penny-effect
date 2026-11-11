@@ -23,8 +23,6 @@ export default async function FeedPage() {
   // 🔹 Gather the category names they follow
   const followedCategories = user.interests.map((i) => i.category.name);
 
-  console.log("🧭 User follows:", followedCategories);
-
   // 🔹 If no interests, show all orgs (default behavior)
   const newsItems = await prisma.newsItem.findMany({
     where:
