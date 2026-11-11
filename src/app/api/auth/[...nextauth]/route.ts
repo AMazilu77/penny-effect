@@ -3,4 +3,5 @@ import NextAuth from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST, authOptions };
+// Route files should only export HTTP handlers. Import authOptions from "@/lib/auth".
+export { handler as GET, handler as POST };

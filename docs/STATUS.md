@@ -12,7 +12,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 |---|---|---|
 | Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth v4.24.15 Credentials, JWT sessions (staying on v4 — D-003). No rate limiting. |
 | Google sign-in | ❌ Missing | Described in project blurb; not in `lib/auth.ts`. |
-| Onboarding (choose causes) | 🟡 Works, unsafe | Creates new `CauseCategory` rows from any client-supplied string. Location "upsert" stores an empty row. |
+| Onboarding (choose causes) | 🟡 Works, unsafe | Creates new `CauseCategory` rows from any client-supplied string (no zod yet). No longer leaks raw error messages. Location "upsert" stores an empty row. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
 | Donate | 🟡 Records only | `/api/donate` writes a `Donation` row. No payment happens. `amount` is `Float`, no min/max/validation. |
@@ -32,7 +32,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0). `prisma/seed.ts` keeps its own client (standalone script).
-6. **`authOptions` imported from the route file** in `api/donate` and `api/onboarding/interests`. Use `@/lib/auth`.
+6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
 7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
 8. **Lint fails** (15 errors in app code: `any`s, unescaped quotes, and new React Compiler rules from eslint-config-next 16). Next 16 no longer runs lint during `next build`, so CI must run `pnpm lint` separately. `ignoreDuringBuilds` removed.
 9. **Unvalidated API input** in donate and onboarding (no zod); onboarding returns raw `err.message`.
