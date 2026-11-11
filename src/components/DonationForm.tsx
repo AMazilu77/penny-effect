@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCents } from '@/lib/money';
 
@@ -13,6 +13,13 @@ export default function DonationForm() {
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  // Updated immediately (unlike state), so a second click in the same instant is ignored.
+  const inFlight = useRef(false);
+  // One key per gift: sent with the request so the server records it at most
+  // once (double-clicks, retries). Replaced only after a gift is recorded, so a
+  // retry after an error reuses it and can't create a duplicate.
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   // Load organizations on mount
   useEffect(() => {
@@ -30,13 +37,16 @@ export default function DonationForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus('Submitting...');
+    if (inFlight.current) return; // ignore extra clicks while a request is in flight
+    inFlight.current = true;
+    setSubmitting(true);
+    setStatus('');
 
     try {
       const res = await fetch('/api/donate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId, amount, message }),
+        body: JSON.stringify({ organizationId, amount, message, idempotencyKey }),
       });
 
       if (res.ok) {
@@ -48,6 +58,7 @@ export default function DonationForm() {
         );
         setAmount('');
         setMessage('');
+        setIdempotencyKey(crypto.randomUUID()); // next gift gets a fresh key
         // Re-render the server parts of the page (totals, recent gifts) with the new row.
         router.refresh();
       } else {
@@ -56,7 +67,10 @@ export default function DonationForm() {
       }
     } catch (err) {
       console.error(err);
-      setStatus('Network error.');
+      setStatus('Network error. Please try again.');
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false); // re-enable the button (after success or error)
     }
   };
 
@@ -98,9 +112,11 @@ export default function DonationForm() {
 
         <button
           type="submit"
-          className="bg-green-600 hover:bg-green-700 rounded p-2 font-semibold"
+          disabled={submitting}
+          aria-busy={submitting}
+          className="bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-wait rounded p-2 font-semibold"
         >
-          Record donation
+          {submitting ? 'Recording…' : 'Record donation'}
         </button>
         <p className="text-xs text-white/60">No payment is taken yet.</p>
       </form>

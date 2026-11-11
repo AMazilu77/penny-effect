@@ -66,6 +66,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 - Import `authOptions` from `@/lib/auth`, not from the NextAuth route file.
 - Validate every API request body with zod. Return consistent `{ error }` JSON with correct status codes; don't leak `err.message` to clients.
 - Get the user id from the session (`session.user.id`), not by re-querying by email.
+- Anything that records money must be idempotent: the client sends a key (UUID per gift) and the DB enforces uniqueness (see `src/lib/record-donation.ts`). Reuse this pattern for the Milestone 3 partner checkout and webhook (partner event id as the key).
 - Server Components by default; add `"use client"` only where interactivity requires it.
 - Use TypeScript properly — no new `any`. Fix existing ones when you touch the file.
 - Don't add dependencies without a reason stated in the PR. Remove unused ones when sure.

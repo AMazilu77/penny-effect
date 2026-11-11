@@ -91,19 +91,22 @@ enum DonationStatus {
 }
 
 model Donation {
-  id          String         @id @default(cuid())
+  id             String         @id @default(cuid())
   // LEGACY: dollars as a float. Still written for the previous deployment's
   // sake; read `amountCents` instead. Dropped in a follow-up migration
   // (add-then-remove), when `amountCents` also becomes required.
-  amount      Float
+  amount         Float
   // Integer cents (D-004). Nullable only until the follow-up migration.
-  amountCents Int?
-  currency    String         @default("USD")
-  status      DonationStatus @default(PENDING)
+  amountCents    Int?
+  currency       String         @default("USD")
+  status         DonationStatus @default(PENDING)
   // The donation partner's reference for this gift (Milestone 3).
-  externalId  String?        @unique
-  message     String?
-  createdAt   DateTime       @default(now())
+  externalId     String?        @unique
+  // Sent by the donation form (a UUID per gift) so a double-click or retry
+  // can't record the same gift twice. Null for rows from before this column.
+  idempotencyKey String?
+  message        String?
+  createdAt      DateTime       @default(now())
 
   // Foreign keys
   userId         String
@@ -112,6 +115,9 @@ model Donation {
   // Relations
   user         User         @relation(fields: [userId], references: [id])
   organization Organization @relation(fields: [organizationId], references: [id])
+
+  // One donation per (user, idempotency key). Postgres allows many NULL keys.
+  @@unique([userId, idempotencyKey])
 }
 
 model Organization {

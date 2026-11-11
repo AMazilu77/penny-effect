@@ -17,7 +17,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Onboarding (choose causes) | ✅ Real | Categories loaded from the DB; API accepts only existing category ids (zod, tested), uses `session.user.id`, saves in one transaction. One row per user+category (unique constraint). No location. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
-| Donate | 🟡 Records only | `/api/donate` records a PENDING donation in integer cents (`amountCents`, zod-validated, $1–$10,000, tested). No payment happens and the UI says so. Legacy `amount` float still written until the remove migration. |
+| Donate | 🟡 Records only | `/api/donate` records a PENDING donation in integer cents (`amountCents`, zod-validated, $1–$10,000, tested). No payment happens and the UI says so. Legacy `amount` float still written until the remove migration. Idempotent: the form sends a per-gift UUID; a double-click or retry returns the original donation (unique `(userId, idempotencyKey)`). |
 | Dashboard | ✅ Real data | Given (COMPLETED only, $0 until Milestone 3), recorded-not-yet-paid (PENDING), causes followed, last 5 gifts; honest empty states. No dead links. |
 | Feed | ✅ Real query | Pulls `NewsItem`s by followed categories. Content is seeded. |
 | Discover | ❌ Static | Category chips do nothing. |
