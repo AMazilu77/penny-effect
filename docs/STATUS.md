@@ -23,7 +23,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Penny Jar / round-ups | ❌ Missing | Core concept not started. |
 | Crypto / smart contracts | ❌ Missing | Only `cryptoWalletBTC/ETH` text fields on `Organization`. No Tezos anything. |
 | Admin | ❌ Missing | |
-| Tests | ❌ None | No test runner configured. |
+| Tests | 🟡 Runner only | Vitest 5 + GitHub Actions CI (lint, typecheck, test, build on every PR). One wiring test; business-logic tests come with Milestone 1. |
 
 ## Technical debt and issues (priority order)
 
@@ -43,4 +43,5 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 ## Infra
 
 - Hosting: Vercel (live), Node 22. DB: Neon Postgres in Azure East US 2 (deprecated region — deferred move). Branches: production, `development` (local dev). Migrations from 2025-08 through 2025-11.
-- No CI. No preview-DB strategy (check whether Vercel previews point at production DB — they should not).
+- CI: GitHub Actions (`.github/workflows/ci.yml`), no secrets or DB needed. Not yet a required check on `main` (owner setting).
+- Vercel Preview deployments still use the **production** database (roadmap item 10, deferred).
