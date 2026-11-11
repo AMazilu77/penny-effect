@@ -8,7 +8,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Upgrade Next.js + React (follow official codemods/upgrade guides), align `eslint-config-next`
 - [x] Decide NextAuth v4 vs Auth.js v5 (D-003) and do that migration if chosen — decided: stay on v4, patched to 4.24.15
 - [ ] Upgrade Prisma; regenerate client; confirm migrations apply cleanly to a fresh Neon branch
-- [ ] Delete `/api/debug/env` and its middleware exemption
+- [x] Delete `/api/debug/env` and its middleware exemption
 - [ ] Consolidate to one Prisma client (`@/lib/prisma`); delete `lib/db.ts`
 - [ ] Import `authOptions` only from `@/lib/auth`
 - [ ] Remove `ignoreDuringBuilds`; fix lint errors; remove `any`s in touched files
