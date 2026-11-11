@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 
+type OrganizationOption = { id: string; name: string; description: string | null };
+
 export default function DonationForm() {
-  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [organizationId, setOrganizationId] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');

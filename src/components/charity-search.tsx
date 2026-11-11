@@ -15,7 +15,7 @@ type Charity = {
 export default function CharitySearch() {
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Charity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // true until the initial list loads
   const [touched, setTouched] = useState(false);
 
   const canSearch = useMemo(() => q.trim().length >= 2, [q]);
@@ -39,10 +39,21 @@ export default function CharitySearch() {
     fetchCharities(q);
   }
 
-  // load initial list once
+  // Load the initial list once. State is only set when the request finishes
+  // (not synchronously inside the effect), and ignored if the component unmounts.
   useEffect(() => {
-    fetchCharities("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    fetch("/api/charities?q=", { cache: "no-store" })
+      .then((res) => res.json() as Promise<Charity[]>)
+      .then((data) => {
+        if (!cancelled) setItems(data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

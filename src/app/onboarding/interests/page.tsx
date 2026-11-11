@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, JSX } from "react";
+import React, { useState, JSX } from "react";
 import { useRouter } from "next/navigation";
 
 type Cause = {
@@ -29,13 +29,12 @@ export default function OnboardingInterestsPage(): JSX.Element {
   const [locationAllowed, setLocationAllowed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (selectAll) {
-      setSelected(CAUSES.map((c) => c.id));
-    } else if (selected.length === CAUSES.length) {
-      setSelectAll(false);
-    }
-  }, [selectAll, selected.length]);
+  // Ticking "select all" selects every cause. Done in the event handler rather
+  // than in a useEffect, so React renders once instead of twice.
+  const handleSelectAllChange = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) setSelected(CAUSES.map((c) => c.id));
+  };
 
   const toggleCause = (id: string) => {
     if (selectAll) setSelectAll(false);
@@ -104,7 +103,7 @@ export default function OnboardingInterestsPage(): JSX.Element {
           <input
             type="checkbox"
             checked={selectAll}
-            onChange={(e) => setSelectAll(e.target.checked)}
+            onChange={(e) => handleSelectAllChange(e.target.checked)}
             className="w-5 h-5 accent-emerald-600"
           />
           <span className="text-lg text-gray-700 font-medium">
