@@ -3,13 +3,17 @@
 // =======================================================
 
 generator client {
-  provider = "prisma-client-js"
+  // Prisma 7's generator. The client is generated into src/generated/prisma
+  // (git-ignored; `prisma generate` runs on install and in `pnpm build`).
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL") // pooled connection, used by the app at runtime
-  directUrl = env("DIRECT_URL")   // direct connection, used by the Prisma CLI for migrations
+  provider = "postgresql"
+  // Connection URLs live outside the schema in Prisma 7:
+  // - app at runtime: DATABASE_URL (pooled), via the Neon adapter in src/lib/prisma.ts
+  // - Prisma CLI (migrate, studio): DIRECT_URL, via prisma.config.ts
 }
 
 // =======================================================

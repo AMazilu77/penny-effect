@@ -15,21 +15,22 @@ The owner is a solo developer who is new to React and Next.js and works mostly t
 - Next.js 16.4.6 (App Router, `src/app`, Turbopack), React 19.3.1, TypeScript 5.9, Node 22 (`.nvmrc`, `engines`)
 - Tailwind CSS v4 (`@tailwindcss/postcss`), shadcn-style setup (`components.json`, `cva`, `clsx`, `tailwind-merge`), lucide-react, framer-motion
 - NextAuth v4 with Prisma adapter, **JWT sessions, Credentials provider only** (bcrypt). No Google provider yet despite the project description.
-- Prisma 6 → Neon Postgres (`DATABASE_URL`)
+- Prisma 7 → Neon Postgres. Client is generated into `src/generated/prisma` (git-ignored; import it only via `@/lib/prisma`) and connects through the Neon driver adapter (`@prisma/adapter-neon`).
 - react-hook-form + zod, TanStack Query, zustand (installed; mostly unused)
 - Hosted on Vercel. Package manager: **pnpm** (pinned in `packageManager`).
 
-Target versions and the reasoning live in D-007 (`../penny-effect-docs/DECISIONS.md`). Prisma 7 is still to come in Milestone 0.
+Target versions and the reasoning live in D-007 (`../penny-effect-docs/DECISIONS.md`).
 
 ## Commands
 
 ```bash
-pnpm install
+pnpm install             # also runs `prisma generate` (postinstall)
 pnpm dev                 # local dev server, http://localhost:3000
-pnpm build               # prisma generate && next build --turbopack
+pnpm build               # prisma generate && next build
 pnpm lint
 pnpm prisma migrate dev  # create/apply a migration locally
 pnpm prisma db seed      # runs prisma/seed.ts (WIPES orgs, categories, news first)
+                         # Prisma 7: `migrate reset` no longer seeds automatically; run this after it
 pnpm prisma studio
 ```
 
