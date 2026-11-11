@@ -31,7 +31,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.
-5. **Three ways to get a Prisma client**: `lib/db.ts`, `lib/prisma.ts`, and `new PrismaClient()` inside `api/donate` and `api/organizations` (connection leaks on serverless). Consolidate on `@/lib/prisma`.
+5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0). `prisma/seed.ts` keeps its own client (standalone script).
 6. **`authOptions` imported from the route file** in `api/donate` and `api/onboarding/interests`. Use `@/lib/auth`.
 7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
 8. **Lint fails** (15 errors in app code: `any`s, unescaped quotes, and new React Compiler rules from eslint-config-next 16). Next 16 no longer runs lint during `next build`, so CI must run `pnpm lint` separately. `ignoreDuringBuilds` removed.
