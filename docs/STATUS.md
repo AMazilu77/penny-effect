@@ -27,7 +27,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 ## Technical debt and issues (priority order)
 
-1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Remaining: Prisma 6 → 7 (its config package pulls in 3 high advisories), and ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
+1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Prisma 7.10.1 (D-007). `pnpm audit --prod` is clean. Remaining: ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.

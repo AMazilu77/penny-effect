@@ -14,6 +14,12 @@ for (const file of [".env.local", ".env"]) {
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
+  // Used by CLI commands that talk to the database (migrate, studio, db pull).
+  // Migrations need Neon's *direct* connection, not the pooled one.
+  // `prisma generate` doesn't need it, so builds without DIRECT_URL still work.
+  datasource: {
+    url: process.env.DIRECT_URL,
+  },
   migrations: {
     path: "prisma/migrations",
     // Wipes organizations, categories and news before re-seeding. Never run against production.
