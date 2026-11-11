@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -42,8 +42,8 @@ export async function POST(req: Request) {
             data: missing.map((name) => ({ name })),
             skipDuplicates: true, // ✅ the important part
           });
-        } catch (err: any) {
-          console.warn("⚠️ Skipping duplicate cause creation:", err.message);
+        } catch (err) {
+          console.warn("⚠️ Skipping duplicate cause creation:", err instanceof Error ? err.message : err);
         }
       }
 
@@ -74,11 +74,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err) {
     console.error("Onboarding error:", err);
-    return NextResponse.json(
-      { error: err.message ?? "Internal Server Error" },
-      { status: 500 }
-    );
+    // Don't send internal error details to the browser.
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
