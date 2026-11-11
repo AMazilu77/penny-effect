@@ -112,6 +112,13 @@ export default function SignUpPage() {
           Sign in
         </a>
       </p>
+      <p className="text-center text-xs text-gray-500">
+        Prefer Google? Use &ldquo;Continue with Google&rdquo; on the{" "}
+        <a href="/signin" className="text-emerald-600 hover:underline">
+          sign-in page
+        </a>
+        .
+      </p>
     </div>
   );
 }

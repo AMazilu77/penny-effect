@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import styles from "./TopNav.module.css";
 
@@ -54,18 +54,7 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
             </button>
           )}
 
-          {/* Show notifications only when logged in */}
-          {status === "authenticated" && (
-            <Link
-              href="/inbox"
-              className={`${styles.iconBtn} ${
-                isActive("/inbox") ? styles.active : ""
-              }`}
-              aria-label="Inbox"
-            >
-              <Bell className="h-5 w-5" />
-            </Link>
-          )}
+          {/* Inbox is hidden until real partner receipts exist (Milestone 3). */}
 
           <Link
             href="/dashboard"
