@@ -48,7 +48,7 @@ src/app/api/        route handlers: auth, register, donate, organizations, chari
 src/components/     UI; nav/, surface/, actions/
 src/lib/            auth.ts (authOptions), prisma.ts (the only Prisma client), utils.ts
 src/types/          type declarations (next-auth.d.ts adds session.user.id)
-src/proxy.ts        route protection (Next 16's name for middleware; currently only /dashboard)
+src/proxy.ts        route protection (Next 16's name for middleware); protected paths in src/lib/protected-routes.ts
 prisma/             schema.prisma, migrations/, seed.ts
 docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-effect-docs, private)
 ```

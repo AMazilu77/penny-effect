@@ -48,10 +48,8 @@ export default function SignUpPage() {
       const statusData = await statusRes.json();
 
       if (statusRes.ok && statusData.hasCompletedOnboarding === false) {
-        console.log("🆕 New user — redirecting to onboarding...");
         router.replace("/onboarding/interests");
       } else {
-        console.log("Returning user — redirecting to feed...");
         router.replace("/feed");
       }
 

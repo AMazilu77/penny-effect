@@ -19,7 +19,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
 | Donate | 🟡 Records only | `/api/donate` writes a `Donation` row. No payment happens. `amount` is `Float`, no min/max/validation. |
 | Dashboard | ❌ Fake data | Metrics ("$742.50 given", "4 months streak") and activity are hardcoded for every user. |
-| Feed | ✅ Real query | Pulls `NewsItem`s by followed categories. Content is seeded. Logs user data with `console.log`. |
+| Feed | ✅ Real query | Pulls `NewsItem`s by followed categories. Content is seeded. |
 | Discover | ❌ Static | Category chips do nothing. |
 | Inbox | ❌ Fake data | Hardcoded receipts/notifications. |
 | Penny Jar / round-ups | ❌ Missing | Core concept not started. |
@@ -35,7 +35,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 4. **Fake data shown as real** on dashboard and inbox.
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0); the seed script uses it too.
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
-7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
+7. ~~**Proxy protects only `/dashboard`.**~~ `src/proxy.ts` now protects dashboard, feed, inbox and onboarding (`lib/protected-routes.ts`, unit-tested). API handlers still check the session themselves.
 8. ~~**Lint fails**~~ `pnpm lint` is clean (0 errors, 0 warnings) and there are no `any`s left in `src/`. Next 16 doesn't lint during `next build`, so CI must run `pnpm lint` separately.
 9. **Unvalidated API input** in donate and onboarding (no zod). Several handlers still look the user up by email instead of using `session.user.id`.
 10. **`UserInterest`** has no unique constraint on `(userId, categoryId)`; `skipDuplicates` does nothing there.

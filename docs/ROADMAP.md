@@ -22,10 +22,10 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Migrate `Donation.amount Float` → `amountCents Int` + `currency`; add `status` (pending/completed/failed) and `externalId` for partner reference
 - [ ] Unique constraint on `UserInterest(userId, categoryId)`; onboarding accepts only existing category IDs (zod)
 - [ ] Remove the empty `UserLocation` upsert (location is out of scope)
-- [ ] Middleware protects all signed-in routes
+- [x] Middleware protects all signed-in routes — `src/proxy.ts` + `lib/protected-routes.ts` (tested)
 - [ ] Dashboard: real totals/history from the DB, or real empty states
 - [ ] Inbox: real donation receipts only, or hide the route
-- [ ] Remove `console.log` of user data
+- [x] Remove `console.log` of user data
 - [ ] Add Google sign-in
 
 ## Milestone 2 — Real nonprofits

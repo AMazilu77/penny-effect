@@ -24,8 +24,6 @@ export default function SignInClient() {
         password,
       });
 
-      console.log("🔹 signIn result:", result);
-
       if (result?.error) {
         setErrorMsg("Invalid email or password");
         setLoading(false);
@@ -33,7 +31,6 @@ export default function SignInClient() {
       }
 
       if (result?.ok) {
-        console.log("✅ Login successful — checking onboarding status...");
         const res = await fetch("/api/user/status");
 
         if (!res.ok) {
@@ -46,10 +43,8 @@ export default function SignInClient() {
         const data = await res.json();
 
         if (data.hasCompletedOnboarding === false) {
-          console.log("🟢 New user detected — redirecting to onboarding");
           router.replace("/onboarding/interests");
         } else {
-          console.log("🟢 Returning user — redirecting to feed");
           router.replace("/feed");
         }
 
