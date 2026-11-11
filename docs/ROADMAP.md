@@ -19,7 +19,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 
 ## Milestone 1 — Honest foundation
 
-- [ ] Migrate `Donation.amount Float` → `amountCents Int` + `currency`; add `status` (pending/completed/failed) and `externalId` for partner reference
+- [ ] Migrate `Donation.amount Float` → `amountCents Int` + `currency`; add `status` (pending/completed/failed) and `externalId` for partner reference — **add step done** (columns + backfill, app writes cents); remove step (drop `amount`, require `amountCents`) pending
 - [x] Unique constraint on `UserInterest(userId, categoryId)`; onboarding accepts only existing category IDs (zod)
 - [x] Remove the empty `UserLocation` upsert (location is out of scope) — upsert and "Enable location" button removed; table left in place
 - [x] Middleware protects all signed-in routes — `src/proxy.ts` + `lib/protected-routes.ts` (tested)

@@ -17,7 +17,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Onboarding (choose causes) | ✅ Real | Categories loaded from the DB; API accepts only existing category ids (zod, tested), uses `session.user.id`, saves in one transaction. One row per user+category (unique constraint). No location. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
-| Donate | 🟡 Records only | `/api/donate` writes a `Donation` row. No payment happens. `amount` is `Float`, no min/max/validation. |
+| Donate | 🟡 Records only | `/api/donate` records a PENDING donation in integer cents (`amountCents`, zod-validated, $1–$10,000, tested). No payment happens and the UI says so. Legacy `amount` float still written until the remove migration. |
 | Dashboard | ❌ Fake data | Metrics ("$742.50 given", "4 months streak") and activity are hardcoded for every user. |
 | Feed | ✅ Real query | Pulls `NewsItem`s by followed categories. Content is seeded. |
 | Discover | ❌ Static | Category chips do nothing. |
@@ -31,7 +31,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Prisma 7.10.1 (D-007). `pnpm audit --prod` is clean. Remaining: ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
-3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
+3. **Money as `Float`**: half done. `amountCents Int`, `currency`, `status`, `externalId` added and backfilled; the app writes cents. Follow-up: make `amountCents` required, drop `amount` (rows with impossible legacy amounts are left NULL and must be handled there).
 4. **Fake data shown as real** on the dashboard (inbox removed).
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0); the seed script uses it too.
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
