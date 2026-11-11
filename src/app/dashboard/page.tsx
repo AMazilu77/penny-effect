@@ -1,45 +1,31 @@
 // app/dashboard/page.tsx
+// Every number here comes from the signed-in user's own rows. No sample data.
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { formatCents } from "@/lib/money";
+import { donationStatusLabel, summarizeDonations } from "@/lib/dashboard";
 import { SectionCard } from "@/components/surface/SectionCard";
 import DonationForm from "@/components/DonationForm";
 
-type Metric = { key: string; value: string };
-type Activity = { id: string; text: string; date: string };
+export const dynamic = "force-dynamic";
 
-const metrics: Metric[] = [
-  { key: "Impact score", value: "1,284" },
-  { key: "Total given", value: "$742.50" },
-  { key: "Monthly streak", value: "4 months" },
-  { key: "Causes followed", value: "12" },
-];
+// Dates are shown in UTC so server and browser render the same text.
+const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
-const recentActivity: Activity[] = [
-  { id: "1", text: "Donated $10 to Loggerhead Turtles", date: "Aug 28" },
-  { id: "2", text: "Followed Coral Restoration Foundation", date: "Aug 26" },
-  { id: "3", text: "Shared “Beach Cleanup” campaign", date: "Aug 24" },
-];
-
-function MetricTile({ m }: { m: Metric }) {
+function MetricTile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-      <div className="text-xs opacity-60">{m.key}</div>
-      <div className="text-lg font-semibold">{m.value}</div>
+      <div className="text-xs opacity-60">{label}</div>
+      <div className="text-lg font-semibold">{value}</div>
+      {note && <div className="mt-1 text-xs opacity-60">{note}</div>}
     </div>
   );
 }
 
-function EmptyState({
-  title,
-  actionHref,
-  actionText,
-}: {
-  title: string;
-  actionHref?: string;
-  actionText?: string;
-}) {
+function EmptyState({ title, actionHref, actionText }: { title: string; actionHref?: string; actionText?: string }) {
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-4 opacity-80">
       <p>{title}</p>
@@ -55,17 +41,37 @@ function EmptyState({
   );
 }
 
-// ✅ Full server-side session check
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) redirect("/signin");
 
-  // redirect if user is NOT logged in
-  if (!session) redirect("/signin?callbackUrl=/dashboard");
+  // Rows with no amountCents (legacy rows awaiting the follow-up backfill) are left out of totals.
+  const [statusGroups, causesFollowed, recentDonations] = await Promise.all([
+    prisma.donation.groupBy({
+      by: ["status"],
+      where: { userId, amountCents: { not: null } },
+      _sum: { amountCents: true },
+      _count: { _all: true },
+    }),
+    prisma.userInterest.count({ where: { userId } }),
+    prisma.donation.findMany({
+      where: { userId, amountCents: { not: null } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      select: {
+        id: true,
+        amountCents: true,
+        currency: true,
+        status: true,
+        createdAt: true,
+        organization: { select: { name: true } },
+      },
+    }),
+  ]);
 
-  const firstName =
-    session.user?.name?.split(" ")[0] ??
-    session.user?.email?.split("@")[0] ??
-    "Friend";
+  const summary = summarizeDonations(statusGroups);
+  const firstName = session.user.name?.split(" ")[0] ?? session.user.email?.split("@")[0] ?? "Friend";
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6 space-y-6">
@@ -80,66 +86,68 @@ export default async function DashboardPage() {
             Discover causes
           </Link>
           <Link
-            href="/settings"
+            href="/onboarding/interests"
             className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
           >
-            Edit profile
+            Change causes
           </Link>
         </div>
       </section>
 
-      {/* Impact overview */}
-      <SectionCard title="Impact overview">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {metrics.map((m) => (
-            <MetricTile key={m.key} m={m} />
-          ))}
+      {/* Impact overview: real numbers only */}
+      <SectionCard title="Your giving">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <MetricTile
+            label="Given (paid)"
+            value={formatCents(summary.givenCents)}
+            note={
+              summary.givenCount === 0
+                ? "Payments start once our donation partner is connected."
+                : `${summary.givenCount} paid ${summary.givenCount === 1 ? "gift" : "gifts"}`
+            }
+          />
+          <MetricTile
+            label="Recorded, not yet paid"
+            value={formatCents(summary.pendingCents)}
+            note={`${summary.pendingCount} ${summary.pendingCount === 1 ? "gift" : "gifts"} · no money has moved`}
+          />
+          <MetricTile
+            label="Causes followed"
+            value={String(causesFollowed)}
+          />
         </div>
       </SectionCard>
 
-      {/* Two-up: activity + receipts */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <SectionCard title="Recent activity">
-          {recentActivity.length === 0 ? (
-            <EmptyState
-              title="No activity yet. Follow 3 causes to kickstart your feed."
-              actionHref="/discover"
-              actionText="Find causes"
-            />
-          ) : (
-            <ul className="space-y-2 list-disc list-inside opacity-80">
-              {recentActivity.map((a) => (
-                <li key={a.id} className="flex items-baseline justify-between gap-3">
-                  <span>{a.text}</span>
-                  <time className="text-xs opacity-60">{a.date}</time>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
+      {/* Recent gifts */}
+      <SectionCard title="Recent gifts">
+        {recentDonations.length === 0 ? (
+          <EmptyState
+            title={
+              causesFollowed === 0
+                ? "No gifts yet. Start by choosing the causes you care about."
+                : "No gifts recorded yet. Use the form below to record your first one."
+            }
+            actionHref={causesFollowed === 0 ? "/onboarding/interests" : undefined}
+            actionText={causesFollowed === 0 ? "Choose causes" : undefined}
+          />
+        ) : (
+          <ul className="space-y-2">
+            {recentDonations.map((d) => (
+              <li key={d.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <span>
+                  {formatCents(d.amountCents ?? 0, d.currency)} to {d.organization.name}
+                  <span className="ms-2 text-xs opacity-60">{donationStatusLabel(d.status)}</span>
+                </span>
+                <time dateTime={d.createdAt.toISOString()} className="text-xs opacity-60">
+                  {dateFormat.format(d.createdAt)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
 
-        <SectionCard title="Receipts">
-          <p className="opacity-80">
-            Export-ready receipts for tax season will appear here.
-          </p>
-          <div className="mt-3 flex gap-2">
-            <Link
-              href="/receipts"
-              className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
-            >
-              View all
-            </Link>
-            <button
-              type="button"
-              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-sm font-medium"
-            >
-              Export CSV
-            </button>
-          </div>
-        </SectionCard>
-      </div>
-
-      <SectionCard title="Make a donation">
+      <SectionCard title="Record a donation">
         <DonationForm />
       </SectionCard>
     </main>
