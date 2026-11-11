@@ -84,13 +84,12 @@ docs/             STATUS.md (current state), ROADMAP.md (plan)
 2. `pnpm prisma migrate dev --name describe_the_change` creates and applies a migration on your dev branch.
 3. Commit the new folder under `prisma/migrations/`. Never edit a migration that has already been applied.
 
-**Production** migrations are applied deliberately by the maintainer after the PR is merged, with production's *direct* connection string passed on the command line:
+**Production** migrations run automatically: on Vercel **production** builds only, `pnpm build` runs `prisma migrate deploy` (`scripts/migrate-on-production-build.mjs`) before the new deployment goes live. Preview builds, CI and local builds skip it. Because the old deployment keeps serving traffic until the new one is ready, migrations must be **additive** ("add-then-remove"):
 
-```bash
-DIRECT_URL="<production direct connection string>" pnpm prisma migrate deploy
-```
+1. **Add:** new tables/columns (nullable or with defaults), plus any data backfill. Code may start using them.
+2. **Remove:** in a *later* PR, once no deployed code reads the old column, drop it.
 
-`migrate deploy` only applies new migrations; it never resets data. Prisma prints the target host first, so check it.
+`migrate deploy` only applies pending migrations; it never resets data. Vercel's Instant Rollback doesn't roll back the database, so don't roll back to a deployment older than a "remove" migration.
 
 ## Deployment
 
