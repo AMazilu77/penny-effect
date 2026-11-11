@@ -1,6 +1,6 @@
 // app/api/register/route.ts
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
 import { z } from "zod";
 
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true });
-  } catch (err: any) {
+  } catch (err) {
     console.error("[register]", err);
     return NextResponse.json({ error: "Unable to create account." }, { status: 400 });
   }
