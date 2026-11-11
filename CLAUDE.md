@@ -41,7 +41,7 @@ Required env vars (`.env.local`, never committed): `DATABASE_URL`, `NEXTAUTH_SEC
 src/app/            routes (App Router). Pages: /, about, signin, signup, onboarding/interests,
                     dashboard, feed, discover, charities, inbox
 src/app/api/        route handlers: auth, register, donate, organizations, charities (mock),
-                    onboarding/interests, user/status, debug/env (remove)
+                    onboarding/interests, user/status
 src/components/     UI; nav/, surface/, actions/
 src/lib/            auth.ts (authOptions), db.ts + prisma.ts (DUPLICATE clients — consolidate), utils.ts
 src/middleware.ts   route protection (currently only /dashboard)
@@ -73,7 +73,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 - Destructive migrations (dropping/retyping columns with data) need an explicit data-migration step and a note in the PR.
 
 **Security**
-- Delete `src/app/api/debug/env` and its middleware exemption.
+- No debug endpoints that expose env or config (the old `/api/debug/env` was removed in Milestone 0).
 - Protect every signed-in route in middleware (dashboard, feed, inbox, onboarding), plus API handlers check the session themselves.
 - Never log secrets, tokens, password hashes, or full user records. Remove `console.log` of user data.
 - Rate-limit `/api/register` and credential sign-in before launch.
