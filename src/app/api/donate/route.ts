@@ -3,9 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { donationRequestSchema } from "@/lib/donations";
+import { recordDonation } from "@/lib/record-donation";
+import { prismaDonationStore } from "@/lib/donation-store";
 
 // Records a donation the user intends to make. No payment is taken here: the
 // row stays PENDING until the donation partner confirms it (Milestone 3).
+// Idempotent: the same idempotencyKey never creates two donations.
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
     const message = parsed.error.issues[0]?.message ?? "Invalid request";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-  const { organizationId, amountCents, message } = parsed.data;
+  const { organizationId, amountCents, message, idempotencyKey } = parsed.data;
 
   try {
     const organization = await prisma.organization.findUnique({
@@ -35,22 +38,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unknown organization" }, { status: 400 });
     }
 
-    const donation = await prisma.donation.create({
-      data: {
-        userId,
-        organizationId,
-        amountCents,
-        currency: "USD",
-        status: "PENDING",
-        // LEGACY float column: written only so the previous deployment can still
-        // read new rows. Nothing in this code reads it. Dropped in the follow-up migration.
-        amount: amountCents / 100,
-        message: message ?? null,
-      },
-      select: { id: true, amountCents: true, currency: true, status: true, createdAt: true },
+    const result = await recordDonation(prismaDonationStore, {
+      userId,
+      organizationId,
+      amountCents,
+      message,
+      idempotencyKey,
     });
 
-    return NextResponse.json({ donation }, { status: 201 });
+    if (result.kind === "conflict") {
+      return NextResponse.json(
+        { error: "This request was already used for a different gift. Please reload and try again." },
+        { status: 409 },
+      );
+    }
+    const { id, amountCents: cents, currency, status, createdAt } = result.donation;
+    const donation = { id, amountCents: cents, currency, status, createdAt };
+    // 201 for a new donation; 200 when this exact request was already recorded
+    // (double-click or retry): the original is returned and nothing new is created.
+    return NextResponse.json({ donation }, { status: result.kind === "created" ? 201 : 200 });
   } catch (err) {
     console.error("Error recording donation:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

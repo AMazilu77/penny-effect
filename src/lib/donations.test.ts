@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { donationRequestSchema } from "@/lib/donations";
 
-const valid = { organizationId: "org_1", amount: "5.50" };
+const KEY = "0b5c2a5e-3f4d-4c1a-9e8b-7d6f5a4b3c2d";
+const valid = { organizationId: "org_1", amount: "5.50", idempotencyKey: KEY };
 
 describe("donationRequestSchema", () => {
   it("converts the dollar amount to integer cents", () => {
-    expect(donationRequestSchema.parse(valid)).toEqual({ organizationId: "org_1", amountCents: 550 });
+    expect(donationRequestSchema.parse(valid)).toEqual({ organizationId: "org_1", amountCents: 550, idempotencyKey: KEY });
     expect(donationRequestSchema.parse(valid)).not.toHaveProperty("amount");
   });
 
@@ -24,6 +25,13 @@ describe("donationRequestSchema", () => {
     const result = donationRequestSchema.safeParse({ ...valid, amount: "5.999" });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.message).toBe("Enter an amount like 5 or 5.50.");
+  });
+
+  it("requires a UUID idempotency key, asking stale pages to reload", () => {
+    const missing = donationRequestSchema.safeParse({ organizationId: "org_1", amount: "5.50" });
+    expect(missing.success).toBe(false);
+    expect(missing.error?.issues[0]?.message).toBe("Please reload the page and try again.");
+    expect(donationRequestSchema.safeParse({ ...valid, idempotencyKey: "not-a-uuid" }).success).toBe(false);
   });
 
   it("rejects missing fields", () => {
