@@ -35,6 +35,7 @@ cp .env.example .env.local   # then fill in the values (see below)
 | `DIRECT_URL` | Neon **direct** connection string (same branch, no `-pooler`). Used by Prisma CLI commands such as migrations. |
 | `NEXTAUTH_SECRET` | Random secret for signing sessions: `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | `http://localhost:3000` locally |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | *Optional.* Google OAuth client. The "Continue with Google" button appears only when both are set. The OAuth client needs the redirect URI `http://localhost:3000/api/auth/callback/google` for local use. |
 
 Both database URLs must point at your **development** branch. Next.js and the Prisma CLI (via `prisma.config.ts`) both read `.env.local`.
 
