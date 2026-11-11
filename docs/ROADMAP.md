@@ -4,9 +4,9 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 
 ## Milestone 0 — Stabilize (no new features)
 
-- [ ] Check current stable Next.js, React, NextAuth/Auth.js, Prisma, Tailwind versions and open security advisories; write the target versions into the private decisions log (`../penny-effect-docs/DECISIONS.md`)
+- [x] Check current stable Next.js, React, NextAuth/Auth.js, Prisma, Tailwind versions and open security advisories; write the target versions into the private decisions log (`../penny-effect-docs/DECISIONS.md`) — done 2026-11-10, see D-007
 - [ ] Upgrade Next.js + React (follow official codemods/upgrade guides), align `eslint-config-next`
-- [ ] Decide NextAuth v4 vs Auth.js v5 (D-003) and do that migration if chosen
+- [x] Decide NextAuth v4 vs Auth.js v5 (D-003) and do that migration if chosen — decided: stay on v4, patched to 4.24.15
 - [ ] Upgrade Prisma; regenerate client; confirm migrations apply cleanly to a fresh Neon branch
 - [ ] Delete `/api/debug/env` and its middleware exemption
 - [ ] Consolidate to one Prisma client (`@/lib/prisma`); delete `lib/db.ts`

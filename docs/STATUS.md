@@ -10,7 +10,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 | Area | State | Notes |
 |---|---|---|
-| Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth Credentials, JWT sessions. No rate limiting. |
+| Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth v4.24.15 Credentials, JWT sessions (staying on v4 — D-003). No rate limiting. |
 | Google sign-in | ❌ Missing | Described in project blurb; not in `lib/auth.ts`. |
 | Onboarding (choose causes) | 🟡 Works, unsafe | Creates new `CauseCategory` rows from any client-supplied string. Location "upsert" stores an empty row. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
@@ -27,7 +27,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 ## Technical debt and issues (priority order)
 
-1. **Outdated framework with security history.** Next.js 15.5.7 / React 19.1 from Dec 2025; Next 16.x is current and there have been further security releases since. Upgrade first.
+1. **Outdated framework with security history.** Next.js 15.5.7 / React 19.1 from Dec 2025 have critical advisories (incl. unauthenticated RCE in image optimization); target Next 16.4.6 (D-007). ~~next-auth 4.24.11 advisories~~ fixed by 4.24.15.
 2. **Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware. Delete.
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.
