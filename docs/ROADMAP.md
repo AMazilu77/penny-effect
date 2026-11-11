@@ -24,7 +24,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Remove the empty `UserLocation` upsert (location is out of scope)
 - [x] Middleware protects all signed-in routes — `src/proxy.ts` + `lib/protected-routes.ts` (tested)
 - [ ] Dashboard: real totals/history from the DB, or real empty states
-- [ ] Inbox: real donation receipts only, or hide the route
+- [x] Inbox: real donation receipts only, or hide the route — hidden (page and nav links removed) until Milestone 3 receipts
 - [x] Remove `console.log` of user data
 - [ ] Add Google sign-in
 

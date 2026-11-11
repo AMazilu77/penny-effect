@@ -42,7 +42,7 @@ Required env vars (`.env.local`, never committed): `DATABASE_URL` (Neon pooled),
 
 ```
 src/app/            routes (App Router). Pages: /, about, signin, signup, onboarding/interests,
-                    dashboard, feed, discover, charities, inbox
+                    dashboard, feed, discover, charities (inbox hidden until Milestone 3)
 src/app/api/        route handlers: auth, register, donate, organizations, charities (mock),
                     onboarding/interests, user/status
 src/components/     UI; nav/, surface/, actions/
@@ -58,7 +58,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 **Money and trust**
 - This app never holds, pools, or forwards donor money itself. Real payments go through a licensed donation partner (see D-001 in `../penny-effect-docs/DECISIONS.md`). Don't build custodial wallets, smart contracts that hold funds, or a "balance" users can top up unless the charter is explicitly changed.
 - Store money as integer **cents** (`Int`), never `Float`. The current `Donation.amount Float` is a known bug to migrate.
-- Never show fabricated numbers to a signed-in user as if they were theirs. The dashboard and inbox currently use hardcoded sample data — replace with real queries or clearly-labelled empty states.
+- Never show fabricated numbers to a signed-in user as if they were theirs. The dashboard currently uses hardcoded sample data — replace with real queries or clearly-labelled empty states.
 - Every organization shown must be a real, verifiable registered nonprofit (EIN/registry ID). No placeholder charities in production.
 
 **Code**

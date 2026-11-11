@@ -21,7 +21,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Dashboard | ❌ Fake data | Metrics ("$742.50 given", "4 months streak") and activity are hardcoded for every user. |
 | Feed | ✅ Real query | Pulls `NewsItem`s by followed categories. Content is seeded. |
 | Discover | ❌ Static | Category chips do nothing. |
-| Inbox | ❌ Fake data | Hardcoded receipts/notifications. |
+| Inbox | ⏸ Hidden | Fake page removed; returns to Milestone 3 with real partner receipts. |
 | Penny Jar / round-ups | ❌ Missing | Core concept not started. |
 | Crypto / smart contracts | ❌ Missing | Only `cryptoWalletBTC/ETH` text fields on `Organization`. No Tezos anything. |
 | Admin | ❌ Missing | |
@@ -32,7 +32,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Prisma 7.10.1 (D-007). `pnpm audit --prod` is clean. Remaining: ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
-4. **Fake data shown as real** on dashboard and inbox.
+4. **Fake data shown as real** on the dashboard (inbox removed).
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0); the seed script uses it too.
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
 7. ~~**Proxy protects only `/dashboard`.**~~ `src/proxy.ts` now protects dashboard, feed, inbox and onboarding (`lib/protected-routes.ts`, unit-tested). API handlers still check the session themselves.
