@@ -33,7 +33,7 @@ pnpm prisma db seed      # runs prisma/seed.ts (WIPES orgs, categories, news fir
 pnpm prisma studio
 ```
 
-Required env vars (`.env.local`, never committed): `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`. Google OAuth will add `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+Required env vars (`.env.local`, never committed): `DATABASE_URL` (Neon pooled), `DIRECT_URL` (Neon direct, used by the Prisma CLI for migrations), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`. Locally both database URLs must point at the Neon `development` branch, never production. `prisma.config.ts` loads `.env.local` then `.env` for the Prisma CLI. Google OAuth will add `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
 
 ## Layout
 
