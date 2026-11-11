@@ -75,6 +75,8 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 - Schema changes go through `prisma migrate dev` with a descriptive migration name. Never edit an applied migration.
 - The seed script deletes data. Never run it against the production database.
 - Destructive migrations (dropping/retyping columns with data) need an explicit data-migration step and a note in the PR.
+- Production migrations run automatically in Vercel **production** builds (`scripts/migrate-on-production-build.mjs`, needs `DIRECT_URL` in Vercel Production). So every migration must be safe while the *previous* deployment is still live: **add-then-remove**. Add columns/tables (nullable or defaulted) and backfill in one PR; drop old columns in a later PR. Never rename or retype a column in place.
+- Vercel Preview deployments use the production database and do *not* migrate, so previews of schema-changing PRs may break. Test schema PRs locally against the Neon `development` branch.
 
 **Security**
 - No debug endpoints that expose env or config (the old `/api/debug/env` was removed in Milestone 0).
