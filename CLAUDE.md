@@ -14,7 +14,7 @@ The owner is a solo developer who is new to React and Next.js and works mostly t
 
 - Next.js 16.4.6 (App Router, `src/app`, Turbopack), React 19.3.1, TypeScript 5.9, Node 22 (`.nvmrc`, `engines`)
 - Tailwind CSS v4 (`@tailwindcss/postcss`), shadcn-style setup (`components.json`, `cva`, `clsx`, `tailwind-merge`), lucide-react, framer-motion
-- NextAuth v4 with Prisma adapter, **JWT sessions, Credentials provider only** (bcrypt). No Google provider yet despite the project description.
+- NextAuth v4 with Prisma adapter, JWT sessions. Providers: Credentials (bcrypt) and Google (verified emails only, **no automatic account linking**; never enable `allowDangerousEmailAccountLinking`).
 - Prisma 7 → Neon Postgres. Client is generated into `src/generated/prisma` (git-ignored; import it only via `@/lib/prisma`) and connects through the Neon driver adapter (`@prisma/adapter-neon`).
 - react-hook-form + zod, TanStack Query, zustand (installed; mostly unused)
 - Hosted on Vercel. Package manager: **pnpm** (pinned in `packageManager`).
@@ -36,7 +36,7 @@ pnpm prisma db seed      # runs prisma/seed.ts (WIPES orgs, categories, news fir
 pnpm prisma studio
 ```
 
-Required env vars (`.env.local`, never committed): `DATABASE_URL` (Neon pooled), `DIRECT_URL` (Neon direct, used by the Prisma CLI for migrations), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`. Locally both database URLs must point at the Neon `development` branch, never production. `prisma.config.ts` loads `.env.local` then `.env` for the Prisma CLI. Google OAuth will add `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+Required env vars (`.env.local`, never committed): `DATABASE_URL` (Neon pooled), `DIRECT_URL` (Neon direct, used by the Prisma CLI for migrations), `NEXTAUTH_SECRET`, `NEXTAUTH_URL`. Locally both database URLs must point at the Neon `development` branch, never production. `prisma.config.ts` loads `.env.local` then `.env` for the Prisma CLI. Optional: `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` (the Google button appears only when both are set).
 
 ## Layout
 

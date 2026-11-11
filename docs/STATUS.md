@@ -13,7 +13,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Area | State | Notes |
 |---|---|---|
 | Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth v4.24.15 Credentials, JWT sessions (staying on v4 — D-003). No rate limiting. |
-| Google sign-in | ❌ Missing | Described in project blurb; not in `lib/auth.ts`. |
+| Google sign-in | ✅ Real | NextAuth Google provider; verified emails only; no automatic linking to an existing password account (shows a clear message instead). Works on production and localhost, not on preview URLs. |
 | Onboarding (choose causes) | ✅ Real | Categories loaded from the DB; API accepts only existing category ids (zod, tested), uses `session.user.id`, saves in one transaction. One row per user+category (unique constraint). No location. |
 | Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |

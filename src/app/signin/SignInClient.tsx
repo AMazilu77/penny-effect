@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
-export default function SignInClient() {
+export default function SignInClient({
+  googleEnabled,
+  initialError,
+}: {
+  googleEnabled: boolean;
+  initialError: string;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState(initialError);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -99,6 +106,17 @@ export default function SignInClient() {
           {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
+
+      {googleEnabled && (
+        <>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <span className="h-px flex-1 bg-gray-200" />
+            or
+            <span className="h-px flex-1 bg-gray-200" />
+          </div>
+          <GoogleSignInButton />
+        </>
+      )}
 
       <p className="text-center text-sm mt-3">
         Don’t have an account?{" "}
