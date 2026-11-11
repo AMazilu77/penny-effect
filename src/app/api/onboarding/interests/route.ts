@@ -2,76 +2,54 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { findUnknownIds, interestsRequestSchema } from "@/lib/onboarding";
 
+// Saves the causes a user picked during onboarding and marks onboarding done.
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  let body: unknown;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
-    const body = await req.json();
-    const { causes, locationAllowed } = body as {
-      causes: string[];
-      locationAllowed?: boolean;
-    };
+  const parsed = interestsRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { categoryIds } = parsed.data;
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+  try {
+    // Only existing categories can be followed.
+    const existing = await prisma.causeCategory.findMany({
+      where: { id: { in: categoryIds } },
+      select: { id: true },
     });
-    if (!user)
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-    const selectAll = causes.includes("all");
-
-    // Clear existing interests
-    await prisma.userInterest.deleteMany({ where: { userId: user.id } });
-
-    if (!selectAll) {
-      // 1️⃣ Find existing categories
-      const existing = await prisma.causeCategory.findMany({
-        where: { name: { in: causes } },
-        select: { name: true },
-      });
-      const existingNames = existing.map((c) => c.name);
-      const missing = causes.filter((n) => !existingNames.includes(n));
-
-      // 2️⃣ Try to create missing ones, skip if duplicates found mid-transaction
-      if (missing.length > 0) {
-        try {
-          await prisma.causeCategory.createMany({
-            data: missing.map((name) => ({ name })),
-            skipDuplicates: true, // ✅ the important part
-          });
-        } catch (err) {
-          console.warn("⚠️ Skipping duplicate cause creation:", err instanceof Error ? err.message : err);
-        }
-      }
-
-      // 3️⃣ Fetch all again and link
-      const categories = await prisma.causeCategory.findMany({
-        where: { name: { in: causes } },
-        select: { id: true },
-      });
-
-      await prisma.userInterest.createMany({
-        data: categories.map((cat) => ({
-          userId: user.id,
-          categoryId: cat.id,
-        })),
-        skipDuplicates: true,
-      });
+    const unknown = findUnknownIds(
+      categoryIds,
+      existing.map((c) => c.id),
+    );
+    if (unknown.length > 0) {
+      return NextResponse.json({ error: "Unknown category" }, { status: 400 });
     }
 
-    // 4️⃣ Mark onboarding complete
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        hasCompletedOnboarding: true,
-        location: locationAllowed
-          ? { upsert: { create: {}, update: {} } }
-          : undefined,
-      },
-    });
+    // Replace the user's interests and finish onboarding in one transaction,
+    // so a failure can't leave them with no interests.
+    await prisma.$transaction([
+      prisma.userInterest.deleteMany({ where: { userId } }),
+      prisma.userInterest.createMany({
+        data: categoryIds.map((categoryId) => ({ userId, categoryId })),
+        skipDuplicates: true,
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: { hasCompletedOnboarding: true },
+      }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (err) {
