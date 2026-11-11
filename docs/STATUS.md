@@ -27,14 +27,14 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 ## Technical debt and issues (priority order)
 
-1. **Outdated framework with security history.** Next.js 15.5.7 / React 19.1 from Dec 2025 have critical advisories (incl. unauthenticated RCE in image optimization); target Next 16.4.6 (D-007). ~~next-auth 4.24.11 advisories~~ fixed by 4.24.15.
+1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Remaining: Prisma 6 → 7 (its config package pulls in 3 high advisories), and ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
 3. **Money as `Float`** in `Donation.amount`. Migrate to `amountCents Int` (+ currency).
 4. **Fake data shown as real** on dashboard and inbox.
 5. **Three ways to get a Prisma client**: `lib/db.ts`, `lib/prisma.ts`, and `new PrismaClient()` inside `api/donate` and `api/organizations` (connection leaks on serverless). Consolidate on `@/lib/prisma`.
 6. **`authOptions` imported from the route file** in `api/donate` and `api/onboarding/interests`. Use `@/lib/auth`.
-7. **Middleware protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
-8. **Lint disabled at build** (`eslint.ignoreDuringBuilds: true`); `eslint-config-next` 15.5.2 vs next 15.5.7; many `any`s.
+7. **Proxy (formerly middleware, `src/proxy.ts`) protects only `/dashboard`.** Feed redirects itself; onboarding, inbox don't.
+8. **Lint fails** (15 errors in app code: `any`s, unescaped quotes, and new React Compiler rules from eslint-config-next 16). Next 16 no longer runs lint during `next build`, so CI must run `pnpm lint` separately. `ignoreDuringBuilds` removed.
 9. **Unvalidated API input** in donate and onboarding (no zod); onboarding returns raw `err.message`.
 10. **`UserInterest`** has no unique constraint on `(userId, categoryId)`; `skipDuplicates` does nothing there.
 11. **README** is the create-next-app default.
@@ -42,5 +42,5 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 ## Infra
 
-- Hosting: Vercel (live). DB: Neon Postgres. Migrations from 2025-08 through 2025-11.
+- Hosting: Vercel (live), Node 22. DB: Neon Postgres in Azure East US 2 (deprecated region — deferred move). Branches: production, `development` (local dev). Migrations from 2025-08 through 2025-11.
 - No CI. No preview-DB strategy (check whether Vercel previews point at production DB — they should not).

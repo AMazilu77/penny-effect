@@ -5,7 +5,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 ## Milestone 0 — Stabilize (no new features)
 
 - [x] Check current stable Next.js, React, NextAuth/Auth.js, Prisma, Tailwind versions and open security advisories; write the target versions into the private decisions log (`../penny-effect-docs/DECISIONS.md`) — done 2026-11-10, see D-007
-- [ ] Upgrade Next.js + React (follow official codemods/upgrade guides), align `eslint-config-next`
+- [x] Upgrade Next.js + React (follow official codemods/upgrade guides), align `eslint-config-next` — Next 16.4.6, React 19.3.1, Node 22
 - [x] Decide NextAuth v4 vs Auth.js v5 (D-003) and do that migration if chosen — decided: stay on v4, patched to 4.24.15
 - [ ] Upgrade Prisma; regenerate client; confirm migrations apply cleanly to a fresh Neon branch
 - [x] Delete `/api/debug/env` and its middleware exemption
@@ -13,7 +13,8 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Import `authOptions` only from `@/lib/auth`
 - [ ] Remove `ignoreDuringBuilds`; fix lint errors; remove `any`s in touched files
 - [ ] Add a test runner (Vitest) and CI (GitHub Actions: install, lint, typecheck, test, build)
-- [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping
+- [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping — _deferred by owner. Local dev uses the Neon `development` branch; Vercel Preview still uses production._
+- [ ] _Deferred:_ Migrate Neon project off Azure East US 2 (Neon has deprecated Azure regions)
 - [ ] Replace README with real setup instructions
 
 ## Milestone 1 — Honest foundation
