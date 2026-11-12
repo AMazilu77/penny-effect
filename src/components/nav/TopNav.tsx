@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusCircle, Search } from "lucide-react";
+import { PlusCircle, Search, Shield } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import styles from "./TopNav.module.css";
 
 export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
   const pathname = usePathname();
-  const { status } = useSession(); // 'loading' | 'authenticated' | 'unauthenticated'
+  const { data: session, status } = useSession(); // status: 'loading' | 'authenticated' | 'unauthenticated'
+  // Only a convenience link: /admin itself checks the role in the database.
+  const isAdmin = session?.user?.role === "ADMIN";
   const isActive = (p: string) => pathname === p;
 
   const handleAuthClick = () => {
@@ -64,6 +66,16 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
           >
             Dashboard
           </Link>
+
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className={`${styles.btn} ${styles.btnOutline} ${pathname.startsWith("/admin") ? styles.active : ""}`}
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
 
           {/* Login / Logout toggle */}
           <button
