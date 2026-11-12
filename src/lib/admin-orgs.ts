@@ -97,7 +97,8 @@ export function formDataToObject(formData: FormData, arrayKeys: readonly string[
   return result;
 }
 
-// ---- Messages shown after an action (passed as ?notice= / ?error= codes) ----
+// ---- Messages shown after an admin action (passed as ?notice= / ?error= codes) ----
+// Shared by all admin pages (organizations and news).
 
 export const NOTICES = {
   imported: "Imported from Every.org. Review it, pick categories, then verify.",
@@ -108,6 +109,8 @@ export const NOTICES = {
   hidden: "Hidden from users.",
   shown: "Active again (users see it only if it is also verified).",
   categories: "Categories saved.",
+  "news-posted": "News posted. It appears in the feed of everyone following this organization's categories.",
+  "news-removed": "News item removed.",
 } as const;
 
 export const ERRORS = {
@@ -122,6 +125,9 @@ export const ERRORS = {
   "no-ein": "Every.org has no EIN for it, so it can't be verified (D-012).",
   "not-disbursable": "Every.org can't currently send donations to it, so it can't be verified.",
   hidden: "Make it active before verifying.",
+  "news-invalid": "Fill in every field: a title (3+ characters), a summary (10+ characters) and an http(s) source link.",
+  "news-org": "News can only be posted for an organization that is active and verified.",
+  "news-not-found": "That news item no longer exists.",
 } as const;
 
 export type NoticeCode = keyof typeof NOTICES;
