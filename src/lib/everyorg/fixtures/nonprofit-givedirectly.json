@@ -1,0 +1,66 @@
+{
+  "data": {
+    "nonprofit": {
+      "id": "c1c38cb5-16d6-4aca-a949-83c8e7cc1b88",
+      "name": "GiveDirectly",
+      "donationsEnabled": true,
+      "locationAddress": "New York, New York, 10008 United States",
+      "locationLatLng": {
+        "type": "Point",
+        "coordinates": [
+          -74.0098271,
+          40.7097781
+        ]
+      },
+      "ein": "271661997",
+      "description": "Delivering unconditional cash directly to the world's poorest households via secure mobile transfers. ",
+      "descriptionLong": "Since 2009, GiveDirectly has delivered more than $1 billion in unconditional cash transfers directly into the hands of 2+ million people living in poverty. These one-time cash transfers allow recipien",
+      "primarySlug": "givedirectly",
+      "logoCloudinaryId": "profile_pics/r6fa3ixwt4avyq5tejj3",
+      "coverImageCloudinaryId": "profile_pics/mqmcd6jiuyusibklq1pd",
+      "nteeCode": "P60",
+      "nteeCodeMeaning": {
+        "majorCode": "P",
+        "majorMeaning": "Human Services Multipurpose and other",
+        "decileCode": "P60",
+        "decileMeaning": "Emergency Assistance"
+      },
+      "hasAdmin": true,
+      "websiteUrl": "https://www.givedirectly.org/",
+      "metadata": {},
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/profile_pics/r6fa3ixwt4avyq5tejj3",
+      "coverImageUrl": "https://res.cloudinary.com/everydotorg/image/upload/f_auto,c_limit,w_3840,q_80/profile_pics/mqmcd6jiuyusibklq1pd",
+      "profileUrl": "https://www.every.org/givedirectly"
+    },
+    "nonprofitTags": [
+      {
+        "id": "28c7390e-7173-4fe2-b12e-aad0edd6345d",
+        "tagName": "poverty",
+        "causeCategory": "HUMAN_SERVICES",
+        "title": "Poverty Alleviation",
+        "tagUrl": "https://www.every.org/poverty"
+      },
+      {
+        "id": "1a6789d6-b407-4820-bdb7-20256af2c004",
+        "tagName": "humans",
+        "causeCategory": "HUMAN_SERVICES",
+        "title": "Humans",
+        "tagUrl": "https://www.every.org/humans"
+      },
+      {
+        "id": "20e8f063-5e37-4152-9999-3ad21a1b58de",
+        "tagName": "research",
+        "causeCategory": "RESEARCH_AND_PUBLIC_POLICY",
+        "title": "Research",
+        "tagUrl": "https://www.every.org/research"
+      },
+      {
+        "id": "5f75b3d6-b5ed-4fdb-ad33-a885841a245a",
+        "tagName": "food-security",
+        "causeCategory": "HUMAN_SERVICES",
+        "title": "Food Security",
+        "tagUrl": "https://www.every.org/food-security"
+      }
+    ]
+  }
+}
