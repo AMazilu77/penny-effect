@@ -91,6 +91,26 @@ docs/             STATUS.md (current state), ROADMAP.md (plan)
 
 `migrate deploy` only applies pending migrations; it never resets data. Vercel's Instant Rollback doesn't roll back the database, so don't roll back to a deployment older than a "remove" migration.
 
+### Before any schema change: checklist
+
+Added after the 2026-11-11 incident: a migration passed on `development` but failed in production on data that `development` didn't have (lowercase legacy categories). Prisma 7 left it half applied, which blocked every deploy until it was resolved by hand. So, for **every** migration:
+
+1. **Check production's data shape with a read-only query.** The owner runs it in the Neon SQL Editor on the **production** branch. Look for anything the change could trip on: duplicates under a new unique key, NULLs in a column becoming required, impossible values in a backfill, and rows created by older code. Return counts, not personal data.
+2. **Reset `development` from production** so local testing sees real data. In the Neon console: **Branches → `development` → Reset from parent**.
+   - This **replaces everything** on `development` with a fresh copy of production. Test users, sample organizations, and migrations applied from unmerged branches are all lost. Re-run `pnpm prisma db seed` afterwards if you want the sample directory back.
+   - It copies **real user data** (emails, password hashes) into `development`. Treat that branch like production: don't share its connection string, don't paste rows anywhere, and don't log user records.
+   - It only mirrors production if `development` was created from the production branch, which is how it was set up. The Neon console shows each branch's parent.
+3. **Write the migration defensively:**
+   - wrap it in `BEGIN; … COMMIT;`, because Prisma 7 does **not** roll back a failed migration;
+   - use `IF NOT EXISTS` / guarded `DO` blocks so a retry can finish a half-applied database;
+   - handle legacy rows explicitly, or stop with a clear `RAISE EXCEPTION` rather than guess or delete;
+   - keep it add-then-remove.
+4. **Apply it to `development`:** `pnpm prisma migrate deploy`, then `pnpm prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` should print "empty migration".
+5. **Deploy-window check.** Run the *current* `main` code (or its queries) against the migrated `development` database: sign up, onboard, record a donation. The old deployment keeps serving while the new one builds.
+6. **For risky changes, rehearse a failure:** temporarily add `SELECT 1/0;` before `COMMIT`, confirm nothing was left behind, then `prisma migrate resolve --rolled-back <name>` and remove it.
+7. **In the PR,** say what the deploy log will show, and give the recovery steps if it fails: the last good deployment keeps serving, then `migrate resolve --rolled-back` (or the equivalent `UPDATE "_prisma_migrations" SET rolled_back_at = now() …`), fix, redeploy.
+8. **After merge,** check the Vercel production deploy log for `Applying migration …` / "All migrations have been successfully applied", then check the live site.
+
 ## Deployment
 
 Vercel deploys `main` to production and builds a preview for every pull request. Environment variables are set in the Vercel project settings.
