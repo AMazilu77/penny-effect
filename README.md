@@ -43,10 +43,10 @@ Both database URLs must point at your **development** branch. Next.js and the Pr
 
 ```bash
 pnpm prisma migrate deploy   # apply all migrations to your dev database
-pnpm prisma db seed          # load sample categories and organizations (no news)
+pnpm prisma db seed          # local only: 9 categories + 12 real nonprofits (no news); safe to re-run
 ```
 
-⚠️ The seed script **deletes** news, organizations and categories before re-creating them. Never run it, or `prisma migrate reset`, against production. `migrate reset` wipes the whole database; in Prisma 7 it no longer re-seeds, so run `pnpm prisma db seed` after it.
+The seed never deletes anything and refuses to run when `VERCEL_ENV=production`. It marks its organizations as verified so local pages look like a reviewed directory, so still never point it at production. ⚠️ `prisma migrate reset` **wipes the whole database**: never run it against production. In Prisma 7 it no longer re-seeds, so run `pnpm prisma db seed` after it.
 
 ## Run it
 

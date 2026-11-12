@@ -11,6 +11,6 @@ export default defineConfig({
   test: {
     // Business-logic tests run in plain Node; no browser needed.
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "prisma/**/*.test.ts"],
   },
 });

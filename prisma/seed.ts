@@ -1,181 +1,87 @@
+// LOCAL development seed: `pnpm prisma db seed`.
+//
+// - Never deletes anything. Safe to run again and again (upserts).
+// - Refuses to run when VERCEL_ENV=production.
+// - Seeds the 9 categories and a dozen real nonprofits (EINs checked on
+//   Every.org), marked verified so they show up locally like a reviewed
+//   directory. No news: news must link to a real source (admins post it).
+//
+// Organizations are matched by EIN, then Every.org slug, then exact name, so
+// rows from the old seed get linked instead of duplicated. Existing category
+// links are kept; the seed only adds its own.
 import { prisma } from "../src/lib/prisma";
+import { SEED_CATEGORIES, SEED_ORGANIZATIONS, seedBlockedReason } from "./seed-data";
 
 async function main() {
-  console.log("🌱 Starting database seed...");
+  const blocked = seedBlockedReason(process.env);
+  if (blocked) {
+    console.error(`Refusing to seed: ${blocked}. The seed is for local databases only.`);
+    process.exit(1);
+  }
 
-  // 1️⃣ Wipe existing data for clean reseed
-  await prisma.newsItem.deleteMany();
-  await prisma.organization.deleteMany();
-  await prisma.causeCategory.deleteMany();
-
-  // 2️⃣ Seed categories
-  const categories = [
-    { name: "Humanitarian Aid", slug: "humanitarian-aid", description: "Disaster relief and food security." },
-    { name: "Animal Welfare", slug: "animal-welfare", description: "Wildlife protection and animal shelters." },
-    { name: "Environment", slug: "environment", description: "Climate, reforestation, and conservation." },
-    { name: "Mental Health", slug: "mental-health", description: "Awareness and support for well-being." },
-    { name: "Medical Research", slug: "medical-research", description: "Advancing cures and biotechnology." },
-    { name: "Political Reform", slug: "political-reform", description: "Transparency, civil rights, and governance." },
-    { name: "Education", slug: "education", description: "Access to learning and equal opportunities." },
-    { name: "Space & Science", slug: "space-science", description: "Exploration and scientific progress." },
-    // Curated by hand, not mapped to Every.org causes (D-013).
-    {
-      name: "Highest Impact",
-      slug: "highest-impact",
-      description: "Charities that GiveWell's research finds do the most good per dollar.",
-    },
-  ];
-
-  for (const c of categories) {
+  for (const c of SEED_CATEGORIES) {
     await prisma.causeCategory.upsert({
       where: { slug: c.slug },
       update: {},
       create: c,
     });
   }
-  console.log("✅ Categories seeded.");
+  console.log(`Categories: ${SEED_CATEGORIES.length} ensured.`);
 
-  // 3️⃣ Seed organizations
-  const orgs = [
-    {
-      name: "UNICEF",
-      description: "Protecting children's rights and providing healthcare worldwide.",
-      website: "https://www.unicef.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/5a/UNICEF_Logo.png",
-      categories: ["Humanitarian Aid"],
-    },
-    {
-      name: "Doctors Without Borders",
-      description: "Delivering emergency medical aid globally.",
-      website: "https://www.doctorswithoutborders.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/4/46/M%C3%A9decins_Sans_Fronti%C3%A8res_logo.svg",
-      categories: ["Humanitarian Aid"],
-    },
-    {
-      name: "World Wildlife Fund",
-      description: "Conserving nature and reducing threats to life on Earth.",
-      website: "https://www.worldwildlife.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/3/3f/WWF_logo.svg",
-      categories: ["Animal Welfare", "Environment"],
-    },
-    {
-      name: "Best Friends Animal Society",
-      description: "Leading animal rescue and adoption network.",
-      website: "https://bestfriends.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/7/7b/Best_Friends_Animal_Society_logo.svg",
-      categories: ["Animal Welfare"],
-    },
-    {
-      name: "The Ocean Cleanup",
-      description: "Developing technologies to remove plastic from oceans.",
-      website: "https://theoceancleanup.com",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/84/The_Ocean_Cleanup_logo.svg",
-      categories: ["Environment"],
-    },
-    {
-      name: "Rainforest Alliance",
-      description: "Sustainable farming and forest protection programs.",
-      website: "https://www.rainforest-alliance.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/2/25/Rainforest_Alliance_logo.svg",
-      categories: ["Environment"],
-    },
-    {
-      name: "Mental Health America",
-      description: "Promoting mental health as part of overall wellness.",
-      website: "https://www.mhanational.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/1/18/MHA_logo.png",
-      categories: ["Mental Health"],
-    },
-    {
-      name: "National Alliance on Mental Illness (NAMI)",
-      description: "Advocating for awareness and access to mental health care.",
-      website: "https://www.nami.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/5/53/NAMI_logo.svg",
-      categories: ["Mental Health"],
-    },
-    {
-      name: "American Cancer Society",
-      description: "Funding cancer research and patient support.",
-      website: "https://www.cancer.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/4/41/American_Cancer_Society_Logo.svg",
-      categories: ["Medical Research"],
-    },
-    {
-      name: "Michael J. Fox Foundation",
-      description: "Accelerating Parkinson’s disease research.",
-      website: "https://www.michaeljfox.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/b/b2/Michael_J._Fox_Foundation_logo.svg",
-      categories: ["Medical Research"],
-    },
-    {
-      name: "Electronic Frontier Foundation",
-      description: "Defending digital privacy and free expression.",
-      website: "https://www.eff.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/5a/EFF_logo.svg",
-      categories: ["Political Reform"],
-    },
-    {
-      name: "Transparency International",
-      description: "Fighting corruption and promoting accountability.",
-      website: "https://www.transparency.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/6/64/Transparency_International_logo.svg",
-      categories: ["Political Reform"],
-    },
-    {
-      name: "Teach For All",
-      description: "Expanding access to education globally.",
-      website: "https://teachforall.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/e/ee/Teach_For_All_logo.svg",
-      categories: ["Education"],
-    },
-    {
-      name: "Room to Read",
-      description: "Improving literacy and gender equality in education.",
-      website: "https://www.roomtoread.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/3/3c/Room_to_Read_logo.png",
-      categories: ["Education"],
-    },
-    {
-      name: "Planetary Society",
-      description: "Advancing space science and exploration.",
-      website: "https://www.planetary.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/5/5d/The_Planetary_Society_logo.svg",
-      categories: ["Space & Science"],
-    },
-    {
-      name: "SETI Institute",
-      description: "Astrobiology and the search for extraterrestrial life.",
-      website: "https://www.seti.org",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/9/94/SETI_Institute_logo.svg",
-      categories: ["Space & Science"],
-    },
-  ];
+  const categoryIds = new Map(
+    (await prisma.causeCategory.findMany({ select: { id: true, slug: true } })).map((c) => [c.slug, c.id]),
+  );
 
-  for (const org of orgs) {
-    const cats = await prisma.causeCategory.findMany({
-      where: { name: { in: org.categories } },
+  let created = 0;
+  let updated = 0;
+  for (const org of SEED_ORGANIZATIONS) {
+    const categories = org.categorySlugs.flatMap((slug) => {
+      const id = categoryIds.get(slug);
+      return id ? [{ id }] : [];
+    });
+    const fields = {
+      ein: org.ein,
+      everyOrgSlug: org.everyOrgSlug,
+      website: org.website,
+      isDisbursable: true,
+      status: "ACTIVE" as const,
+    };
+
+    const existing = await prisma.organization.findFirst({
+      where: { OR: [{ ein: org.ein }, { everyOrgSlug: org.everyOrgSlug }, { name: org.name }] },
+      select: { id: true, description: true, verifiedAt: true },
     });
 
-    await prisma.organization.create({
-      data: {
-        name: org.name,
-        description: org.description,
-        website: org.website,
-        logoUrl: org.logoUrl,
-        categories: { connect: cats.map((c) => ({ id: c.id })) },
-      },
-    });
+    if (existing) {
+      await prisma.organization.update({
+        where: { id: existing.id },
+        data: {
+          ...fields,
+          description: existing.description ?? org.description,
+          verifiedAt: existing.verifiedAt ?? new Date(),
+          categories: { connect: categories },
+        },
+      });
+      updated++;
+    } else {
+      await prisma.organization.create({
+        data: {
+          name: org.name,
+          description: org.description,
+          ...fields,
+          verifiedAt: new Date(),
+          categories: { connect: categories },
+        },
+      });
+      created++;
+    }
   }
-  console.log("✅ Organizations seeded.");
-
-  // No news is seeded. Every news item must link to a real update the
-  // organization published (NewsItem.sourceUrl); invented headlines about real
-  // charities would put words in their mouths. Admins will post real updates.
+  console.log(`Organizations: ${created} created, ${updated} updated (${SEED_ORGANIZATIONS.length} total).`);
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("Seed error:", e instanceof Error ? e.message : e);
     process.exit(1);
   })
   .finally(async () => {
