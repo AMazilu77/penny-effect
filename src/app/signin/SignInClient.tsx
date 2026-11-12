@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
@@ -12,7 +11,6 @@ export default function SignInClient({
   googleEnabled: boolean;
   initialError: string;
 }) {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState(initialError);
@@ -38,24 +36,14 @@ export default function SignInClient({
       }
 
       if (result?.ok) {
+        // A full page load, not router.replace(): while signed out, the client
+        // router prefetched /feed and cached its redirect back to /signin, so
+        // a client-side navigation bounced users who finished onboarding back
+        // to this page. A real navigation also loads the new session cleanly.
         const res = await fetch("/api/user/status");
-
-        if (!res.ok) {
-          console.warn("⚠️ Could not fetch onboarding status — defaulting to feed");
-          router.replace("/feed");
-          router.refresh();
-          return;
-        }
-
-        const data = await res.json();
-
-        if (data.hasCompletedOnboarding === false) {
-          router.replace("/onboarding/interests");
-        } else {
-          router.replace("/feed");
-        }
-
-        router.refresh();
+        const data: { hasCompletedOnboarding?: boolean } = res.ok ? await res.json() : {};
+        window.location.replace(data.hasCompletedOnboarding === false ? "/onboarding/interests" : "/feed");
+        return;
       }
     } catch (err) {
       console.error("❌ Login error:", err);

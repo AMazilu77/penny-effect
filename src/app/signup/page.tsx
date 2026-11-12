@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export default function SignUpPage() {
-  const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [msg, setMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,13 +45,12 @@ export default function SignUpPage() {
       const statusRes = await fetch("/api/user/status");
       const statusData = await statusRes.json();
 
-      if (statusRes.ok && statusData.hasCompletedOnboarding === false) {
-        router.replace("/onboarding/interests");
-      } else {
-        router.replace("/feed");
-      }
-
-      router.refresh();
+      // A full page load, not router.replace(): the client router may hold a
+      // redirect it cached while signed out (see SignInClient.tsx).
+      window.location.replace(
+        statusRes.ok && statusData.hasCompletedOnboarding === false ? "/onboarding/interests" : "/feed",
+      );
+      return;
     } catch (err) {
       console.error("Signup error:", err);
       setMsg("Unexpected error — please try again.");
