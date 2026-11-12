@@ -43,10 +43,10 @@ Both database URLs must point at your **development** branch. Next.js and the Pr
 
 ```bash
 pnpm prisma migrate deploy   # apply all migrations to your dev database
-pnpm prisma db seed          # load sample categories, organizations and news
+pnpm prisma db seed          # load sample categories and organizations (no news)
 ```
 
-⚠️ The seed script **deletes** organizations, categories and news before re-creating them. Never run it, or `prisma migrate reset`, against production. `migrate reset` wipes the whole database; in Prisma 7 it no longer re-seeds, so run `pnpm prisma db seed` after it.
+⚠️ The seed script **deletes** news, organizations and categories before re-creating them. Never run it, or `prisma migrate reset`, against production. `migrate reset` wipes the whole database; in Prisma 7 it no longer re-seeds, so run `pnpm prisma db seed` after it.
 
 ## Run it
 
