@@ -35,6 +35,10 @@ describe("suggestCategorySlugs", () => {
     ]);
   });
 
+  it("maps Every.org's `health` cause to Medical Research (AMF's real causes)", () => {
+    expect(suggestCategorySlugs(["health", "disease"])).toEqual(["medical-research"]);
+  });
+
   it("ignores case, whitespace and unknown causes", () => {
     expect(suggestCategorySlugs([" Animals ", "made-up-cause"])).toEqual(["animal-welfare"]);
     expect(suggestCategorySlugs([])).toEqual([]);
