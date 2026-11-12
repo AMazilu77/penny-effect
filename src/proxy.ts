@@ -1,7 +1,7 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isProtectedPath } from "@/lib/protected-routes";
+import { isAdminPath, isProtectedPath } from "@/lib/protected-routes";
 
 // Next.js 16 renamed "middleware" to "proxy": this runs before every matched request.
 // It sends signed-out visitors away from signed-in pages (see lib/protected-routes.ts).
@@ -14,6 +14,12 @@ export async function proxy(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token) return NextResponse.redirect(new URL("/signin", req.url));
+
+  // Signed-in non-admins get the normal "page not found" for the admin area.
+  // (The admin pages also check the role in the database themselves.)
+  if (isAdminPath(pathname) && token.role !== "ADMIN") {
+    return NextResponse.rewrite(new URL("/404", req.url), { status: 404 });
+  }
 
   return NextResponse.next();
 }

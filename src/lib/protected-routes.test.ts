@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isProtectedPath } from "@/lib/protected-routes";
+import { isAdminPath, isProtectedPath } from "@/lib/protected-routes";
 
 describe("isProtectedPath", () => {
-  it.each(["/dashboard", "/feed", "/inbox", "/onboarding/interests", "/dashboard/settings"])(
+  it.each(["/dashboard", "/feed", "/inbox", "/onboarding/interests", "/dashboard/settings", "/admin", "/admin/organizations"])(
     "protects %s",
     (path) => {
       expect(isProtectedPath(path)).toBe(true);
@@ -21,4 +21,17 @@ describe("isProtectedPath", () => {
     expect(isProtectedPath("/inboxes")).toBe(false);
     expect(isProtectedPath("/dashboards")).toBe(false);
   });
+});
+
+describe("isAdminPath", () => {
+  it.each(["/admin", "/admin/organizations", "/admin/news/new"])("treats %s as admin-only", (path) => {
+    expect(isAdminPath(path)).toBe(true);
+  });
+
+  it.each(["/", "/dashboard", "/administrator", "/admins", "/api/admin/organizations"])(
+    "does not treat %s as an admin page",
+    (path) => {
+      expect(isAdminPath(path)).toBe(false);
+    },
+  );
 });

@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
 
         const ok = await compare(credentials.password, user.passwordHash);
         return ok
-          ? { id: user.id, email: user.email, name: user.name }
+          ? { id: user.id, email: user.email, name: user.name, role: user.role }
           : null;
       },
     }),
@@ -56,12 +56,20 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
+    // `user` is only present at sign-in. The role is copied into the token
+    // then, so a newly granted admin must sign out and back in. Revoking works
+    // at once, because admin pages and handlers re-check the database
+    // (src/lib/admin.ts).
     async jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        token.role = user.role === "ADMIN" ? "ADMIN" : "USER";
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.id) session.user.id = token.id;
+      if (session.user) session.user.role = token.role === "ADMIN" ? "ADMIN" : "USER";
       return session;
     },
   },
