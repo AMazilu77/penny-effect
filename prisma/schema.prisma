@@ -102,11 +102,7 @@ enum DonationStatus {
 
 model Donation {
   id             String         @id @default(cuid())
-  // LEGACY: dollars as a float. No longer written or read; optional so new
-  // rows don't need it. The column is dropped in the next migration
-  // (add-then-remove), once no live deployment writes it.
-  amount         Float?
-  // Integer cents (D-004).
+  // Integer cents (D-004). The legacy dollar float `amount` was dropped.
   amountCents    Int
   currency       String         @default("USD")
   status         DonationStatus @default(PENDING)
