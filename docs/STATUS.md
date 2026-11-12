@@ -31,7 +31,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 
 1. ~~**Outdated framework with security history.**~~ Now Next.js 16.4.6, React 19.3.1, next-auth 4.24.15 (D-007). Prisma 7.10.1 (D-007). `pnpm audit --prod` is clean. Remaining: ESLint 9 is marked unsupported upstream but Next's lint plugins don't support ESLint 10 yet (dev-only tool).
 2. ~~**Public debug endpoint** `/api/debug/env`, explicitly exempted in middleware.~~ Deleted (Milestone 0).
-3. **Money as `Float`**: half done. `amountCents Int`, `currency`, `status`, `externalId` added and backfilled; the app writes cents. Follow-up: make `amountCents` required, drop `amount` (rows with impossible legacy amounts are left NULL and must be handled there).
+3. **Money as `Float`**: remove step prepared in two stacked PRs (stop points): part 1 backfills the last rows, makes `amountCents` required and stops writing `amount`; part 2 drops the `amount` column. Both wait on a read-only production check for impossible legacy amounts.
 4. ~~**Fake data shown as real**~~ Dashboard uses real data; inbox hidden (Milestone 1).
 5. ~~**Three ways to get a Prisma client**~~ Consolidated on `@/lib/prisma` (Milestone 0); the seed script uses it too.
 6. ~~**`authOptions` imported from the route file**~~ All imports use `@/lib/auth`; the route file no longer re-exports it (Milestone 0).
