@@ -64,7 +64,7 @@ export function InterestsForm({ categories }: { categories: CategoryOption[] }):
   const canContinue = selected.length > 0;
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-800 flex flex-col items-center px-6 py-10">
+    <div className="min-h-screen bg-gray-50 text-gray-800 flex flex-col items-center px-6 py-10">
       {/* Progress bar */}
       <div className="w-full max-w-3xl mb-8">
         <div className="text-sm mb-1 text-gray-600">
@@ -140,6 +140,6 @@ export function InterestsForm({ categories }: { categories: CategoryOption[] }):
       <p className="text-gray-500 text-sm mt-6">
         You can update your interests anytime in your profile.
       </p>
-    </main>
+    </div>
   );
 }
