@@ -162,41 +162,9 @@ async function main() {
   }
   console.log("✅ Organizations seeded.");
 
-  // 4️⃣ Seed news items
-  const newsTemplates: Record<string, string[]> = {
-    "UNICEF": [
-      "UNICEF launches new campaign for clean water access.",
-      "Relief supplies delivered to flood-affected families.",
-    ],
-    "World Wildlife Fund": [
-      "WWF restores mangroves in Indonesia.",
-      "Tiger populations declining in South Asia, WWF warns.",
-    ],
-    "Electronic Frontier Foundation": [
-      "EFF challenges unlawful data collection.",
-      "EFF pushes for stronger digital rights legislation.",
-    ],
-  };
-
-  const allOrgs = await prisma.organization.findMany();
-  for (const org of allOrgs) {
-    const items = newsTemplates[org.name] || [
-      `${org.name} shares an update with supporters.`,
-      `${org.name} announces progress on initiatives.`,
-    ];
-
-    for (const title of items) {
-      await prisma.newsItem.create({
-        data: {
-          title,
-          content: `${title} — Read more at ${org.website}`,
-          organizationId: org.id,
-        },
-      });
-    }
-  }
-
-  console.log("✅ News items seeded.");
+  // No news is seeded. Every news item must link to a real update the
+  // organization published (NewsItem.sourceUrl); invented headlines about real
+  // charities would put words in their mouths. Admins will post real updates.
 }
 
 main()
