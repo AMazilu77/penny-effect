@@ -77,6 +77,8 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 - The seed script deletes data. Never run it against the production database.
 - Destructive migrations (dropping/retyping columns with data) need an explicit data-migration step and a note in the PR.
 - Production migrations run automatically in Vercel **production** builds (`scripts/migrate-on-production-build.mjs`, needs `DIRECT_URL` in Vercel Production). So every migration must be safe while the *previous* deployment is still live: **add-then-remove**. Add columns/tables (nullable or defaulted) and backfill in one PR; drop old columns in a later PR. Never rename or retype a column in place.
+- Wrap hand-written or data-changing migrations in `BEGIN; … COMMIT;`. Prisma 7 does **not** roll back a migration that fails halfway; it leaves it half applied and blocks every later deploy (P3009) until someone runs `prisma migrate resolve`. Prefer `IF NOT EXISTS` so a retry can finish a half-applied database.
+- Don't assume production data matches the `development` branch or the seed. Production has rows created by older code (e.g. lowercase legacy categories from the pre-#14 onboarding). Any backfill or new unique constraint must handle duplicates, odd values and legacy rows explicitly.
 - Vercel Preview deployments use the production database and do *not* migrate, so previews of schema-changing PRs may break. Test schema PRs locally against the Neon `development` branch.
 
 **Security**
