@@ -2,7 +2,8 @@
 // slugs (M2-PLAN). Used only to *suggest* categories when an admin imports
 // an organization; the admin can change them.
 //
-// Every.org cause slugs checked against the live API on 2026-11-11.
+// Every.org cause slugs checked against the live API on 2026-11-11 (`health`
+// added 2026-11-12, owner decision).
 
 export const CATEGORY_EVERYORG_CAUSES = {
   "humanitarian-aid": ["humans", "poverty", "food-security", "refugees", "housing", "immigrants"],
@@ -10,7 +11,7 @@ export const CATEGORY_EVERYORG_CAUSES = {
   environment: ["environment", "climate", "conservation", "oceans", "water", "parks"],
   "mental-health": ["mental-health"],
   "political-reform": ["votingrights", "justice", "freepress", "legal", "racial-justice"],
-  "medical-research": ["research", "cancer", "disease", "womens-health"],
+  "medical-research": ["health", "research", "cancer", "disease", "womens-health"],
   education: ["education", "libraries", "youth"],
   "space-science": ["space", "science"],
 } as const satisfies Record<string, readonly string[]>;
