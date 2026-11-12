@@ -31,7 +31,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 ## Milestone 2 — Real nonprofits
 
 - [x] Hide seeded placeholder news: the feed shows only `NewsItem`s with a `sourceUrl`, and the seed no longer invents headlines
-- [ ] Choose nonprofit data source (D-002); add EIN/registry fields to `Organization`, plus `verifiedAt`
+- [x] Choose nonprofit data source (D-002); add EIN/registry fields to `Organization`, plus `verifiedAt` — Every.org (D-012); `ein`/`everyOrgId`/`everyOrgSlug`, `verifiedAt`/`verifiedById`, `status`, `User.role`, `CauseCategory.slug`, Highest Impact category (D-013)
 - [ ] Replace mock `/api/charities` with real search; wire Discover chips to category filtering
 - [ ] Admin-only area (role on `User`) to add/verify organizations and post `NewsItem`s
 - [ ] Seed script: safe, idempotent, never deletes in production

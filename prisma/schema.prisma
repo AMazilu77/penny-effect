@@ -20,6 +20,13 @@ datasource db {
 //  User Authentication & Sessions
 // =======================================================
 
+// ADMIN can import, verify and hide organizations and post news (/admin).
+// Granted by hand in the Neon console; there is no UI to become an admin.
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -37,9 +44,12 @@ model User {
   donations Donation[]
   interests UserInterest[]
   location  UserLocation?
+  // Organizations this user (an admin) reviewed and verified.
+  verifiedOrganizations Organization[] @relation("OrganizationVerifiedBy")
 
   // Flags
   hasCompletedOnboarding Boolean @default(false)
+  role                   Role    @default(USER)
 }
 
 model Account {
@@ -120,12 +130,23 @@ model Donation {
   @@unique([userId, idempotencyKey])
 }
 
+// Organizations are hidden, never deleted, so donation history stays intact.
+enum OrganizationStatus {
+  ACTIVE
+  HIDDEN
+}
+
+// Users see an organization only when it is ACTIVE, has an EIN, Every.org
+// reports it disbursable, and an admin has verified it (D-012).
 model Organization {
   id              String   @id @default(cuid())
+  // LEGACY unique constraint: the EIN is the identity now. Dropped in the
+  // Milestone 2 remove step.
   name            String   @unique
   description     String?
   website         String?
   logoUrl         String?
+  // LEGACY: unused, dropped in the Milestone 2 remove step (D-000: no wallets).
   cryptoWalletBTC String?
   cryptoWalletETH String?
   locationCity    String?
@@ -133,6 +154,25 @@ model Organization {
   locationCountry String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  // US registry ID: 9 digits, no dash (e.g. "123456789").
+  ein           String?   @unique
+  // Every.org's identifiers (Nonprofits API `id` and `primarySlug`).
+  everyOrgId    String?   @unique
+  everyOrgSlug  String?   @unique
+  // Every.org can send donations to it. Copied from Every.org on import/sync.
+  isDisbursable Boolean   @default(false)
+  nteeCode      String?
+  coverImageUrl String?
+  // When we last refreshed details from Every.org.
+  lastSyncedAt  DateTime?
+
+  // Admin review (D-012). Both set together when an admin verifies.
+  verifiedAt   DateTime?
+  verifiedById String?
+  verifiedBy   User?     @relation("OrganizationVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  status OrganizationStatus @default(ACTIVE)
 
   // Relations
   donations  Donation[]
@@ -147,6 +187,9 @@ model Organization {
 model CauseCategory {
   id            String         @id @default(cuid())
   name          String         @unique
+  // URL-safe key, e.g. "space-science" (Discover uses ?category=<slug>; the
+  // Every.org cause mapping in src/lib/causes.ts is keyed by it).
+  slug          String         @unique
   description   String?
   subcauses     SubCause[]
   organizations Organization[] @relation("OrgCategories")

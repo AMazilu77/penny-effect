@@ -10,19 +10,25 @@ async function main() {
 
   // 2️⃣ Seed categories
   const categories = [
-    { name: "Humanitarian Aid", description: "Disaster relief and food security." },
-    { name: "Animal Welfare", description: "Wildlife protection and animal shelters." },
-    { name: "Environment", description: "Climate, reforestation, and conservation." },
-    { name: "Mental Health", description: "Awareness and support for well-being." },
-    { name: "Medical Research", description: "Advancing cures and biotechnology." },
-    { name: "Political Reform", description: "Transparency, civil rights, and governance." },
-    { name: "Education", description: "Access to learning and equal opportunities." },
-    { name: "Space & Science", description: "Exploration and scientific progress." },
+    { name: "Humanitarian Aid", slug: "humanitarian-aid", description: "Disaster relief and food security." },
+    { name: "Animal Welfare", slug: "animal-welfare", description: "Wildlife protection and animal shelters." },
+    { name: "Environment", slug: "environment", description: "Climate, reforestation, and conservation." },
+    { name: "Mental Health", slug: "mental-health", description: "Awareness and support for well-being." },
+    { name: "Medical Research", slug: "medical-research", description: "Advancing cures and biotechnology." },
+    { name: "Political Reform", slug: "political-reform", description: "Transparency, civil rights, and governance." },
+    { name: "Education", slug: "education", description: "Access to learning and equal opportunities." },
+    { name: "Space & Science", slug: "space-science", description: "Exploration and scientific progress." },
+    // Curated by hand, not mapped to Every.org causes (D-013).
+    {
+      name: "Highest Impact",
+      slug: "highest-impact",
+      description: "Charities that GiveWell's research finds do the most good per dollar.",
+    },
   ];
 
   for (const c of categories) {
     await prisma.causeCategory.upsert({
-      where: { name: c.name },
+      where: { slug: c.slug },
       update: {},
       create: c,
     });
