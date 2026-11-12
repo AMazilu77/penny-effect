@@ -3,7 +3,10 @@ import { compare } from "bcrypt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider, { type GoogleProfile } from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import type { Adapter, AdapterUser } from "next-auth/adapters";
 import { prisma } from "@/lib/prisma";
+import { normalizeEmail } from "@/lib/email";
+import { findUserIdByEmail } from "@/lib/user-lookup";
 import type { NextAuthOptions } from "next-auth";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -11,8 +14,25 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 /** True when Google sign-in is configured; the sign-in pages show the button only then. */
 export const googleSignInEnabled = Boolean(googleClientId && googleClientSecret);
 
+// The stock Prisma adapter matches emails exactly. Ours ignores case, so a
+// Google sign-in as alice@x.com finds an existing "Alice@x.com" account (and
+// is then refused with OAuthAccountNotLinked, as designed) instead of
+// silently creating a second account. New users are stored lowercased.
+const prismaAdapter = PrismaAdapter(prisma);
+const adapter: Adapter = {
+  ...prismaAdapter,
+  async getUserByEmail(email) {
+    const id = await findUserIdByEmail(email);
+    return id ? (prismaAdapter.getUser?.(id) ?? null) : null;
+  },
+  async createUser(user: Omit<AdapterUser, "id">) {
+    if (!prismaAdapter.createUser) throw new Error("Prisma adapter has no createUser");
+    return prismaAdapter.createUser({ ...user, email: normalizeEmail(user.email) });
+  },
+};
+
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter,
   secret: process.env.NEXTAUTH_SECRET,
   // Errors (e.g. ?error=OAuthAccountNotLinked) are shown on our own sign-in page.
   pages: { signIn: "/signin", error: "/signin" },
@@ -35,9 +55,10 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        // Case-insensitive, so accounts stored with uppercase letters
+        // (before emails were lowercased) can still sign in.
+        const userId = await findUserIdByEmail(credentials.email);
+        const user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
         if (!user || !user.passwordHash) return null;
 
         const ok = await compare(credentials.password, user.passwordHash);

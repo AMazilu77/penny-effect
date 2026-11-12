@@ -5,13 +5,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
 
-  if (!session?.user?.email) {
+  if (!userId) {
     return NextResponse.json({ hasCompletedOnboarding: false }, { status: 401 });
   }
 
+  // By id from the session, not by email (emails may differ in case).
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { id: userId },
     select: { hasCompletedOnboarding: true },
   });
 
