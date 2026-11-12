@@ -1,0 +1,82 @@
+{
+  "nonprofits": [
+    {
+      "name": "Malaria Consortium",
+      "profileUrl": "https://www.every.org/givewell-malaria-consortium",
+      "description": "The seasonal malaria chemoprevention program distributes antimalarial drugs to children to prevent illness and death from malaria.",
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/profile_pics/nhht2rh9rpsmhdzlq6np",
+      "logoCloudinaryId": "profile_pics/nhht2rh9rpsmhdzlq6np",
+      "slug": "givewell-malaria-consortium",
+      "websiteUrl": "https://www.givewell.org/charities/malaria-consortium",
+      "hasAdmin": true,
+      "donationsEnabled": true
+    },
+    {
+      "name": "Malawi Children's Village",
+      "profileUrl": "https://www.every.org/malawi-childrens-village",
+      "ein": "161526805",
+      "description": "A Village Based Orphan Care Project",
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/faja_profile/gjovh5ud5aos3yq6jvct",
+      "logoCloudinaryId": "faja_profile/gjovh5ud5aos3yq6jvct",
+      "slug": "malawi-childrens-village",
+      "location": "ANCHORAGE, AK",
+      "websiteUrl": "http://malawichildrensvillage.org",
+      "hasAdmin": false,
+      "tags": [
+        "humans"
+      ],
+      "donationsEnabled": true
+    },
+    {
+      "name": "Malaria Consortium",
+      "profileUrl": "https://www.every.org/malaria-consortium",
+      "ein": "980627052",
+      "description": "Prevention, control and treatment of malaria and other communicable diseases among vulnerable populations.",
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/profile_pics/qxze38hzzdpexfofoqbe",
+      "logoCloudinaryId": "profile_pics/qxze38hzzdpexfofoqbe",
+      "slug": "malaria-consortium",
+      "location": "Hermitage, PA, USA",
+      "websiteUrl": "https://www.malariaconsortium.org/us/us.htm",
+      "hasAdmin": true,
+      "tags": [
+        "science",
+        "research",
+        "poverty",
+        "women-and-girls",
+        "womens-health",
+        "disease",
+        "health"
+      ],
+      "donationsEnabled": true
+    },
+    {
+      "name": "United to Beat Malaria",
+      "profileUrl": "https://www.every.org/united-to-beat-malaria",
+      "description": "Nearly every minute, a child dies from malaria, a deadly yet preventable disease. Together, we can beat malaria.",
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/profile_pics/fj0yagcby3rrcbowajse",
+      "logoCloudinaryId": "profile_pics/fj0yagcby3rrcbowajse",
+      "slug": "united-to-beat-malaria",
+      "location": "Washington, DC, USA",
+      "websiteUrl": "https://beatmalaria.org",
+      "hasAdmin": true,
+      "tags": [
+        "humans",
+        "womens-health",
+        "health",
+        "disease"
+      ],
+      "donationsEnabled": true
+    },
+    {
+      "name": "Against Malaria Foundation",
+      "profileUrl": "https://www.every.org/givewell-amf",
+      "description": "AMF provides funding for long-lasting insecticide-treated net distributions for protection against malaria.",
+      "logoUrl": "https://res.cloudinary.com/everydotorg/image/upload/c_lfill,w_24,h_24,dpr_2/c_crop,ar_24:24/q_auto,f_auto,fl_progressive/profile_pics/ozjx5oaysxtrk6ugbgyk",
+      "logoCloudinaryId": "profile_pics/ozjx5oaysxtrk6ugbgyk",
+      "slug": "givewell-amf",
+      "websiteUrl": "https://www.givewell.org/charities/amf",
+      "hasAdmin": true,
+      "donationsEnabled": true
+    }
+  ]
+}
