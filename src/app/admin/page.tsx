@@ -1,6 +1,7 @@
 // Admin overview: where the organization directory stands (D-012).
 // Layouts and pages render in parallel in the App Router, so this page
 // checks the role itself too instead of relying on the layout alone.
+import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 
@@ -34,7 +35,8 @@ export default async function AdminPage() {
         <Stat label="Hidden" value={hidden} />
       </section>
       <p className="text-sm opacity-70">
-        Searching, importing and verifying organizations from Every.org comes next.
+        <Link href="/admin/organizations" className="underline">Review organizations</Link> or{" "}
+        <Link href="/admin/organizations/import" className="underline">import from Every.org</Link>.
       </p>
     </div>
   );
