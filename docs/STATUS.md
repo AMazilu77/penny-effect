@@ -15,16 +15,16 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Sign up / sign in (email+password) | ✅ Real | bcrypt, NextAuth v4.24.15 Credentials, JWT sessions (staying on v4 — D-003). No rate limiting. |
 | Google sign-in | ✅ Real | NextAuth Google provider; verified emails only; no automatic linking to an existing password account (shows a clear message instead). Works on production and localhost, not on preview URLs. |
 | Onboarding (choose causes) | ✅ Real | Categories loaded from the DB; API accepts only existing category ids (zod, tested), uses `session.user.id`, saves in one transaction. One row per user+category (unique constraint). No location. |
-| Organizations | 🟡 Seed only | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. |
+| Organizations | 🟡 Seed only, schema ready | `prisma/seed.ts` — big-name orgs, no EIN, no verification. Seed wipes tables. Schema now has Every.org fields (`ein`, `everyOrgId`, `everyOrgSlug`, `isDisbursable`, …), admin verification (`verifiedAt`, `verifiedById`) and `status` (ACTIVE/HIDDEN), all unused until the admin tools land (Milestone 2, D-012). |
 | Charity search (`/api/charities`, `/charities`) | ❌ Mock | Three hardcoded fake charities with fake EINs. |
 | Donate | 🟡 Records only | `/api/donate` records a PENDING donation in integer cents (`amountCents`, zod-validated, $1–$10,000, tested). No payment happens and the UI says so. Legacy `amount` float still written until the remove migration. Idempotent: the form sends a per-gift UUID; a double-click or retry returns the original donation (unique `(userId, idempotencyKey)`). |
 | Dashboard | ✅ Real data | Given (COMPLETED only, $0 until Milestone 3), recorded-not-yet-paid (PENDING), causes followed, last 5 gifts; honest empty states. No dead links. |
 | Feed | 🟡 Real query, no content yet | Pulls `NewsItem`s by followed categories, but only ones with a `sourceUrl` (a link to where the organization published it). The old seeded headlines were invented and have no source, so they are hidden; the feed shows an honest empty state until real updates are posted (admin tool: Milestone 2). |
-| Discover | ❌ Static | Category chips do nothing. |
+| Discover | ❌ Static | Category chips do nothing. Categories now have a `slug` for `?category=` links. A 9th, curated category "Highest Impact" exists (D-013), empty until an admin adds verified members. |
 | Inbox | ⏸ Hidden | Fake page removed; returns to Milestone 3 with real partner receipts. |
 | Penny Jar / round-ups | ❌ Missing | Core concept not started. |
 | Crypto / smart contracts | ❌ Missing | Only `cryptoWalletBTC/ETH` text fields on `Organization`. No Tezos anything. |
-| Admin | ❌ Missing | |
+| Admin | ❌ Missing | `User.role` (USER/ADMIN, default USER) exists; no admin pages yet. |
 | Tests | 🟡 Runner only | Vitest 5 + GitHub Actions CI (lint, typecheck, test, build on every PR). One wiring test; business-logic tests come with Milestone 1. |
 
 ## Technical debt and issues (priority order)
