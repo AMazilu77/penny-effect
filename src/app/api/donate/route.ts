@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { donationRequestSchema } from "@/lib/donations";
 import { recordDonation } from "@/lib/record-donation";
 import { prismaDonationStore } from "@/lib/donation-store";
+import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
 // Records a donation the user intends to make. No payment is taken here: the
 // row stays PENDING until the donation partner confirms it (Milestone 3).
@@ -30,12 +31,13 @@ export async function POST(req: Request) {
   const { organizationId, amountCents, message, idempotencyKey } = parsed.data;
 
   try {
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
+    // Only organizations users can see may receive new gifts (D-012).
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId, ...VISIBLE_ORGANIZATION_WHERE },
       select: { id: true },
     });
     if (!organization) {
-      return NextResponse.json({ error: "Unknown organization" }, { status: 400 });
+      return NextResponse.json({ error: "This organization isn't available for donations." }, { status: 400 });
     }
 
     const result = await recordDonation(prismaDonationStore, {
