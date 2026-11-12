@@ -31,8 +31,8 @@ pnpm lint
 pnpm typecheck           # tsc --noEmit
 pnpm test                # vitest run (pnpm test:watch while editing)
 pnpm prisma migrate dev  # create/apply a migration locally
-pnpm prisma db seed      # runs prisma/seed.ts (WIPES orgs, categories, news first)
-                         # Prisma 7: `migrate reset` no longer seeds automatically; run this after it
+pnpm prisma db seed      # local only: upserts 9 categories + 12 real nonprofits; never deletes;
+                         # refuses when VERCEL_ENV=production. Prisma 7: `migrate reset` doesn't seed; run this after it
 pnpm prisma studio
 ```
 
@@ -74,7 +74,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 
 **Database**
 - Schema changes go through `prisma migrate dev` with a descriptive migration name. Never edit an applied migration.
-- The seed script deletes data. Never run it against the production database.
+- The seed script never deletes and refuses `VERCEL_ENV=production`, but it marks its organizations verified, so still never point it at the production database.
 - Destructive migrations (dropping/retyping columns with data) need an explicit data-migration step and a note in the PR.
 - Production migrations run automatically in Vercel **production** builds (`scripts/migrate-on-production-build.mjs`, needs `DIRECT_URL` in Vercel Production). So every migration must be safe while the *previous* deployment is still live: **add-then-remove**. Add columns/tables (nullable or defaulted) and backfill in one PR; drop old columns in a later PR. Never rename or retype a column in place.
 - Wrap hand-written or data-changing migrations in `BEGIN; … COMMIT;`. Prisma 7 does **not** roll back a migration that fails halfway; it leaves it half applied and blocks every later deploy (P3009) until someone runs `prisma migrate resolve`. Prefer `IF NOT EXISTS` so a retry can finish a half-applied database.
