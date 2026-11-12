@@ -42,7 +42,7 @@ Required env vars (`.env.local`, never committed): `DATABASE_URL` (Neon pooled),
 
 ```
 src/app/            routes (App Router). Pages: /, about, signin, signup, onboarding/interests,
-                    dashboard, feed, discover, charities (inbox hidden until Milestone 3)
+                    dashboard, feed, discover, charities, admin (inbox hidden until Milestone 3)
 src/app/api/        route handlers: auth, register, donate, organizations, charities (mock),
                     onboarding/interests, user/status
 src/components/     UI; nav/, surface/, actions/
@@ -83,7 +83,8 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 
 **Security**
 - No debug endpoints that expose env or config (the old `/api/debug/env` was removed in Milestone 0).
-- Protect every signed-in route in `src/proxy.ts` (dashboard, feed, inbox, onboarding), plus API handlers check the session themselves.
+- Protect every signed-in route in `src/proxy.ts` (dashboard, feed, inbox, onboarding, admin), plus API handlers check the session themselves.
+- Admin pages call `requireAdminPage()` and `/api/admin` handlers call `requireAdminApi()` (`@/lib/admin`), which re-check the role in the database. Never trust the role in the JWT alone.
 - Never log secrets, tokens, password hashes, or full user records. Remove `console.log` of user data.
 - Rate-limit `/api/register` and credential sign-in before launch.
 
