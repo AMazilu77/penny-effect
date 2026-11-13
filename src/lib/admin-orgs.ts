@@ -133,7 +133,7 @@ export const ERRORS = {
   "not-disbursable": "Every.org can't currently send donations to it, so it can't be verified.",
   hidden: "Make it active before verifying.",
   "note-required": `Write a verification note (${VERIFICATION_NOTE_MIN}–${VERIFICATION_NOTE_MAX} characters) saying what you checked, e.g. "IRS status current; 990 for 2024 on ProPublica; EIN in website footer".`,
-  "news-invalid": "Fill in every field: a title (3+ characters), a summary (10+ characters) and an http(s) source link.",
+  "news-invalid": "That news request wasn't valid. Reload the page and try again.",
   "news-org": "News can only be posted for an organization that is active and verified.",
   "news-not-found": "That news item no longer exists.",
 } as const;
