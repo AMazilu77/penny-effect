@@ -9,7 +9,7 @@ describe("isProtectedPath", () => {
     },
   );
 
-  it.each(["/", "/signin", "/signup", "/about", "/discover", "/charities", "/api/auth/session"])(
+  it.each(["/", "/signin", "/signup", "/about", "/discover", "/api/auth/session"])(
     "leaves public page %s open",
     (path) => {
       expect(isProtectedPath(path)).toBe(false);

@@ -34,13 +34,17 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
 
         {/* Desktop center search */}
         <div className={styles.center}>
-          <div className={styles.searchWrap}>
+          {/* Searches the verified directory on /discover. */}
+          <form action="/discover" method="get" role="search" className={styles.searchWrap}>
             <Search className={styles.searchIcon} />
             <input
+              name="q"
+              aria-label="Search organizations"
               className={styles.searchInput}
-              placeholder="Search causes, orgs, posts…"
+              placeholder="Search organizations…"
+              maxLength={100}
             />
-          </div>
+          </form>
         </div>
 
         {/* Desktop right actions */}
@@ -89,13 +93,16 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
 
       {/* Mobile search */}
       <div className={styles.mobile}>
-        <div className={styles.mobileRow}>
+        <form action="/discover" method="get" role="search" className={styles.mobileRow}>
           <Search className={styles.searchIcon} />
           <input
+            name="q"
+            aria-label="Search organizations"
             className={styles.searchInput}
-            placeholder="Search causes, orgs, posts…"
+            placeholder="Search organizations…"
+            maxLength={100}
           />
-        </div>
+        </form>
       </div>
     </header>
   );

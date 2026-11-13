@@ -32,7 +32,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 
 - [x] Hide seeded placeholder news: the feed shows only `NewsItem`s with a `sourceUrl`, and the seed no longer invents headlines
 - [x] Choose nonprofit data source (D-002); add EIN/registry fields to `Organization`, plus `verifiedAt` — Every.org (D-012); `ein`/`everyOrgId`/`everyOrgSlug`, `verifiedAt`/`verifiedById`, `status`, `User.role`, `CauseCategory.slug`, Highest Impact category (D-013)
-- [ ] Replace mock `/api/charities` with real search; wire Discover chips to category filtering
+- [x] Replace mock `/api/charities` with real search; wire Discover chips to category filtering — `/discover?category=<slug>&q=`, only verified orgs; `/charities` redirects
 - [x] Admin-only area (role on `User`) to add/verify organizations and post `NewsItem`s — `/admin`: Every.org import/link/verify/hide/categories; news with a required source link (only for active, verified orgs)
 - [x] Seed script: safe, idempotent, never deletes in production — upserts only, refuses `VERCEL_ENV=production`, real nonprofits with EINs, no news
 
