@@ -57,7 +57,7 @@ docs/               STATUS.md, ROADMAP.md (charter + decisions are in ../penny-e
 
 **Money and trust**
 - This app never holds, pools, or forwards donor money itself. Real payments go through a licensed donation partner (see D-001 in `../penny-effect-docs/DECISIONS.md`). Don't build custodial wallets, smart contracts that hold funds, or a "balance" users can top up unless the charter is explicitly changed.
-- Store money as integer **cents** (`Int`), never `Float`. The current `Donation.amount Float` is a known bug to migrate.
+- Store money as integer **cents** (`Int`), never `Float`. `Donation.amountCents` is the only amount column (the legacy `amount` float was removed).
 - Never show fabricated numbers to a signed-in user as if they were theirs. The dashboard shows real data: "given" counts only COMPLETED donations; PENDING ones are labelled "recorded, not yet paid" (D-011).
 - Every organization shown must be a real, verifiable registered nonprofit (EIN/registry ID). No placeholder charities in production.
 
