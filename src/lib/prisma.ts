@@ -13,11 +13,6 @@ function createPrismaClient() {
     adapter: new PrismaNeon({ connectionString: process.env.DATABASE_URL }),
     // Don't log every SQL query: noisy, and production logs end up in Vercel.
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-    // Never read the legacy crypto wallet columns, even when a query returns
-    // whole rows (e.g. `update` without `select`). A later migration drops
-    // them, and the deployment still live during that migration must not
-    // ask for them (add-then-remove; see CLAUDE.md). Removed with the columns.
-    omit: { organization: { cryptoWalletBTC: true, cryptoWalletETH: true } },
   });
 }
 

@@ -23,7 +23,7 @@ The skeleton is better than it looks: routing, a real Postgres schema with migra
 | Discover | ✅ Real | Category chips from the database with counts (`?category=<slug>`, shareable), search, cards with "View on Every.org" links. Lists only active, verified organizations. |
 | Inbox | ⏸ Hidden | Fake page removed; returns to Milestone 3 with real partner receipts. |
 | Penny Jar / round-ups | ❌ Missing | Core concept not started. |
-| Crypto / smart contracts | ❌ Missing | Only `cryptoWalletBTC/ETH` text fields on `Organization`. No Tezos anything. |
+| Crypto / smart contracts | ❌ Missing | None in the MVP (D-000). The unused `cryptoWalletBTC/ETH` columns were dropped in the Milestone 2 remove step. Crypto giving, if any, goes through the donation partner (Milestone 3). |
 | Admin | 🟡 Organizations done | `User.role` (USER/ADMIN), granted by hand in the Neon console. `/admin` is protected twice: the proxy (sign-in token) and a database role check in every page and Server Action (`src/lib/admin.ts`), so revoking is immediate; granting needs a fresh sign-in. Admins can search Every.org and import nonprofits (categories suggested from Every.org causes), link/refresh existing orgs by slug or EIN, verify (needs EIN + disbursable + active; re-linking to another EIN clears it), hide/show, and edit categories incl. Highest Impact. Users don't see the effect yet (Milestone 2, PR 5). News posting at `/admin/news`. |
 | Tests | 🟡 Runner only | Vitest 5 + GitHub Actions CI (lint, typecheck, test, build on every PR). One wiring test; business-logic tests come with Milestone 1. |
 

@@ -136,15 +136,11 @@ enum OrganizationStatus {
 // reports it disbursable, and an admin has verified it (D-012).
 model Organization {
   id              String   @id @default(cuid())
-  // LEGACY unique constraint: the EIN is the identity now. Dropped in the
-  // Milestone 2 remove step.
-  name            String   @unique
+  // Display name. Not unique: the EIN is the identity.
+  name            String
   description     String?
   website         String?
   logoUrl         String?
-  // LEGACY: unused, dropped in the Milestone 2 remove step (D-000: no wallets).
-  cryptoWalletBTC String?
-  cryptoWalletETH String?
   locationCity    String?
   locationState   String?
   locationCountry String?
