@@ -31,6 +31,13 @@
   --color-danger: var(--danger);
   --color-focus: var(--focus);
 
+  /* Status: a soft background, a 3:1 border and AA text for each */
+  --color-success-soft: var(--success-soft);
+  --color-success: var(--success);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn: var(--warn);
+  --color-danger-soft: var(--danger-soft);
+
   /* Older names still used by a few components */
   --color-background: var(--surface-page);
   --color-foreground: var(--text);
@@ -77,6 +84,11 @@
   --primary-hover: #155a31;
   --on-primary: #ffffff;
   --danger: #b42318;
+  --danger-soft: #fdecea;
+  --success: #1b6b3c;
+  --success-soft: #e3f4e8;
+  --warn: #8a4b08;
+  --warn-soft: #fdf1d8;
   --focus: #1b6b3c;
   --lorenz: #1b6b3c;
 }

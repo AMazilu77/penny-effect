@@ -7,7 +7,9 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { newsFeedWhere, safeExternalUrl } from "@/lib/feed";
-import { SectionCard } from "@/components/surface/SectionCard";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { OrgLogo } from "@/components/ui/OrgLogo";
+import { buttonSecondary } from "@/components/ui/buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -40,58 +42,68 @@ export default async function FeedPage() {
       content: true,
       sourceUrl: true,
       createdAt: true,
-      organization: { select: { name: true } },
+      organization: { select: { name: true, logoUrl: true, coverImageUrl: true } },
     },
   });
 
   const name = session?.user?.name?.split(" ")[0] ?? "there";
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 space-y-6">
-      <section>
-        <h1 className="text-3xl font-semibold">Welcome back, {name}!</h1>
-        <p className="opacity-70 mt-1">
+    <div className="space-y-(--space-section)">
+      <section className="space-y-1">
+        <h1 className="text-3xl font-bold">Welcome back, {name}</h1>
+        <p className="text-muted">
           Updates from the organizations behind the causes you follow, each linked to where it was published.
         </p>
       </section>
 
       {newsItems.length === 0 ? (
-        <SectionCard title="No updates yet">
+        <Card>
+          <CardHeader title="No updates yet" />
           <p>
             We only show news that links to something the organization actually published, and none has
             been posted for {followedCategoryIds.length > 0 ? "your causes" : "any cause"} yet. Check back soon.
           </p>
-          <Link
-            href="/onboarding/interests"
-            className="mt-3 inline-flex rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10"
-          >
+          <Link href="/onboarding/interests" className={`${buttonSecondary} mt-4`}>
             {followedCategoryIds.length > 0 ? "Change causes" : "Choose causes"}
           </Link>
-        </SectionCard>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-(--space-section) md:grid-cols-2">
           {newsItems.map((item) => {
             const href = safeExternalUrl(item.sourceUrl);
+            const source = href ? new URL(href).hostname.replace(/^www\./, "") : null;
+            // The org's Every.org cover image, or the brand placeholder. (Per-item news images come in a later PR.)
+            const image = safeExternalUrl(item.organization.coverImageUrl);
             return (
-              <SectionCard key={item.id} title={item.organization.name}>
-                <div className="space-y-2">
-                  <p className="font-medium">{item.title}</p>
-                  {item.content && <p className="opacity-80">{item.content}</p>}
-                  <div className="flex items-center justify-between gap-2 text-xs opacity-70">
-                    <span>{dateFormat.format(item.createdAt)}</span>
-                    {href && (
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg bg-white/10 px-3 py-1.5 hover:bg-white/20"
-                      >
+              <Card key={item.id} as="article" className="flex flex-col overflow-hidden p-0">
+                <div className="relative aspect-[16/9] border-b bg-inset">
+                  {image ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- remote image; served through our media route in the news-images PR
+                    <img src={image} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span aria-hidden className="lorenz-mark absolute inset-6 opacity-30" />
+                  )}
+                </div>
+                <div className="flex flex-1 flex-col gap-3 p-(--space-card)">
+                  <div className="flex items-center gap-2 text-sm text-muted">
+                    <OrgLogo src={safeExternalUrl(item.organization.logoUrl)} className="h-7 w-7" />
+                    <span className="font-semibold text-fg">{item.organization.name}</span>
+                    <span aria-hidden>·</span>
+                    <time dateTime={item.createdAt.toISOString()}>{dateFormat.format(item.createdAt)}</time>
+                  </div>
+                  <h2 className="text-xl font-semibold">{item.title}</h2>
+                  {item.content && <p className="text-fg">{item.content}</p>}
+                  {href && (
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
+                      <span className="text-sm text-muted">Source: {source}</span>
+                      <a href={href} target="_blank" rel="noopener noreferrer" className={buttonSecondary}>
                         Read the original
                       </a>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              </SectionCard>
+              </Card>
             );
           })}
         </div>

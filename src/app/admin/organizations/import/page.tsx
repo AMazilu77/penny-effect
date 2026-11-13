@@ -43,57 +43,57 @@ export default async function ImportPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Import from Every.org</h1>
+      <h1 className="text-2xl font-bold">Import from Every.org</h1>
       <Flash params={params} />
       <form method="get" className="flex gap-2">
         <input
           name="q"
           defaultValue={q}
           placeholder="Search by name, e.g. Against Malaria"
-          className="w-full max-w-md rounded-lg border border-white/20 bg-transparent px-3 py-1.5"
+          className="w-full max-w-md rounded-control border bg-inset px-3 py-2 text-fg"
         />
-        <button className="rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10">Search</button>
+        <button className="inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset">Search</button>
       </form>
-      <p className="text-xs opacity-60">
+      <p className="text-sm text-muted">
         Only nonprofits with an EIN that Every.org can send donations to can be verified. GiveWell&apos;s
         pass-through profiles (e.g. &quot;givewell-amf&quot;) have no EIN: import the charity&apos;s own profile instead.
       </p>
 
       {results === "failed" && (
-        <p role="alert" className="rounded-xl border border-red-400/40 bg-red-500/10 p-3 text-sm">
+        <p role="alert" className="rounded-control border border-danger bg-danger-soft p-3 text-sm text-danger">
           Couldn&apos;t reach Every.org, or it sent something unexpected. Try again.
         </p>
       )}
-      {q && list.length === 0 && results !== "failed" && <p className="opacity-70">No results.</p>}
+      {q && list.length === 0 && results !== "failed" && <p className="text-muted">No results.</p>}
 
-      <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
+      <ul className="divide-y rounded-card border bg-card shadow-sm">
         {list.map((r) => {
           const inDirectory = existingFor(r);
           return (
             <li key={r.slug} className="flex flex-wrap items-start justify-between gap-3 p-3">
               <div className="min-w-0 space-y-1">
                 <div className="font-medium">{r.name}</div>
-                <div className="text-xs opacity-60">
+                <div className="text-sm text-muted">
                   {r.slug} · {r.ein ? `EIN ${r.ein}` : "no EIN"} · {r.isDisbursable ? "accepts donations" : "not disbursable"}
                   {r.profileUrl && (
                     <>
                       {" · "}
-                      <a href={r.profileUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                      <a href={r.profileUrl} target="_blank" rel="noopener noreferrer" className="text-link underline">
                         Every.org profile
                       </a>
                     </>
                   )}
                 </div>
-                {r.description && <p className="text-sm opacity-80">{r.description}</p>}
+                {r.description && <p className="text-sm text-fg">{r.description}</p>}
               </div>
               {inDirectory ? (
-                <Link href={`/admin/organizations/${inDirectory.id}`} className="text-sm underline">
+                <Link href={`/admin/organizations/${inDirectory.id}`} className="text-sm text-link underline">
                   In directory
                 </Link>
               ) : (
                 <form action={importOrganization}>
                   <input type="hidden" name="everyOrgSlug" value={r.slug} />
-                  <button className="rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10">Import</button>
+                  <button className="inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset">Import</button>
                 </form>
               )}
             </li>

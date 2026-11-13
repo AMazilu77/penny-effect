@@ -1,27 +1,32 @@
 // app/about/page.tsx
+import { Card } from "@/components/ui/Card";
+import { BRAND_NAME } from "@/lib/brand";
+
 export const metadata = {
-  title: "About | Penny Effect",
-  description: "Learn what The Penny Effect is all about."
+  title: `About | ${BRAND_NAME}`,
+  description: "What The Penny Effect is, and how giving works here.",
 };
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-4">
-      <h1 className="text-3xl font-bold mb-2">About The Penny Effect</h1>
-      <p>
-        The Penny Effect is a platform for micro-donations that add up to big
-        change. Our mission is to make generosity effortless by letting users
-        support causes they care about — automatically, transparently, and at
-        any scale.
-      </p>
-      <p>
-        Every cent counts. By combining small actions from many people, we can
-        create powerful collective impact.
-      </p>
-      <p>
-        Whether you round up your spare change or donate a few cents per day,
-        you’re part of something bigger. That’s the Penny Effect.
-      </p>
+    <div className="mx-auto max-w-3xl space-y-(--space-section)">
+      <h1 className="text-3xl font-bold">About {BRAND_NAME}</h1>
+      <Card className="space-y-4">
+        <p>
+          {BRAND_NAME} makes small, regular giving easy and visible. Small inputs, large effects: that&apos;s
+          the idea behind our logo, the Lorenz attractor.
+        </p>
+        <p>
+          You choose the causes you care about. We list only nonprofits a person on our team has checked: each
+          is a registered US charity with an EIN, and our donation partner can send it money.
+        </p>
+        <p>
+          <strong className="text-heading">We never hold your money.</strong> Gifts will be processed by our donation
+          partner, Every.org, which takes the payment, sends your tax receipt and pays the charity. Until that
+          connection is live, gifts you record here are clearly marked &ldquo;recorded, not yet paid&rdquo;.
+        </p>
+        <p>Every number we show you comes from your own records. No sample data, no estimates presented as fact.</p>
+      </Card>
     </div>
   );
 }

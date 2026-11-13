@@ -3,6 +3,11 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+import { Card } from "@/components/ui/Card";
+import { buttonPrimary, textLink } from "@/components/ui/buttons";
+import { BRAND_NAME } from "@/lib/brand";
+
+const field = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
 
 export default function SignInClient({
   googleEnabled,
@@ -54,64 +59,56 @@ export default function SignInClient({
   }
 
   return (
-    <div className="max-w-sm mx-auto p-6 space-y-4">
-      <h1 className="text-xl font-semibold text-center">
-        Sign in to <span className="text-emerald-600">Penny Effect</span>
-      </h1>
+    <div className="mx-auto max-w-md">
+      <Card className="space-y-5">
+        <h1 className="text-center text-2xl font-bold">Sign in to {BRAND_NAME}</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="email"
-          className="w-full border border-gray-300 bg-white p-2 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="Email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-heading">Email</span>
+            <input type="email" autoComplete="email" className={field} value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-heading">Password</span>
+            <input
+              type="password"
+              autoComplete="current-password"
+              className={field}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
 
-        <input
-          type="password"
-          className="w-full border border-gray-300 bg-white p-2 rounded text-sm text-black focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+          {errorMsg && (
+            <p role="alert" className="rounded-control border border-danger bg-danger-soft p-3 text-center text-sm font-medium text-danger">
+              {errorMsg}
+            </p>
+          )}
 
-        {errorMsg && (
-          <p className="text-red-500 text-sm text-center">{errorMsg}</p>
+          <button type="submit" disabled={loading} className={`${buttonPrimary} w-full disabled:cursor-wait`}>
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+
+        {googleEnabled && (
+          <>
+            <div className="flex items-center gap-3 text-sm text-muted">
+              <span className="h-px flex-1 bg-line" />
+              or
+              <span className="h-px flex-1 bg-line" />
+            </div>
+            <GoogleSignInButton />
+          </>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full p-2 rounded text-white font-medium transition-colors ${
-            loading
-              ? "bg-emerald-400 cursor-wait"
-              : "bg-emerald-600 hover:bg-emerald-700"
-          }`}
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
-
-      {googleEnabled && (
-        <>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <span className="h-px flex-1 bg-gray-200" />
-            or
-            <span className="h-px flex-1 bg-gray-200" />
-          </div>
-          <GoogleSignInButton />
-        </>
-      )}
-
-      <p className="text-center text-sm mt-3">
-        Don’t have an account?{" "}
-        <a href="/signup" className="text-emerald-600 hover:underline">
-          Create one
-        </a>
-      </p>
+        <p className="text-center text-sm">
+          Don’t have an account?{" "}
+          <a href="/signup" className={textLink}>
+            Create one
+          </a>
+        </p>
+      </Card>
     </div>
   );
 }
