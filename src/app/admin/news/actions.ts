@@ -4,7 +4,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminPage } from "@/lib/admin";
-import { canPostNewsFor, newsFieldErrors, newsForm, type NewsFieldErrors, type NewsFormValues } from "@/lib/admin-news";
+import {
+  canPostNewsFor,
+  newsFieldErrors,
+  newsForm,
+  normalizeText,
+  type NewsFieldErrors,
+  type NewsFormValues,
+} from "@/lib/admin-news";
+import { safeExternalUrl } from "@/lib/feed";
+import { newsImageErrors, parseOgImage } from "@/lib/news-image";
+import { safeFetch } from "@/lib/safe-fetch";
 import { ERRORS, formDataToObject, type ErrorCode, type NoticeCode } from "@/lib/admin-orgs";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -28,7 +38,7 @@ export type NewsFormState = {
   attempt: number;
 };
 
-const EMPTY: NewsFormValues = { organizationId: "", title: "", content: "", sourceUrl: "" };
+const EMPTY: NewsFormValues = { organizationId: "", title: "", content: "", sourceUrl: "", imageUrl: "", imageAlt: "" };
 
 /**
  * Posts a news item. The source link is required: no source, no news.
@@ -50,7 +60,7 @@ export async function postNews(previous: NewsFormState | undefined, formData: Fo
     // newsFieldErrors covers every rule in newsForm; the fallback is defensive.
     return { values, attempt, errors: Object.keys(errors).length > 0 ? errors : { title: ERRORS["news-invalid"] } };
   }
-  const { organizationId, title, content, sourceUrl } = input.data;
+  const { organizationId, title, content, sourceUrl, imageUrl, imageAlt } = input.data;
 
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
@@ -58,8 +68,47 @@ export async function postNews(previous: NewsFormState | undefined, formData: Fo
   });
   if (!org || !canPostNewsFor(org)) return { values, attempt, errors: { organizationId: ERRORS["news-org"] } };
 
-  await prisma.newsItem.create({ data: { organizationId, title, content, sourceUrl } });
+  await prisma.newsItem.create({ data: { organizationId, title, content, sourceUrl, imageUrl, imageAlt } });
   done("news-posted");
+}
+
+/**
+ * Reads the source page's preview image (og:image) so the admin doesn't have
+ * to find it by hand. Admin-only; fetched with the SSRF rules in safe-fetch.ts.
+ * Returns the image's URL, or a plain-language reason.
+ */
+export async function fetchPreviewImage(sourceUrl: string): Promise<{ imageUrl: string } | { error: string }> {
+  await requireAdminPage();
+  const url = safeExternalUrl(sourceUrl.trim());
+  if (!url) return { error: "Enter the source link first (starting with https://)." };
+  try {
+    const page = await safeFetch(url, { maxBytes: 512 * 1024, accept: ["text/html", "application/xhtml+xml"], timeoutMs: 5000 });
+    const imageUrl = parseOgImage(page.body.toString("utf8"), page.url);
+    return imageUrl
+      ? { imageUrl }
+      : { error: "That page doesn't name a preview image. Paste an image link yourself, or post without one." };
+  } catch {
+    return { error: "Couldn't read that page (it may block automated visits). Paste an image link yourself, or post without one." };
+  }
+}
+
+/** Replaces or removes an existing news item's image. */
+export async function updateNewsImage(formData: FormData) {
+  await requireAdminPage();
+  const raw = formDataToObject(formData);
+  const id = z.string().trim().min(1).max(64).safeParse(raw.newsItemId);
+  if (!id.success) fail("news-invalid");
+  const remove = raw.intent === "remove";
+  const imageUrl = remove ? "" : String(raw.imageUrl ?? "");
+  const imageAlt = remove ? "" : String(raw.imageAlt ?? "");
+  if (!remove && !imageUrl.trim()) fail("news-image-invalid");
+  if (Object.keys(newsImageErrors({ imageUrl, imageAlt })).length > 0) fail("news-image-invalid");
+  const updated = await prisma.newsItem.updateMany({
+    where: { id: id.data, sourceUrl: { not: null } },
+    data: remove ? { imageUrl: null, imageAlt: null } : { imageUrl: imageUrl.trim(), imageAlt: normalizeText(imageAlt) },
+  });
+  if (updated.count === 0) fail("news-not-found");
+  done(remove ? "news-image-removed" : "news-image-saved");
 }
 
 /** Removes a news item, e.g. one posted by mistake. */
