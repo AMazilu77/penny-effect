@@ -12,7 +12,7 @@ const navLink = (active: boolean) =>
     active ? "bg-accent-soft text-heading" : "text-fg hover:bg-inset"
   }`;
 
-export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
+export function TopNav() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   // Only a convenience link: /admin itself checks the role in the database.
@@ -58,10 +58,11 @@ export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
         <div className="mx-2 hidden max-w-xs flex-1 lg:block">{search}</div>
         <div className="ms-auto hidden items-center gap-2 md:flex">
           {status === "authenticated" && (
-            <button onClick={onOpenActions} className={buttonPrimary}>
+            // The one giving action that works today: the dashboard's donation form.
+            <Link href="/dashboard#give" className={buttonPrimary}>
               <PlusCircle aria-hidden className="h-4 w-4" />
               Give
-            </button>
+            </Link>
           )}
           <button onClick={handleAuthClick} className={navLink(false)}>
             {status === "authenticated" ? "Sign out" : "Sign in"}
