@@ -3,6 +3,7 @@
 // src/app/admin/organizations/actions.ts apply them.
 import { z } from "zod";
 import type { EveryOrgNonprofit } from "@/lib/everyorg/parse";
+import { VERIFICATION_NOTE_MAX, VERIFICATION_NOTE_MIN } from "@/lib/verification-guide";
 
 /**
  * The Organization fields that come from Every.org. Used when importing a
@@ -60,6 +61,12 @@ const id = z.string().trim().min(1).max(64);
 
 export const orgIdForm = z.object({ organizationId: id });
 
+/** Verifying needs a note saying what the admin checked (shown to other admins). */
+export const verifyForm = z.object({
+  organizationId: id,
+  verificationNote: z.string().trim().min(VERIFICATION_NOTE_MIN).max(VERIFICATION_NOTE_MAX),
+});
+
 /** An Every.org slug, 9-digit EIN (dash allowed) or Every.org id. */
 export const everyOrgRefForm = z.object({
   organizationId: id,
@@ -104,7 +111,7 @@ export const NOTICES = {
   imported: "Imported from Every.org. Review it, pick categories, then verify.",
   linked: "Linked to Every.org and refreshed.",
   "linked-unverified": "Linked to a different nonprofit (new EIN), so verification was cleared. Review and verify again.",
-  verified: "Verified. Users will see it once it is active.",
+  verified: "Verified, with your note. Donors see it as long as it stays active and can receive gifts.",
   unverified: "Verification removed.",
   hidden: "Hidden from users.",
   shown: "Active again (users see it only if it is also verified).",
@@ -125,6 +132,7 @@ export const ERRORS = {
   "no-ein": "Every.org has no EIN for it, so it can't be verified (D-012).",
   "not-disbursable": "Every.org can't currently send donations to it, so it can't be verified.",
   hidden: "Make it active before verifying.",
+  "note-required": `Write a verification note (${VERIFICATION_NOTE_MIN}–${VERIFICATION_NOTE_MAX} characters) saying what you checked, e.g. "IRS status current; 990 for 2024 on ProPublica; EIN in website footer".`,
   "news-invalid": "Fill in every field: a title (3+ characters), a summary (10+ characters) and an http(s) source link.",
   "news-org": "News can only be posted for an organization that is active and verified.",
   "news-not-found": "That news item no longer exists.",

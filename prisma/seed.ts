@@ -12,6 +12,9 @@
 import { prisma } from "../src/lib/prisma";
 import { SEED_CATEGORIES, SEED_ORGANIZATIONS, seedBlockedReason } from "./seed-data";
 
+// Seeded rows are marked verified for local testing only; say so in the note.
+const SEED_NOTE = "Seeded for local development, not a real admin review.";
+
 async function main() {
   const blocked = seedBlockedReason(process.env);
   if (blocked) {
@@ -59,6 +62,7 @@ async function main() {
           ...fields,
           description: existing.description ?? org.description,
           verifiedAt: existing.verifiedAt ?? new Date(),
+          ...(existing.verifiedAt ? {} : { verificationNote: SEED_NOTE }),
           categories: { connect: categories },
         },
       });
@@ -70,6 +74,7 @@ async function main() {
           description: org.description,
           ...fields,
           verifiedAt: new Date(),
+          verificationNote: SEED_NOTE,
           categories: { connect: categories },
         },
       });

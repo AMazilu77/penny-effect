@@ -19,6 +19,7 @@ import {
   linkClearsVerification,
   orgIdForm,
   verifyBlocker,
+  verifyForm,
   type ErrorCode,
   type NoticeCode,
 } from "@/lib/admin-orgs";
@@ -134,7 +135,7 @@ export async function linkOrganization(formData: FormData) {
       where: { id: organizationId },
       data: {
         ...everyOrgFields(np, new Date()),
-        ...(clearVerification ? { verifiedAt: null, verifiedById: null } : {}),
+        ...(clearVerification ? { verifiedAt: null, verifiedById: null, verificationNote: null } : {}),
       },
     });
   } catch (error) {
@@ -148,8 +149,12 @@ export async function linkOrganization(formData: FormData) {
 /** Marks an organization as reviewed by this admin, if it meets the rules. */
 export async function verifyOrganization(formData: FormData) {
   const { userId } = await requireAdminPage();
-  const input = orgIdForm.safeParse(formDataToObject(formData));
-  if (!input.success) fail(LIST, "invalid");
+  const raw = formDataToObject(formData);
+  const input = verifyForm.safeParse(raw);
+  if (!input.success) {
+    const idOnly = orgIdForm.safeParse(raw);
+    fail(idOnly.success ? orgPath(idOnly.data.organizationId) : LIST, idOnly.success ? "note-required" : "invalid");
+  }
   const path = orgPath(input.data.organizationId);
 
   const org = await prisma.organization.findUnique({
@@ -162,7 +167,7 @@ export async function verifyOrganization(formData: FormData) {
 
   await prisma.organization.update({
     where: { id: input.data.organizationId },
-    data: { verifiedAt: new Date(), verifiedById: userId },
+    data: { verifiedAt: new Date(), verifiedById: userId, verificationNote: input.data.verificationNote },
   });
   done(path, "verified");
 }
@@ -173,7 +178,7 @@ export async function unverifyOrganization(formData: FormData) {
   if (!input.success) fail(LIST, "invalid");
   const updated = await prisma.organization.updateMany({
     where: { id: input.data.organizationId },
-    data: { verifiedAt: null, verifiedById: null },
+    data: { verifiedAt: null, verifiedById: null, verificationNote: null },
   });
   if (updated.count === 0) fail(LIST, "not-found");
   done(orgPath(input.data.organizationId), "unverified");

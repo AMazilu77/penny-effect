@@ -8,6 +8,7 @@ const NAV = [
   { href: "/admin/organizations", label: "Organizations", exact: false },
   { href: "/admin/organizations/import", label: "Import from Every.org", exact: true },
   { href: "/admin/news", label: "News", exact: false },
+  { href: "/admin/guide/verify", label: "How to verify", exact: true },
 ];
 
 export function AdminNav() {

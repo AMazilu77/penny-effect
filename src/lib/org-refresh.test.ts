@@ -54,7 +54,12 @@ describe("refreshOrganizations", () => {
     const store = fakeStore([candidate({ ein: "123456789" })]);
     const summary = await refreshOrganizations({ store, client: clientReturning(GD), now: () => NOW });
 
-    expect(store.update.mock.calls[0][1]).toMatchObject({ ein: GD.ein, verifiedAt: null, verifiedById: null });
+    expect(store.update.mock.calls[0][1]).toMatchObject({
+      ein: GD.ein,
+      verifiedAt: null,
+      verifiedById: null,
+      verificationNote: null,
+    });
     expect(summary).toMatchObject({ updated: 1, unverified: 1 });
   });
 
