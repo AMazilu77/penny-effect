@@ -3,12 +3,11 @@ import { requireAdminPage } from "@/lib/admin";
 import { safeExternalUrl } from "@/lib/feed";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../Flash";
-import { postNews, removeNews } from "./actions";
-import { Field } from "../Field";
+import { removeNews } from "./actions";
+import { NewsForm } from "./NewsForm";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
-const input = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
 const button = "inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset";
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
 
@@ -45,38 +44,7 @@ export default async function AdminNewsPage({ searchParams }: Props) {
         {orgs.length === 0 ? (
           <p className="text-sm text-warn">No active, verified organizations yet. Verify one first.</p>
         ) : (
-          <form action={postNews} className="space-y-3">
-            <Field id="organizationId" label="Organization" help="Only verified, active organizations are listed: news only appears for organizations donors can see.">
-              <select name="organizationId" required className={input} defaultValue="">
-                <option value="" disabled>
-                  Choose…
-                </option>
-                {orgs.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field id="title" label="Title" help="Use the organization's own headline, or a plain, factual one. No exaggeration.">
-              <input name="title" required minLength={3} maxLength={200} className={input} />
-            </Field>
-            <Field
-              id="content"
-              label="Summary"
-              help="Two or three sentences in your own words about what the organization published. Only include facts that are in the source."
-            >
-              <textarea name="content" required minLength={10} maxLength={2000} rows={4} className={input} />
-            </Field>
-            <Field
-              id="sourceUrl"
-              label="Source link"
-              help="The exact page where the organization published this (their site, blog or press release), starting with https://. Readers get a “Read the original” button that opens it."
-            >
-              <input name="sourceUrl" type="url" required placeholder="https://" maxLength={2000} className={input} />
-            </Field>
-            <button className={button}>Post</button>
-          </form>
+          <NewsForm orgs={orgs} />
         )}
       </section>
 
