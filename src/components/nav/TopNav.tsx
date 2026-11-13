@@ -4,106 +4,71 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PlusCircle, Search, Shield } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
-import styles from "./TopNav.module.css";
+import { Logo } from "@/components/brand/Logo";
+import { buttonPrimary } from "@/components/ui/buttons";
+
+const navLink = (active: boolean) =>
+  `inline-flex items-center gap-2 rounded-control px-3 py-2 text-sm font-semibold ${
+    active ? "bg-accent-soft text-heading" : "text-fg hover:bg-inset"
+  }`;
 
 export function TopNav({ onOpenActions }: { onOpenActions: () => void }) {
   const pathname = usePathname();
-  const { data: session, status } = useSession(); // status: 'loading' | 'authenticated' | 'unauthenticated'
+  const { data: session, status } = useSession();
   // Only a convenience link: /admin itself checks the role in the database.
   const isAdmin = session?.user?.role === "ADMIN";
-  const isActive = (p: string) => pathname === p;
+  const isActive = (p: string) => pathname === p || pathname.startsWith(`${p}/`);
 
   const handleAuthClick = () => {
     if (status === "authenticated") signOut({ callbackUrl: "/" });
     else signIn();
   };
 
+  const search = (
+    <form action="/discover" method="get" role="search" className="relative w-full">
+      <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+      <input
+        name="q"
+        aria-label="Search organizations"
+        placeholder="Search organizations…"
+        maxLength={100}
+        className="w-full rounded-control border bg-inset py-2 pl-9 pr-3 text-sm text-fg"
+      />
+    </form>
+  );
+
   return (
-    <header className={styles.header}>
-      <div className={styles.inner}>
-        {/* Brand / Home link */}
-        <Link href="/feed" className={styles.brand}>
-          Penny Effect
+    <header className="sticky top-0 z-30 border-b bg-card">
+      <div className="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4">
+        <Link href="/feed" className="me-2" aria-label="The Penny Effect, home">
+          <Logo />
         </Link>
-
-
-        {/* Brand / Home link */}
-        <Link href="/about" className={styles.brand}>
-          About
-        </Link>
-
-        {/* Desktop center search */}
-        <div className={styles.center}>
-          {/* Searches the verified directory on /discover. */}
-          <form action="/discover" method="get" role="search" className={styles.searchWrap}>
-            <Search className={styles.searchIcon} />
-            <input
-              name="q"
-              aria-label="Search organizations"
-              className={styles.searchInput}
-              placeholder="Search organizations…"
-              maxLength={100}
-            />
-          </form>
-        </div>
-
-        {/* Desktop right actions */}
-        <div className={styles.actions}>
-          {/* Show Donate only when logged in */}
-          {status === "authenticated" && (
-            <button
-              onClick={onOpenActions}
-              className={`${styles.btn} ${styles.btnPrimary}`}
-            >
-              <PlusCircle className="h-4 w-4" />
-              Donate / Action
-            </button>
-          )}
-
-          {/* Inbox is hidden until real partner receipts exist (Milestone 3). */}
-
-          <Link
-            href="/dashboard"
-            className={`${styles.btn} ${styles.btnOutline} ${
-              isActive("/dashboard") ? styles.active : ""
-            }`}
-          >
-            Dashboard
-          </Link>
-
+        <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
+          <Link href="/feed" className={navLink(isActive("/feed"))}>Feed</Link>
+          <Link href="/discover" className={navLink(isActive("/discover"))}>Discover</Link>
+          <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>Dashboard</Link>
+          <Link href="/about" className={navLink(isActive("/about"))}>About</Link>
           {isAdmin && (
-            <Link
-              href="/admin"
-              className={`${styles.btn} ${styles.btnOutline} ${pathname.startsWith("/admin") ? styles.active : ""}`}
-            >
-              <Shield className="h-4 w-4" />
+            <Link href="/admin" className={navLink(isActive("/admin"))}>
+              <Shield aria-hidden className="h-4 w-4" />
               Admin
             </Link>
           )}
-
-          {/* Login / Logout toggle */}
-          <button
-            onClick={handleAuthClick}
-            className={`${styles.btn} ${styles.btnOutline}`}
-          >
-            {status === "authenticated" ? "Logout" : "Login"}
+        </nav>
+        <div className="mx-2 hidden max-w-xs flex-1 lg:block">{search}</div>
+        <div className="ms-auto hidden items-center gap-2 md:flex">
+          {status === "authenticated" && (
+            <button onClick={onOpenActions} className={buttonPrimary}>
+              <PlusCircle aria-hidden className="h-4 w-4" />
+              Give
+            </button>
+          )}
+          <button onClick={handleAuthClick} className={navLink(false)}>
+            {status === "authenticated" ? "Sign out" : "Sign in"}
           </button>
         </div>
       </div>
-
-      {/* Mobile search */}
-      <div className={styles.mobile}>
-        <form action="/discover" method="get" role="search" className={styles.mobileRow}>
-          <Search className={styles.searchIcon} />
-          <input
-            name="q"
-            aria-label="Search organizations"
-            className={styles.searchInput}
-            placeholder="Search organizations…"
-            maxLength={100}
-          />
-        </form>
-      </div>
+      <div className="px-4 pb-3 md:hidden">{search}</div>
     </header>
   );
 }
