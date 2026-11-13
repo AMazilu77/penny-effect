@@ -162,6 +162,10 @@ model Organization {
   // Admin review (D-012). Both set together when an admin verifies.
   verifiedAt   DateTime?
   verifiedById String?
+  // Why the admin verified it (what they checked), shown to other admins.
+  // Required when verifying from now on; NULL for orgs verified before notes
+  // existed. Cleared together with verifiedAt.
+  verificationNote String? @db.Text
   verifiedBy   User?     @relation("OrganizationVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   status OrganizationStatus @default(ACTIVE)

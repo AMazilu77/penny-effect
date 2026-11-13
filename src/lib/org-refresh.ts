@@ -9,7 +9,8 @@
 //   `everyOrgFields`, the same mapping the admin "link/refresh" uses. Our
 //   display name is never overwritten.
 // - If the EIN changed (or disappeared), the admin's earlier review no
-//   longer applies, so verification is cleared, as when an admin re-links.
+//   longer applies, so verification (and its note) is cleared, as when an
+//   admin re-links.
 // - If Every.org no longer knows the organization (404), it is marked not
 //   disbursable. Users stop seeing it (D-012); verification is kept, so it
 //   comes back if Every.org lists it again.
@@ -41,6 +42,7 @@ export type RefreshCandidate = {
 export type RefreshUpdate = ReturnType<typeof everyOrgFields> & {
   verifiedAt?: null;
   verifiedById?: null;
+  verificationNote?: null;
 };
 
 export type RefreshStore = {
@@ -132,7 +134,7 @@ export async function refreshOrganizations({
     const clearVerification = org.verifiedAt !== null && linkClearsVerification(org.ein, np.ein);
     const data: RefreshUpdate = {
       ...everyOrgFields(np, now()),
-      ...(clearVerification ? { verifiedAt: null, verifiedById: null } : {}),
+      ...(clearVerification ? { verifiedAt: null, verifiedById: null, verificationNote: null } : {}),
     };
     if ((await store.update(org.id, data)) === "conflict") {
       summary.conflicts++;

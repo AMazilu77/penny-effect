@@ -10,6 +10,12 @@ import { OrgBadges, OrgStatusExplained } from "../../badges";
 import { Field } from "../../Field";
 import { HIGHEST_IMPACT_RULE, HIGHEST_IMPACT_SLUG } from "@/lib/highest-impact";
 import {
+  GIVEWELL_TOP_CHARITIES_URL,
+  VERIFICATION_NOTE_MAX,
+  VERIFICATION_NOTE_MIN,
+  verificationChecklist,
+} from "@/lib/verification-guide";
+import {
   hideOrganization,
   linkOrganization,
   saveCategories,
@@ -54,9 +60,12 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
   if (!org) notFound();
 
   const blocker = verifyBlocker(org);
-  const selected = new Set(org.categories.map((c) => c.id));
   const website = safeExternalUrl(org.website);
+  const checklist = verificationChecklist({ ein: org.ein, everyOrgSlug: org.everyOrgSlug, website });
+  const highestImpactId = categories.find((c) => c.slug === HIGHEST_IMPACT_SLUG)?.id;
+  const selected = new Set(org.categories.map((c) => c.id));
   const hidden = <input type="hidden" name="organizationId" value={org.id} />;
+  const inHighestImpact = highestImpactId !== undefined && selected.has(highestImpactId);
 
   return (
     <div className="space-y-4">
@@ -132,6 +141,14 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
               Verified {dateTime.format(org.verifiedAt)} UTC
               {org.verifiedBy && ` by ${org.verifiedBy.name ?? org.verifiedBy.email ?? "an admin"}`}.
             </p>
+            {org.verificationNote ? (
+              <blockquote className="rounded-control border bg-inset p-3 text-sm">
+                <span className="font-semibold text-heading">Note: </span>
+                {org.verificationNote}
+              </blockquote>
+            ) : (
+              <p className="text-sm text-muted">Verified before notes existed, so there is no note.</p>
+            )}
             <form action={unverifyOrganization}>
               {hidden}
               <button className={button}>Remove verification</button>
@@ -141,15 +158,63 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
           <>
             <p className="text-sm text-muted">
               Verifying tells donors a person checked that this is a real, registered US charity in good standing.
-              Donors see it once it&apos;s verified, active, has an EIN and can receive gifts through Every.org.
+              Donors see it once it&apos;s verified, active, has an EIN and can receive gifts through Every.org.{" "}
+              <Link href="/admin/guide/verify" className="text-link underline">
+                How to verify a nonprofit
+              </Link>
             </p>
-            {blocker && <p className="text-sm text-warn">{ERRORS[blocker]}</p>}
-            <form action={verifyOrganization}>
-              {hidden}
-              <button className={button} disabled={blocker !== null}>
-                Verify
-              </button>
-            </form>
+            {blocker ? (
+              <p className="text-sm text-warn">{ERRORS[blocker]}</p>
+            ) : (
+              <form action={verifyOrganization} className="space-y-4">
+                {hidden}
+                <fieldset className="space-y-3">
+                  <legend className="text-sm font-semibold text-heading">Before you verify, check each one:</legend>
+                  {checklist.map((step) => (
+                    <label key={step.id} className="flex gap-3 rounded-control border bg-inset p-3">
+                      <input type="checkbox" required name={`check-${step.id}`} className="mt-1 h-5 w-5 shrink-0" />
+                      <span className="space-y-1">
+                        <span className="block font-semibold text-heading">{step.title}</span>
+                        <span className="block text-sm">{step.check}</span>
+                        {step.links.length > 0 && (
+                          <span className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                            {step.links.map((l) => (
+                              <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className="text-link underline">
+                                {l.label}
+                              </a>
+                            ))}
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                  {inHighestImpact && (
+                    <p className="rounded-control border border-warn bg-warn-soft p-3 text-sm text-warn">
+                      This organization is in Highest Impact. Only: {HIGHEST_IMPACT_RULE} Check{" "}
+                      <a href={GIVEWELL_TOP_CHARITIES_URL} target="_blank" rel="noopener noreferrer" className="underline">
+                        GiveWell&apos;s Top Charities page
+                      </a>
+                      .
+                    </p>
+                  )}
+                </fieldset>
+                <Field
+                  id="verificationNote"
+                  label="Verification note"
+                  help={`What you checked, in a sentence or two (${VERIFICATION_NOTE_MIN}–${VERIFICATION_NOTE_MAX} characters). Other admins see it next to your name. Example: “IRS listed, not revoked; 990 for 2024 on ProPublica; EIN in website footer.”`}
+                >
+                  <textarea
+                    name="verificationNote"
+                    required
+                    minLength={VERIFICATION_NOTE_MIN}
+                    maxLength={VERIFICATION_NOTE_MAX}
+                    rows={3}
+                    className="w-full rounded-control border bg-inset px-3 py-2 text-base text-fg"
+                  />
+                </Field>
+                <button className={button}>Verify</button>
+              </form>
+            )}
           </>
         )}
       </Section>
