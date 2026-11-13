@@ -77,7 +77,8 @@ export async function importOrganization(formData: FormData) {
     select: { id: true },
   });
   if (existing) fail(orgPath(existing.id), "already-imported");
-  const sameName = await prisma.organization.findUnique({ where: { name: np.name }, select: { id: true } });
+  // findFirst, not findUnique: the unique constraint on name is being dropped (the EIN is the identity).
+  const sameName = await prisma.organization.findFirst({ where: { name: np.name }, select: { id: true } });
   if (sameName) fail(orgPath(sameName.id), "name-taken");
 
   // Suggested categories from Every.org causes (never Highest Impact).
