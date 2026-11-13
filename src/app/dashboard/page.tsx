@@ -46,17 +46,16 @@ export default async function DashboardPage() {
   const userId = session?.user?.id;
   if (!userId) redirect("/signin");
 
-  // Rows with no amountCents (legacy rows awaiting the follow-up backfill) are left out of totals.
   const [statusGroups, causesFollowed, recentDonations] = await Promise.all([
     prisma.donation.groupBy({
       by: ["status"],
-      where: { userId, amountCents: { not: null } },
+      where: { userId },
       _sum: { amountCents: true },
       _count: { _all: true },
     }),
     prisma.userInterest.count({ where: { userId } }),
     prisma.donation.findMany({
-      where: { userId, amountCents: { not: null } },
+      where: { userId },
       orderBy: { createdAt: "desc" },
       take: 5,
       select: {
@@ -135,7 +134,7 @@ export default async function DashboardPage() {
             {recentDonations.map((d) => (
               <li key={d.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <span>
-                  {formatCents(d.amountCents ?? 0, d.currency)} to {d.organization.name}
+                  {formatCents(d.amountCents, d.currency)} to {d.organization.name}
                   <span className="ms-2 text-xs opacity-60">{donationStatusLabel(d.status)}</span>
                 </span>
                 <time dateTime={d.createdAt.toISOString()} className="text-xs opacity-60">

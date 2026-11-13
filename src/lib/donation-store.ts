@@ -23,9 +23,6 @@ export const prismaDonationStore: DonationStore = {
           currency: "USD",
           status: "PENDING",
           idempotencyKey: input.idempotencyKey,
-          // LEGACY float column: written only so the previous deployment can still
-          // read new rows. Nothing reads it. Dropped in the follow-up migration.
-          amount: input.amountCents / 100,
           message: input.message ?? null,
         },
         select: donationFields,
