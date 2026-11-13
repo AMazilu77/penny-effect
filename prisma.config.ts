@@ -22,7 +22,9 @@ export default defineConfig({
   },
   migrations: {
     path: "prisma/migrations",
-    // Wipes organizations, categories and news before re-seeding. Never run against production.
+    // Local only: upserts categories and real nonprofits, never deletes, and
+    // refuses VERCEL_ENV=production. It marks its organizations verified, so
+    // never point it at the production database. Details in prisma/seed.ts.
     seed: "tsx prisma/seed.ts",
   },
 });
