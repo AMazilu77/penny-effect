@@ -9,6 +9,7 @@ type OrganizationOption = { id: string; name: string; description: string | null
 export default function DonationForm() {
   const router = useRouter();
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
+  const [orgsLoaded, setOrgsLoaded] = useState(false);
   const [organizationId, setOrganizationId] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -30,6 +31,8 @@ export default function DonationForm() {
         setOrganizations(data.organizations || []);
       } catch (err) {
         console.error('Failed to load organizations:', err);
+      } finally {
+        setOrgsLoaded(true);
       }
     };
     fetchOrgs();
@@ -90,6 +93,11 @@ export default function DonationForm() {
             </option>
           ))}
         </select>
+        {orgsLoaded && organizations.length === 0 && (
+          <p className="text-sm opacity-70">
+            No organizations are available yet. We only list nonprofits we have verified; check back soon.
+          </p>
+        )}
 
         <input
           type="number"

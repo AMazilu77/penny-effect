@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { newsFeedWhere, safeExternalUrl } from "@/lib/feed";
+import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
 describe("newsFeedWhere", () => {
-  it("only shows items with a source link when the user follows no causes", () => {
-    expect(newsFeedWhere([])).toEqual({ sourceUrl: { not: null } });
+  it("only shows sourced items from visible organizations when the user follows no causes", () => {
+    expect(newsFeedWhere([])).toEqual({ sourceUrl: { not: null }, organization: VISIBLE_ORGANIZATION_WHERE });
   });
 
-  it("filters by followed causes and still requires a source link", () => {
+  it("filters by followed causes and still requires a source link and a visible organization", () => {
     expect(newsFeedWhere(["cat1", "cat2"])).toEqual({
       sourceUrl: { not: null },
-      organization: { categories: { some: { id: { in: ["cat1", "cat2"] } } } },
+      organization: { ...VISIBLE_ORGANIZATION_WHERE, categories: { some: { id: { in: ["cat1", "cat2"] } } } },
     });
   });
 });
