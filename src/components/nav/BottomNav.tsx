@@ -20,7 +20,7 @@ function Tab({ href, label, icon, active }: { href: string; label: string; icon:
   );
 }
 
-export function BottomNav({ onOpenActions }: { onOpenActions: () => void }) {
+export function BottomNav() {
   const pathname = usePathname();
   const isActive = (p: string) => pathname === p;
   // Only a convenience link: /admin itself checks the role in the database.
@@ -32,10 +32,7 @@ export function BottomNav({ onOpenActions }: { onOpenActions: () => void }) {
       <div className={`mx-auto grid max-w-3xl gap-1 px-2 py-2 ${isAdmin ? "grid-cols-5" : "grid-cols-4"}`}>
         <Tab href="/feed" label="Feed" icon={<Home aria-hidden className="h-5 w-5" />} active={isActive("/feed")} />
         <Tab href="/discover" label="Discover" icon={<Compass aria-hidden className="h-5 w-5" />} active={isActive("/discover")} />
-        <button onClick={onOpenActions} className={tabClass(false)}>
-          <PlusCircle aria-hidden className="h-5 w-5" />
-          <span className="leading-none">Give</span>
-        </button>
+        <Tab href="/dashboard#give" label="Give" icon={<PlusCircle aria-hidden className="h-5 w-5" />} active={false} />
         <Tab href="/dashboard" label="Dashboard" icon={<User aria-hidden className="h-5 w-5" />} active={isActive("/dashboard")} />
         {isAdmin && (
           <Tab href="/admin" label="Admin" icon={<Shield aria-hidden className="h-5 w-5" />} active={pathname.startsWith("/admin")} />

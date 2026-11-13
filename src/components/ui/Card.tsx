@@ -9,11 +9,14 @@ type CardProps = {
   /** "card" sits on the page; "inset" sits inside a card (tiles, nested lists). */
   level?: "card" | "inset";
   as?: "section" | "div" | "article" | "li";
+  /** For in-page links, e.g. /dashboard#give. */
+  id?: string;
 };
 
-export function Card({ children, className, level = "card", as: Tag = "section" }: CardProps) {
+export function Card({ children, className, level = "card", as: Tag = "section", id }: CardProps) {
   return (
     <Tag
+      id={id}
       className={cn(
         "border",
         level === "card" ? "rounded-card bg-card p-(--space-card) shadow-sm" : "rounded-control bg-inset p-4",

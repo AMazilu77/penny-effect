@@ -147,7 +147,7 @@ export default async function DashboardPage() {
           )}
         </Card>
 
-        <Card>
+        <Card id="give" className="scroll-mt-24">
           <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
           <DonationForm />
         </Card>
