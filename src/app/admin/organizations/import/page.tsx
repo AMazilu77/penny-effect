@@ -7,6 +7,7 @@ import { createEveryOrgClient, EveryOrgError, type EveryOrgSearchResult } from "
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../../Flash";
 import { importOrganization } from "../actions";
+import { Field } from "../../Field";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -45,18 +46,20 @@ export default async function ImportPage({ searchParams }: Props) {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Import from Every.org</h1>
       <Flash params={params} />
-      <form method="get" className="flex gap-2">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="Search by name, e.g. Against Malaria"
-          className="w-full max-w-md rounded-control border bg-inset px-3 py-2 text-fg"
-        />
+      <form method="get" className="space-y-2">
+        <Field
+          id="q"
+          label="Search Every.org"
+          help="Type the organization's name, e.g. Against Malaria. Importing only adds it to our list as Waiting for review: donors don't see it until an admin verifies it."
+        >
+          <input name="q" defaultValue={q} className="w-full max-w-md rounded-control border bg-inset px-3 py-2 text-fg" />
+        </Field>
         <button className="inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset">Search</button>
       </form>
-      <p className="text-sm text-muted">
-        Only nonprofits with an EIN that Every.org can send donations to can be verified. GiveWell&apos;s
-        pass-through profiles (e.g. &quot;givewell-amf&quot;) have no EIN: import the charity&apos;s own profile instead.
+      <p className="rounded-control border bg-inset p-3 text-sm">
+        <strong className="text-heading">Pick the charity&apos;s own profile.</strong> Only nonprofits with a US tax ID
+        (EIN) that Every.org can send gifts to can be verified. Some results are pass-through profiles run by someone else
+        (e.g. GiveWell&apos;s &quot;givewell-amf&quot;) and have no EIN: import the charity&apos;s own profile instead.
       </p>
 
       {results === "failed" && (
@@ -74,7 +77,7 @@ export default async function ImportPage({ searchParams }: Props) {
               <div className="min-w-0 space-y-1">
                 <div className="font-medium">{r.name}</div>
                 <div className="text-sm text-muted">
-                  {r.slug} · {r.ein ? `EIN ${r.ein}` : "no EIN"} · {r.isDisbursable ? "accepts donations" : "not disbursable"}
+                  {r.slug} · {r.ein ? `EIN ${r.ein}` : "no EIN"} · {r.isDisbursable ? "can receive gifts" : "can't receive gifts"}
                   {r.profileUrl && (
                     <>
                       {" · "}

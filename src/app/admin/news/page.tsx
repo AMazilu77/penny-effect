@@ -4,6 +4,7 @@ import { safeExternalUrl } from "@/lib/feed";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../Flash";
 import { postNews, removeNews } from "./actions";
+import { Field } from "../Field";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -38,15 +39,14 @@ export default async function AdminNewsPage({ searchParams }: Props) {
       <section className="space-y-3 rounded-card border bg-card p-(--space-card) shadow-sm">
         <h2 className="font-semibold">Post an update</h2>
         <p className="text-sm text-muted">
-          Only post what the organization itself published, and link to it. The feed shows the title, your summary and a
-          link to the source.
+          Only post what the organization itself published, and link to it. Donors who follow the organization&apos;s
+          causes see it in their feed with your title, your summary and a link to the original.
         </p>
         {orgs.length === 0 ? (
           <p className="text-sm text-warn">No active, verified organizations yet. Verify one first.</p>
         ) : (
           <form action={postNews} className="space-y-3">
-            <label className="block space-y-1 text-sm">
-              <span>Organization</span>
+            <Field id="organizationId" label="Organization" help="Only verified, active organizations are listed: news only appears for organizations donors can see.">
               <select name="organizationId" required className={input} defaultValue="">
                 <option value="" disabled>
                   Choose…
@@ -57,19 +57,24 @@ export default async function AdminNewsPage({ searchParams }: Props) {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span>Title</span>
+            </Field>
+            <Field id="title" label="Title" help="Use the organization's own headline, or a plain, factual one. No exaggeration.">
               <input name="title" required minLength={3} maxLength={200} className={input} />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span>Summary</span>
+            </Field>
+            <Field
+              id="content"
+              label="Summary"
+              help="Two or three sentences in your own words about what the organization published. Only include facts that are in the source."
+            >
               <textarea name="content" required minLength={10} maxLength={2000} rows={4} className={input} />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span>Source link (where the organization published it)</span>
+            </Field>
+            <Field
+              id="sourceUrl"
+              label="Source link"
+              help="The exact page where the organization published this (their site, blog or press release), starting with https://. Readers get a “Read the original” button that opens it."
+            >
               <input name="sourceUrl" type="url" required placeholder="https://" maxLength={2000} className={input} />
-            </label>
+            </Field>
             <button className={button}>Post</button>
           </form>
         )}
