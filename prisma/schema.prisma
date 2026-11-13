@@ -126,6 +126,12 @@ model Donation {
   @@unique([userId, idempotencyKey])
 }
 
+// Where an organization's Charity Navigator rating came from (D-016).
+enum RatingSource {
+  API
+  MANUAL
+}
+
 // Organizations are hidden, never deleted, so donation history stays intact.
 enum OrganizationStatus {
   ACTIVE
@@ -158,6 +164,15 @@ model Organization {
   coverImageUrl String?
   // When we last refreshed details from Every.org.
   lastSyncedAt  DateTime?
+
+  // Charity Navigator rating (D-016): an interim quality signal about how a
+  // charity is run, not its impact per dollar. Shown as-is with attribution
+  // and a link; CN's terms forbid using it in other calculations.
+  cnScore      Int? // Encompass score, 0-100
+  cnStars      Int? // 0-4 stars, as published by CN
+  cnProfileUrl String?
+  cnCheckedAt  DateTime? // when we last read it (older than ~6 months shows as stale)
+  cnSource     RatingSource?
 
   // Admin review (D-012). Both set together when an admin verifies.
   verifiedAt   DateTime?
