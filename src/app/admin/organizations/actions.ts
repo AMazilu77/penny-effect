@@ -53,7 +53,7 @@ async function fetchFromEveryOrg(ref: string): Promise<EveryOrgNonprofit | Error
 }
 
 /**
- * A unique-constraint violation (P2002) on EIN, Every.org id/slug or name,
+ * A unique-constraint violation (P2002) on EIN or Every.org id/slug,
  * e.g. when two admins act at once. The common cases are checked up front
  * with clearer messages; this is the fallback.
  */
@@ -77,7 +77,8 @@ export async function importOrganization(formData: FormData) {
     select: { id: true },
   });
   if (existing) fail(orgPath(existing.id), "already-imported");
-  // findFirst, not findUnique: the unique constraint on name is being dropped (the EIN is the identity).
+  // Names aren't unique in the database (the EIN is the identity), but two
+  // organizations with the same display name would confuse donors.
   const sameName = await prisma.organization.findFirst({ where: { name: np.name }, select: { id: true } });
   if (sameName) fail(orgPath(sameName.id), "name-taken");
 
