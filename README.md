@@ -111,6 +111,31 @@ Added after the 2026-11-11 incident: a migration passed on `development` but fai
 7. **In the PR,** say what the deploy log will show, and give the recovery steps if it fails: the last good deployment keeps serving, then `migrate resolve --rolled-back` (or the equivalent `UPDATE "_prisma_migrations" SET rolled_back_at = now() …`), fix, redeploy.
 8. **After merge,** check the Vercel production deploy log for `Applying migration …` / "All migrations have been successfully applied", then check the live site.
 
+## Logo and icons
+
+The logo is one file, and the browser icons are generated from it.
+
+| File | What it is |
+|---|---|
+| `public/brand/logo.svg` | **The logo** for light backgrounds (today: the Lorenz attractor in brand green). Shown in the top bar next to the wordmark "The Penny Effect". |
+| `src/lib/brand.ts` | `LOGO_SRC` (the logo's path) and `BRAND_NAME` (the wordmark). |
+| `src/app/favicon.ico`, `src/app/icon.png`, `src/app/apple-icon.png` | **Generated** browser tab, app and iPhone home-screen icons. Next.js serves them automatically. Don't edit them by hand. |
+| `public/brand/lorenz-pattern.svg` | The faint Lorenz pattern used as decoration (watermarks, image placeholders). Not the logo; it stays when the logo changes. |
+
+**To change the logo:**
+1. Put the new logo in `public/brand/`, either as an SVG (best) or a PNG at least 512 px tall, made for a light background.
+   - If you keep the name `logo.svg`, just overwrite the file.
+   - If it's a PNG or has another name (e.g. `logo.png`), change `LOGO_SRC` in `src/lib/brand.ts` to match.
+2. Regenerate the icons from the same file:
+   ```bash
+   pnpm icons                          # uses public/brand/logo.svg
+   pnpm icons public/brand/logo.png    # or name the source file
+   ```
+   This rewrites `src/app/favicon.ico` (16/32/48 px), `src/app/icon.png` (512 px) and `src/app/apple-icon.png` (180 px on white).
+3. Check it with `pnpm dev`: the top bar, the browser tab, and (optionally) "Add to Home Screen" on a phone. Commit the logo and the three generated icons together.
+
+If the new logo has a separate small "mark" that works better at 16 px, run `pnpm icons` on that file instead. The icons and the top-bar logo don't have to be the same file.
+
 ## Deployment
 
 Vercel deploys `main` to production and builds a preview for every pull request. Environment variables are set in the Vercel project settings.

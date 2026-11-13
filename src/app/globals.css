@@ -2,159 +2,121 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Map tokens so Tailwind utilities like bg-background/text-foreground work */
+/*
+ * Design tokens. Components use the semantic names below (bg-card,
+ * text-muted, border-line, ...), never raw colors, so a theme is just a
+ * different set of values. Every text/background pair meets WCAG AA
+ * (4.5:1), and borders meet 3:1 against every surface. Values and the
+ * contrast table: D-015 and UI-PLAN.md in the private docs repo.
+ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Surfaces, from back to front: page -> card -> inset */
+  --color-page: var(--surface-page);
+  --color-card: var(--surface-card);
+  --color-inset: var(--surface-inset);
 
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
+  /* Text */
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-heading: var(--text-heading);
+  --color-link: var(--link);
 
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  /* Lines, brand, feedback */
+  --color-line: var(--border);
   --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
 
-  --color-destructive: var(--destructive);
+  /* Older names still used by a few components */
+  --color-background: var(--surface-page);
+  --color-foreground: var(--text);
   --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-muted-foreground: var(--text-muted);
+  --color-primary-foreground: var(--on-primary);
+  --color-card-foreground: var(--text);
 
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Type scale. Nothing below 14px: text-xs is raised to the same size as text-sm. */
+  --text-xs: 0.875rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+
+  /* Radius */
+  --radius-control: 0.625rem;
+  --radius-card: 1rem;
 }
 
-/* LIGHT THEME (only) */
+/* Shared, theme-independent tokens */
 :root {
-  --radius: 0.625rem;
-
-  /* Page + text */
-  --background: oklch(0.98 0.005 120);
-  --foreground: oklch(0.20 0.015 120);
-
-  /* Surfaces */
-  --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
-  --popover: oklch(1 0 0);
-  --popover-foreground: var(--foreground);
-
-  /* Brand / accents */
-  --primary: oklch(0.78 0.15 145);
-  --primary-foreground: oklch(0.99 0.003 120);
-  --secondary: oklch(0.94 0.015 120);
-  --secondary-foreground: oklch(0.28 0.03 120);
-
-  /* Muted content */
-  --muted: oklch(0.95 0.01 120);
-  --muted-foreground: oklch(0.45 0.02 120);
-
-  /* Accent */
-  --accent: oklch(0.93 0.03 145);
-  --accent-foreground: var(--foreground);
-
-  /* Feedback / borders / inputs */
-  --destructive: oklch(0.65 0.22 25);
-  --border: oklch(0.9 0.008 120);
-  --input: oklch(0.97 0.006 120);
-  --ring: oklch(0.72 0.08 145);
-
-  /* Charts */
-  --chart-1: oklch(0.72 0.16 145);
-  --chart-2: oklch(0.66 0.14 210);
-  --chart-3: oklch(0.62 0.16 270);
-  --chart-4: oklch(0.78 0.16 95);
-  --chart-5: oklch(0.70 0.18 40);
-
-  /* Sidebar (if used) */
-  --sidebar: var(--card);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  --accent: #5fcf7f;          /* the brand's light green: fills and decoration, never text on light */
+  --space-card: 1.25rem;      /* padding inside a card */
+  --space-section: 1.5rem;    /* gap between sections */
 }
 
-/* Base app styles */
+/* "Paper" (D-015): gray-green page, white cards, off-white insets. */
+:root {
+  color-scheme: light;
+  --surface-page: #e9eeea;
+  --surface-card: #ffffff;
+  --surface-inset: #f3f6f3;
+  --text: #17211c;
+  --text-muted: #4a5850;
+  --text-heading: #123321;
+  --link: #1b6b3c;
+  --border: #738279;
+  --accent-soft: #dcf3e3;
+  --primary: #1b6b3c;
+  --primary-hover: #155a31;
+  --on-primary: #ffffff;
+  --danger: #b42318;
+  --focus: #1b6b3c;
+  --lorenz: #1b6b3c;
+}
+
 @layer base {
   * {
     border-color: var(--border);
-    outline-color: color-mix(in oklab, var(--ring), transparent 50%);
+  }
+  html {
+    font-size: 100%; /* 16px body text */
   }
   body {
-    background: var(--background);
-    color: var(--foreground);
+    background: var(--surface-page);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+  h1, h2, h3 {
+    color: var(--text-heading);
+    line-height: 1.25;
+  }
+  a {
+    text-underline-offset: 3px;
+  }
+  /* A visible focus ring for keyboard users on every interactive element. */
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+  }
+  ::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
 }
 
-/* Fallback utilities (in case a class slips through) */
-.bg-background { background-color: var(--background) !important; }
-.text-foreground { color: var(--foreground) !important; }
-.bg-card { background-color: var(--card) !important; }
-.text-card-foreground { color: var(--card-foreground) !important; }
-.text-muted-foreground { color: var(--muted-foreground) !important; }
-.border-border { border-color: var(--border) !important; }
-.bg-primary { background-color: var(--primary) !important; }
-.text-primary-foreground { color: var(--primary-foreground) !important; }
-
-/* --- FINAL OVERRIDES: ensure readable text --- */
-html, body {
-  color: var(--foreground) !important;
-  background: var(--background) !important;
-}
-
-/* Inherit text color by default so a stray 'text-white' doesn't creep in via * selectors */
-*, *::before, *::after {
-  color: inherit;
-}
-
-:root {
-  --radius: 0.625rem;
-
-  /* Page + text */
-  --background: oklch(0.99 0.005 135);   /* very light green-tinted background */
-  --foreground: oklch(0.18 0.015 135);   /* deep gray/greenish text */
-
-  /* Surfaces */
-  --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
-
-  /* Brand / accents */
-  --primary: oklch(0.75 0.16 145);       /* medium emerald */
-  --primary-foreground: oklch(0.99 0.003 120);
-
-  --secondary: oklch(0.92 0.02 135);     /* pale sage */
-  --secondary-foreground: oklch(0.28 0.03 135);
-
-  --muted: oklch(0.95 0.01 135);
-  --muted-foreground: oklch(0.42 0.02 135);
-
-  --accent: oklch(0.9 0.03 145);         /* softer green accent */
-  --accent-foreground: var(--foreground);
-
-  /* Feedback / borders / inputs */
-  --destructive: oklch(0.65 0.22 25);    /* warm red */
-  --border: oklch(0.9 0.008 135);
-  --input: oklch(0.97 0.006 135);
-  --ring: oklch(0.72 0.08 145);
+/* The Lorenz attractor, tinted by the theme. Decorative only. */
+.lorenz-mark {
+  background-color: var(--lorenz);
+  -webkit-mask: url("/brand/lorenz-pattern.svg") center / contain no-repeat;
+  mask: url("/brand/lorenz-pattern.svg") center / contain no-repeat;
 }
