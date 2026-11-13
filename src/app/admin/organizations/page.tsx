@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../Flash";
-import { OrgBadges } from "../badges";
+import { OrgBadges, StatusLegend } from "../badges";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -34,6 +34,7 @@ export default async function AdminOrganizationsPage({ searchParams }: Props) {
         </Link>
       </div>
       <Flash params={params} />
+      <StatusLegend />
       <ul className="divide-y rounded-card border bg-card shadow-sm">
         {orgs.map((org) => (
           <li key={org.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 p-3">

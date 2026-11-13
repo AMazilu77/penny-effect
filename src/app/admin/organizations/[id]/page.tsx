@@ -6,7 +6,9 @@ import { verifyBlocker, ERRORS } from "@/lib/admin-orgs";
 import { safeExternalUrl } from "@/lib/feed";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../../Flash";
-import { OrgBadges } from "../../badges";
+import { OrgBadges, OrgStatusExplained } from "../../badges";
+import { Field } from "../../Field";
+import { HIGHEST_IMPACT_RULE, HIGHEST_IMPACT_SLUG } from "@/lib/highest-impact";
 import {
   hideOrganization,
   linkOrganization,
@@ -65,6 +67,7 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
         <h1 className="text-2xl font-bold">{org.name}</h1>
         <OrgBadges org={org} />
       </div>
+      <OrgStatusExplained org={org} />
       <Flash params={flash} />
 
       <Section title="Details">
@@ -104,18 +107,20 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
       </Section>
 
       <Section title={org.everyOrgId ? "Refresh or re-link Every.org record" : "Link to Every.org"}>
-        <p className="text-sm text-muted">
-          Enter an Every.org slug (e.g. againstmalaria) or a 9-digit EIN. This copies EIN, website, description, logo and
-          donation status from Every.org; the name here stays as it is. Linking to a different EIN clears verification.
-        </p>
-        <form action={linkOrganization} className="flex flex-wrap gap-2">
+        <form action={linkOrganization} className="space-y-3">
           {hidden}
-          <input
-            name="everyOrgRef"
-            required
-            defaultValue={org.everyOrgSlug ?? ""}
-            className="w-full max-w-xs rounded-control border bg-inset px-3 py-2 text-fg"
-          />
+          <Field
+            id="everyOrgRef"
+            label="Every.org profile or EIN"
+            help="The last part of the organization's Every.org address (every.org/againstmalaria → againstmalaria), or its 9-digit EIN. We copy the EIN, website, description, logo and whether it can receive gifts. The name shown on our site stays as it is. If the EIN changes, the verification is removed so someone checks again."
+          >
+            <input
+              name="everyOrgRef"
+              required
+              defaultValue={org.everyOrgSlug ?? ""}
+              className="w-full max-w-md rounded-control border bg-inset px-3 py-2 text-fg"
+            />
+          </Field>
           <button className={button}>{org.everyOrgId ? "Refresh from Every.org" : "Link"}</button>
         </form>
       </Section>
@@ -135,8 +140,8 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
         ) : (
           <>
             <p className="text-sm text-muted">
-              Verify only after checking this is the right registered nonprofit. Users see an organization only when it
-              is verified, active, has an EIN and accepts donations through Every.org.
+              Verifying tells donors a person checked that this is a real, registered US charity in good standing.
+              Donors see it once it&apos;s verified, active, has an EIN and can receive gifts through Every.org.
             </p>
             {blocker && <p className="text-sm text-warn">{ERRORS[blocker]}</p>}
             <form action={verifyOrganization}>
@@ -152,8 +157,8 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
       <Section title="Visibility">
         <p className="text-sm text-muted">
           {org.status === "HIDDEN"
-            ? "Hidden: users never see it. Donation history is kept."
-            : "Active. Hiding never deletes anything; donation history stays intact."}
+            ? "Hidden: donors don't see it anywhere. Nothing is deleted, and past gifts still show in donors' history. Make it active again once the problem is resolved."
+            : "Active. If something looks wrong, hide it and ask another admin. Hiding never deletes anything; donors' past gifts stay in their history."}
         </p>
         <form action={org.status === "HIDDEN" ? showOrganization : hideOrganization}>
           {hidden}
@@ -162,6 +167,9 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
       </Section>
 
       <Section title="Categories">
+        <p className="text-sm text-muted">
+          Tick every cause this organization works on. Donors who follow a cause see its organizations and their news.
+        </p>
         <form action={saveCategories} className="space-y-3">
           {hidden}
           <div className="grid gap-2 sm:grid-cols-2">
@@ -169,9 +177,7 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
               <label key={c.id} className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="categoryIds" value={c.id} defaultChecked={selected.has(c.id)} />
                 {c.name}
-                {c.slug === "highest-impact" && (
-                  <span className="text-sm text-muted">(curated: GiveWell&apos;s impact-per-dollar research, D-013)</span>
-                )}
+                {c.slug === HIGHEST_IMPACT_SLUG && <span className="text-sm text-muted">(only: {HIGHEST_IMPACT_RULE})</span>}
               </label>
             ))}
           </div>

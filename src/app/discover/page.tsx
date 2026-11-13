@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { OrgLogo } from "@/components/ui/OrgLogo";
+import { HIGHEST_IMPACT_RULE, HIGHEST_IMPACT_SLUG, highestImpactLabel } from "@/lib/highest-impact";
 import { buttonPrimary, chip, textLink } from "@/components/ui/buttons";
 import { countByCategory, filterDirectory, parseDiscoverParams } from "@/lib/directory";
 import { safeExternalUrl } from "@/lib/feed";
@@ -38,6 +39,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
         website: true,
         everyOrgSlug: true,
         logoUrl: true,
+        ein: true,
         categories: { select: { slug: true, name: true }, orderBy: { name: "asc" } },
       },
     }),
@@ -88,6 +90,11 @@ export default async function DiscoverPage({ searchParams }: Props) {
         </nav>
 
         {selected?.description && <p className="text-muted">{selected.description}</p>}
+        {selected?.slug === HIGHEST_IMPACT_SLUG && (
+          <p className="text-sm">
+            <span className="font-semibold text-heading">Who&apos;s included:</span> {HIGHEST_IMPACT_RULE}
+          </p>
+        )}
         {category && !selected && <p className="text-muted">That cause doesn&apos;t exist. Showing all causes.</p>}
       </Card>
 
@@ -110,11 +117,15 @@ export default async function DiscoverPage({ searchParams }: Props) {
           {results.map((org) => {
             const website = safeExternalUrl(org.website);
             const logo = safeExternalUrl(org.logoUrl);
+            const impactLabel = highestImpactLabel(org);
             return (
               <Card key={org.id} as="li" className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <OrgLogo src={logo} className="h-11 w-11" />
-                  <h2 className="text-lg font-semibold">{org.name}</h2>
+                  <div>
+                    <h2 className="text-lg font-semibold">{org.name}</h2>
+                    {impactLabel && <p className="text-sm font-medium text-muted">{impactLabel}</p>}
+                  </div>
                 </div>
                 {org.description && <p className="text-fg">{org.description}</p>}
                 <div className="flex flex-wrap gap-2">
