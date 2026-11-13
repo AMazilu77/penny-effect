@@ -1,5 +1,6 @@
 'use client';
 
+import { buttonPrimary } from "@/components/ui/buttons";
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatCents } from '@/lib/money';
@@ -77,59 +78,54 @@ export default function DonationForm() {
     }
   };
 
+  const field = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
   return (
-    <div className="rounded-xl bg-white/5 border border-white/10 p-4">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <select
-          value={organizationId}
-          onChange={(e) => setOrganizationId(e.target.value)}
-          required
-          className="rounded-xl bg-white/5 border border-white/10 p-4"
-        >
-          <option value="">Select an organization</option>
-          {organizations.map((org) => (
-            <option key={org.id} value={org.id}>
-              {org.name}
-            </option>
-          ))}
-        </select>
+    <div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <label className="space-y-1">
+          <span className="text-sm font-semibold text-heading">Organization</span>
+          <select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)} required className={field}>
+            <option value="">Select an organization</option>
+            {organizations.map((org) => (
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
+            ))}
+          </select>
+        </label>
         {orgsLoaded && organizations.length === 0 && (
-          <p className="text-sm opacity-70">
+          <p className="text-sm text-muted">
             No organizations are available yet. We only list nonprofits we have verified; check back soon.
           </p>
         )}
 
-        <input
-          type="number"
-          min="1"
-          max="10000"
-          step="0.01"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="Donation amount"
-          required
-          className="text-lg font-semibold mb-2 text-white/80"
-        />
+        <label className="space-y-1">
+          <span className="text-sm font-semibold text-heading">Amount (USD)</span>
+          <input
+            type="number"
+            min="1"
+            max="10000"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="5.00"
+            required
+            className={field}
+          />
+        </label>
 
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Optional message"
-          className="text-lg font-semibold mb-2 text-white/80e"
-        />
+        <label className="space-y-1">
+          <span className="text-sm font-semibold text-heading">Message (optional)</span>
+          <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={2} className={field} />
+        </label>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          aria-busy={submitting}
-          className="bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-wait rounded p-2 font-semibold"
-        >
-          {submitting ? 'Recording…' : 'Record donation'}
+        <button type="submit" disabled={submitting} aria-busy={submitting} className={`${buttonPrimary} disabled:cursor-wait disabled:opacity-70`}>
+          {submitting ? "Recording…" : "Record donation"}
         </button>
-        <p className="text-xs text-white/60">No payment is taken yet.</p>
+        <p className="text-sm text-muted">No payment is taken yet.</p>
       </form>
 
-      {status && <p className="mt-4 text-sm">{status}</p>}
+      {status && <p className="mt-4 text-sm" role="status">{status}</p>}
     </div>
   );
 }

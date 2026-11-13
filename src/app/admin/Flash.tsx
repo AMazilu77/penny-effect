@@ -11,8 +11,8 @@ export function Flash({ params }: { params: Params }) {
   return (
     <p
       role={error ? "alert" : "status"}
-      className={`rounded-xl border p-3 text-sm ${
-        error ? "border-red-400/40 bg-red-500/10" : "border-emerald-400/40 bg-emerald-500/10"
+      className={`rounded-control border p-3 text-sm font-medium ${
+        error ? "border-danger bg-danger-soft text-danger" : "border-success bg-success-soft text-success"
       }`}
     >
       {error ?? notice}

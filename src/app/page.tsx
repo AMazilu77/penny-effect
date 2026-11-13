@@ -3,38 +3,34 @@
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { buttonPrimary, buttonSecondary, textLink } from "@/components/ui/buttons";
+import { BRAND_NAME } from "@/lib/brand";
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground px-6">
-      <h1 className="text-4xl font-bold mb-4 text-center">Welcome to The Penny Effect</h1>
-      <p className="max-w-2xl text-center text-lg mb-8">
-        Micro-donations that add up to real change. Join a global network of small givers 
-        creating massive collective impact — one penny at a time.
-      </p>
-
-      <div className="flex gap-4">
-        <button
-          onClick={() => signIn()}
-          className="px-6 py-3 rounded-md bg-primary text-white font-semibold hover:opacity-90 transition"
-        >
-          Join Now
-        </button>
-
-        <Link
-          href="/about"
-          className="px-6 py-3 rounded-md border border-primary text-primary font-semibold hover:bg-primary/10 transition"
-        >
-          Learn More
-        </Link>
+    <section className="relative mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center overflow-hidden text-center">
+      <span aria-hidden className="lorenz-mark pointer-events-none absolute inset-x-0 top-0 mx-auto h-[28rem] w-[26rem] opacity-[0.07]" />
+      <div className="relative space-y-6">
+        <h1 className="text-4xl font-bold sm:text-5xl">Welcome to {BRAND_NAME}</h1>
+        <p className="mx-auto max-w-2xl text-lg">
+          Small, regular gifts to verified nonprofits, honestly counted. Pick the causes you care about,
+          follow what those organizations publish, and see exactly what you&apos;ve given.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Link href="/signup" className={`${buttonPrimary} px-6 py-3 text-base`}>
+            Join now
+          </Link>
+          <Link href="/about" className={`${buttonSecondary} px-6 py-3 text-base`}>
+            Learn more
+          </Link>
+        </div>
+        <p className="text-sm text-muted">
+          Already have an account?{" "}
+          <button onClick={() => signIn()} className={textLink}>
+            Sign in
+          </button>
+        </p>
       </div>
-
-      <div className="mt-12 text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <button onClick={() => signIn()} className="text-primary underline">
-          Log in
-        </button>
-      </div>
-    </div>
+    </section>
   );
 }

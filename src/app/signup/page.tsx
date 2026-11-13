@@ -1,7 +1,11 @@
 "use client";
 
+import { Card } from "@/components/ui/Card";
+import { buttonPrimary, textLink } from "@/components/ui/buttons";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+
+const field = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
 
 export default function SignUpPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -60,62 +64,64 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="max-w-sm mx-auto p-6 space-y-3">
-      <h1 className="text-2xl font-semibold text-center">
-        Create your <span className="text-emerald-600">Penny Effect</span> account
-      </h1>
+    <div className="mx-auto max-w-md">
+      <Card className="space-y-5">
+        <h1 className="text-center text-2xl font-bold">Create your account</h1>
 
-      <form onSubmit={submit} className="space-y-2">
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-        />
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Password"
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full text-white p-2 rounded transition-colors ${
-            loading
-              ? "bg-emerald-400 cursor-wait"
-              : "bg-emerald-600 hover:bg-emerald-700"
-          }`}
-        >
-          {loading ? "Creating account..." : "Sign Up"}
-        </button>
-      </form>
+        <form onSubmit={submit} className="space-y-4">
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-heading">Name</span>
+            <input
+              autoComplete="name"
+              className={field}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-heading">Email</span>
+            <input
+              type="email"
+              autoComplete="email"
+              className={field}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-sm font-semibold text-heading">Password</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              className={field}
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              required
+            />
+          </label>
+          <button type="submit" disabled={loading} className={`${buttonPrimary} w-full disabled:cursor-wait`}>
+            {loading ? "Creating account…" : "Create account"}
+          </button>
+        </form>
 
-      {msg && <p className="text-sm text-center mt-2">{msg}</p>}
+        {msg && <p role="status" className="text-center text-sm">{msg}</p>}
 
-      <p className="text-center text-sm mt-3">
-        Already have an account?{" "}
-        <a href="/signin" className="text-emerald-600 hover:underline">
-          Sign in
-        </a>
-      </p>
-      <p className="text-center text-xs text-gray-500">
-        Prefer Google? Use &ldquo;Continue with Google&rdquo; on the{" "}
-        <a href="/signin" className="text-emerald-600 hover:underline">
-          sign-in page
-        </a>
-        .
-      </p>
+        <p className="text-center text-sm">
+          Already have an account?{" "}
+          <a href="/signin" className={textLink}>
+            Sign in
+          </a>
+        </p>
+        <p className="text-center text-sm text-muted">
+          Prefer Google? Use &ldquo;Continue with Google&rdquo; on the{" "}
+          <a href="/signin" className={textLink}>
+            sign-in page
+          </a>
+          .
+        </p>
+      </Card>
     </div>
   );
 }

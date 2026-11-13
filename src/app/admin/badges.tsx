@@ -9,11 +9,11 @@ type OrgFlags = {
 
 function Badge({ tone, children }: { tone: "good" | "warn" | "muted"; children: string }) {
   const tones = {
-    good: "border-emerald-400/40 bg-emerald-500/10",
-    warn: "border-amber-400/40 bg-amber-500/10",
-    muted: "border-white/15 bg-white/5 opacity-70",
+    good: "border-success bg-success-soft text-success",
+    warn: "border-warn bg-warn-soft text-warn",
+    muted: "bg-inset text-muted",
   };
-  return <span className={`rounded-md border px-1.5 py-0.5 text-xs ${tones[tone]}`}>{children}</span>;
+  return <span className={`rounded-full border px-2 py-0.5 text-sm font-medium ${tones[tone]}`}>{children}</span>;
 }
 
 export function OrgBadges({ org }: { org: OrgFlags }) {

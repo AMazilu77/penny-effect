@@ -7,8 +7,8 @@ import { postNews, removeNews } from "./actions";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
-const input = "w-full rounded-lg border border-white/20 bg-transparent px-3 py-1.5";
-const button = "rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10";
+const input = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
+const button = "inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset";
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
 
 export default async function AdminNewsPage({ searchParams }: Props) {
@@ -32,17 +32,17 @@ export default async function AdminNewsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">News</h1>
+      <h1 className="text-2xl font-bold">News</h1>
       <Flash params={params} />
 
-      <section className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+      <section className="space-y-3 rounded-card border bg-card p-(--space-card) shadow-sm">
         <h2 className="font-semibold">Post an update</h2>
-        <p className="text-sm opacity-70">
+        <p className="text-sm text-muted">
           Only post what the organization itself published, and link to it. The feed shows the title, your summary and a
           link to the source.
         </p>
         {orgs.length === 0 ? (
-          <p className="text-sm text-amber-300">No active, verified organizations yet. Verify one first.</p>
+          <p className="text-sm text-warn">No active, verified organizations yet. Verify one first.</p>
         ) : (
           <form action={postNews} className="space-y-3">
             <label className="block space-y-1 text-sm">
@@ -77,19 +77,19 @@ export default async function AdminNewsPage({ searchParams }: Props) {
 
       <section className="space-y-2">
         <h2 className="font-semibold">Posted ({items.length})</h2>
-        <ul className="divide-y divide-white/10 rounded-xl border border-white/10">
+        <ul className="divide-y rounded-card border bg-card shadow-sm">
           {items.map((item) => {
             const href = safeExternalUrl(item.sourceUrl);
             return (
               <li key={item.id} className="flex flex-wrap items-start justify-between gap-3 p-3">
                 <div className="min-w-0 space-y-0.5">
                   <div className="font-medium">{item.title}</div>
-                  <div className="text-xs opacity-60">
+                  <div className="text-sm text-muted">
                     {item.organization.name} · {dateFormat.format(item.createdAt)}
                     {href && (
                       <>
                         {" · "}
-                        <a href={href} target="_blank" rel="noopener noreferrer" className="underline">
+                        <a href={href} target="_blank" rel="noopener noreferrer" className="text-link underline">
                           source
                         </a>
                       </>
@@ -103,10 +103,10 @@ export default async function AdminNewsPage({ searchParams }: Props) {
               </li>
             );
           })}
-          {items.length === 0 && <li className="p-3 opacity-70">Nothing posted yet.</li>}
+          {items.length === 0 && <li className="p-3 text-muted">Nothing posted yet.</li>}
         </ul>
         {unsourced > 0 && (
-          <p className="text-xs opacity-60">
+          <p className="text-sm text-muted">
             {unsourced} old placeholder items without a source are hidden from the feed and will be deleted in the
             Milestone 5 cleanup.
           </p>

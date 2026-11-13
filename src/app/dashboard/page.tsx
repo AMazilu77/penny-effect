@@ -7,7 +7,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { donationStatusLabel, summarizeDonations } from "@/lib/dashboard";
-import { SectionCard } from "@/components/surface/SectionCard";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 import DonationForm from "@/components/DonationForm";
 
 export const dynamic = "force-dynamic";
@@ -17,27 +18,24 @@ const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "nume
 
 function MetricTile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="rounded-xl bg-white/5 border border-white/10 p-3">
-      <div className="text-xs opacity-60">{label}</div>
-      <div className="text-lg font-semibold">{value}</div>
-      {note && <div className="mt-1 text-xs opacity-60">{note}</div>}
-    </div>
+    <Card level="inset" as="div">
+      <div className="text-sm font-medium text-muted">{label}</div>
+      <div className="mt-1 text-2xl font-bold text-heading">{value}</div>
+      {note && <div className="mt-1 text-sm text-muted">{note}</div>}
+    </Card>
   );
 }
 
 function EmptyState({ title, actionHref, actionText }: { title: string; actionHref?: string; actionText?: string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 p-4 opacity-80">
+    <Card level="inset" as="div">
       <p>{title}</p>
       {actionHref && actionText && (
-        <Link
-          href={actionHref}
-          className="mt-3 inline-flex rounded-lg border border-white/20 px-3 py-1.5 text-sm hover:bg-white/10"
-        >
+        <Link href={actionHref} className={`${buttonPrimary} mt-3`}>
           {actionText}
         </Link>
       )}
-    </div>
+    </Card>
   );
 }
 
@@ -73,29 +71,30 @@ export default async function DashboardPage() {
   const firstName = session.user.name?.split(" ")[0] ?? session.user.email?.split("@")[0] ?? "Friend";
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 space-y-6">
+    <div className="space-y-(--space-section)">
       {/* Header / identity */}
-      <section className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold">Welcome, {firstName} 👋</h1>
-        <div className="ms-auto flex items-center gap-2">
-          <Link
-            href="/discover"
-            className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
-          >
-            Discover causes
-          </Link>
-          <Link
-            href="/onboarding/interests"
-            className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
-          >
-            Change causes
-          </Link>
+      <Card className="relative overflow-hidden">
+        <span aria-hidden className="lorenz-mark pointer-events-none absolute -right-6 -top-10 h-56 w-52 opacity-15" />
+        <div className="relative flex flex-wrap items-center gap-4">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold">Welcome, {firstName}</h1>
+            <p className="text-muted">Small gifts, honestly counted.</p>
+          </div>
+          <div className="ms-auto flex flex-wrap items-center gap-2">
+            <Link href="/discover" className={buttonPrimary}>
+              Discover causes
+            </Link>
+            <Link href="/onboarding/interests" className={buttonSecondary}>
+              Change causes
+            </Link>
+          </div>
         </div>
-      </section>
+      </Card>
 
       {/* Impact overview: real numbers only */}
-      <SectionCard title="Your giving">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <Card>
+        <CardHeader title="Your giving" description="Only gifts our donation partner confirms count as given." />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <MetricTile
             label="Given (paid)"
             value={formatCents(summary.givenCents)}
@@ -110,45 +109,49 @@ export default async function DashboardPage() {
             value={formatCents(summary.pendingCents)}
             note={`${summary.pendingCount} ${summary.pendingCount === 1 ? "gift" : "gifts"} · no money has moved`}
           />
-          <MetricTile
-            label="Causes followed"
-            value={String(causesFollowed)}
-          />
+          <MetricTile label="Causes followed" value={String(causesFollowed)} />
         </div>
-      </SectionCard>
+      </Card>
 
-      {/* Recent gifts */}
-      <SectionCard title="Recent gifts">
-        {recentDonations.length === 0 ? (
-          <EmptyState
-            title={
-              causesFollowed === 0
-                ? "No gifts yet. Start by choosing the causes you care about."
-                : "No gifts recorded yet. Use the form below to record your first one."
-            }
-            actionHref={causesFollowed === 0 ? "/onboarding/interests" : undefined}
-            actionText={causesFollowed === 0 ? "Choose causes" : undefined}
-          />
-        ) : (
-          <ul className="space-y-2">
-            {recentDonations.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <span>
-                  {formatCents(d.amountCents, d.currency)} to {d.organization.name}
-                  <span className="ms-2 text-xs opacity-60">{donationStatusLabel(d.status)}</span>
-                </span>
-                <time dateTime={d.createdAt.toISOString()} className="text-xs opacity-60">
-                  {dateFormat.format(d.createdAt)}
-                </time>
-              </li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
+      <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
+        {/* Recent gifts */}
+        <Card>
+          <CardHeader title="Recent gifts" />
+          {recentDonations.length === 0 ? (
+            <EmptyState
+              title={
+                causesFollowed === 0
+                  ? "No gifts yet. Start by choosing the causes you care about."
+                  : "No gifts recorded yet. Use the form to record your first one."
+              }
+              actionHref={causesFollowed === 0 ? "/onboarding/interests" : undefined}
+              actionText={causesFollowed === 0 ? "Choose causes" : undefined}
+            />
+          ) : (
+            <ul className="divide-y rounded-control border bg-inset">
+              {recentDonations.map((d) => (
+                <li key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3">
+                  <span>
+                    <span className="font-semibold text-heading">{formatCents(d.amountCents, d.currency)}</span> to{" "}
+                    {d.organization.name}
+                    <span className="ms-2 inline-flex rounded-full border px-2 py-0.5 text-sm text-muted">
+                      {donationStatusLabel(d.status)}
+                    </span>
+                  </span>
+                  <time dateTime={d.createdAt.toISOString()} className="text-sm text-muted">
+                    {dateFormat.format(d.createdAt)}
+                  </time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
 
-      <SectionCard title="Record a donation">
-        <DonationForm />
-      </SectionCard>
+        <Card>
+          <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
+          <DonationForm />
+        </Card>
+      </div>
     </div>
   );
 }

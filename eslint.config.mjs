@@ -2,11 +2,40 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+// Flags class names that bypass the design tokens (D-015). The old
+// dark-theme classes (border-white/10, bg-white/5, ...) made text and
+// borders unreadable on the light site; raw palette colors drift from the
+// tokens; and text under 14px is too small to read.
+const RAW_COLOR = /(?:^|\s)(?:[a-z-]+:)*(?:bg|text|border|divide|ring|from|to)-(?:white|black|gray|slate|neutral|zinc|emerald|green|red|amber|yellow)(?:-\d{2,3})?(?:\/\d+)?(?=\s|$)/;
+const TINY_TEXT = /(?:^|\s)text-\[(?:[0-9]|1[0-3])px\](?=\s|$)/;
+const designTokens = {
+  meta: { type: "problem", schema: [] },
+  create(context) {
+    function check(node, text) {
+      if (RAW_COLOR.test(text)) {
+        context.report({ node, message: "Use a design token (bg-card, text-muted, border-line, bg-primary, ...) instead of a raw color class." });
+      } else if (TINY_TEXT.test(text)) {
+        context.report({ node, message: "Text must be at least 14px (text-sm)." });
+      }
+    }
+    return {
+      Literal(node) {
+        if (typeof node.value === "string") check(node, node.value);
+      },
+      TemplateElement(node) {
+        check(node, node.value.raw);
+      },
+    };
+  },
+};
+
 // eslint-config-next 16 ships native "flat config", so the old FlatCompat
 // bridge (@eslint/eslintrc) is no longer needed.
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Design system (D-015): colors come from tokens in globals.css.
+  { files: ["src/**/*.ts", "src/**/*.tsx"], plugins: { local: { rules: { "design-tokens": designTokens } } }, rules: { "local/design-tokens": "error" } },
   globalIgnores([
     "node_modules/**",
     ".next/**",

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable local/design-tokens -- this sheet is removed in the next UI PR (its actions do nothing yet) */
 
 
 export function ActionSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
