@@ -39,7 +39,11 @@ function EmptyState({ title, actionHref, actionText }: { title: string; actionHr
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
   if (!userId) redirect("/signin");
@@ -68,6 +72,8 @@ export default async function DashboardPage() {
   ]);
 
   const summary = summarizeDonations(statusGroups);
+  // Every.org sends donors here when they leave checkout without paying.
+  const checkoutCancelled = (await searchParams).checkout === "cancelled";
   const firstName = session.user.name?.split(" ")[0] ?? session.user.email?.split("@")[0] ?? "Friend";
 
   return (
@@ -90,6 +96,13 @@ export default async function DashboardPage() {
           </div>
         </div>
       </Card>
+
+      {checkoutCancelled && (
+        <p role="status" className="rounded-control border border-warn bg-warn-soft p-3 text-sm text-warn">
+          You left Every.org without paying. Your gift is still listed as &ldquo;recorded, not yet paid&rdquo;; nothing was
+          charged.
+        </p>
+      )}
 
       {/* Impact overview: real numbers only */}
       <Card>

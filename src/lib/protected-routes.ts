@@ -1,7 +1,7 @@
 // Pages that require a signed-in user. `src/proxy.ts` redirects signed-out
 // visitors on these paths (and anything under them) to /signin.
 // API routes are not listed here: each handler checks the session itself.
-export const PROTECTED_PREFIXES = ["/dashboard", "/feed", "/inbox", "/onboarding", "/admin"] as const;
+export const PROTECTED_PREFIXES = ["/dashboard", "/donations", "/feed", "/inbox", "/onboarding", "/admin"] as const;
 
 // Pages only admins may open. `src/proxy.ts` shows signed-in non-admins a
 // 404, so the area doesn't advertise itself. The pages check the database
