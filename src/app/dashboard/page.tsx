@@ -73,7 +73,10 @@ export default async function DashboardPage({
 
   const summary = summarizeDonations(statusGroups);
   // Every.org sends donors here when they leave checkout without paying.
-  const checkoutCancelled = (await searchParams).checkout === "cancelled";
+  const params = await searchParams;
+  const checkoutCancelled = params.checkout === "cancelled";
+  // From an organization page's "Give" button: preselect it in the form (the form checks it's visible).
+  const giveTo = typeof params.give === "string" && /^[a-z0-9]{1,40}$/i.test(params.give) ? params.give : undefined;
   const firstName = session.user.name?.split(" ")[0] ?? session.user.email?.split("@")[0] ?? "Friend";
 
   return (
@@ -162,7 +165,7 @@ export default async function DashboardPage({
 
         <Card id="give" className="scroll-mt-24">
           <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
-          <DonationForm />
+          <DonationForm initialOrganizationId={giveTo} />
         </Card>
       </div>
     </div>

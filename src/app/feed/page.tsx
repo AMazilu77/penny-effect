@@ -6,7 +6,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { newsFeedWhere, safeExternalUrl } from "@/lib/feed";
+import { newsFeedWhere, previewText, safeExternalUrl } from "@/lib/feed";
+import { ReadMore } from "@/components/feed/ReadMore";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { OrgLogo } from "@/components/ui/OrgLogo";
@@ -111,12 +112,27 @@ export default async function FeedPage() {
                 <div className="flex flex-1 flex-col gap-3 p-(--space-card)">
                   <div className="flex items-center gap-2 text-sm text-muted">
                     <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={28} />
-                    <span className="font-semibold text-fg">{item.organization.name}</span>
+                    {org.everyOrgSlug ? (
+                      <Link href={`/org/${encodeURIComponent(org.everyOrgSlug)}`} className="font-semibold text-fg hover:underline">
+                        {org.name}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-fg">{org.name}</span>
+                    )}
                     <span aria-hidden>·</span>
                     <time dateTime={item.createdAt.toISOString()}>{dateFormat.format(item.createdAt)}</time>
                   </div>
                   <h2 className="text-xl font-semibold">{item.title}</h2>
-                  {item.content && <p className="whitespace-pre-line text-fg">{item.content}</p>}
+                  {item.content &&
+                    (() => {
+                      // Short cards: long summaries start as a preview and expand in place.
+                      const { preview, truncated } = previewText(item.content);
+                      return truncated ? (
+                        <ReadMore preview={preview} full={item.content} />
+                      ) : (
+                        <p className="whitespace-pre-line text-fg">{item.content}</p>
+                      );
+                    })()}
                   {href && (
                     <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
                       <span className="text-sm text-muted">Source: {source}</span>
