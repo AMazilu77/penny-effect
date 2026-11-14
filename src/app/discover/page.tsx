@@ -5,6 +5,8 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { OrgLogo } from "@/components/ui/OrgLogo";
+import { CharityNavigatorBadge } from "@/components/CharityNavigatorBadge";
+import { CN_EXPLAINER } from "@/lib/charity-navigator/rating";
 import { HIGHEST_IMPACT_RULE, HIGHEST_IMPACT_SLUG, highestImpactLabel } from "@/lib/highest-impact";
 import { buttonPrimary, chip, textLink } from "@/components/ui/buttons";
 import { countByCategory, filterDirectory, parseDiscoverParams } from "@/lib/directory";
@@ -24,8 +26,14 @@ function discoverHref(category: string | null, q: string): string {
   return query ? `/discover?${query}` : "/discover";
 }
 
+/** The request's time, for the "rating may be out of date" check (read outside rendering). */
+function requestTime(): Date {
+  return new Date();
+}
+
 export default async function DiscoverPage({ searchParams }: Props) {
   const { category, q } = parseDiscoverParams(await searchParams);
+  const now = requestTime();
 
   const [categories, orgRows] = await Promise.all([
     prisma.causeCategory.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true, description: true } }),
@@ -40,6 +48,11 @@ export default async function DiscoverPage({ searchParams }: Props) {
         everyOrgSlug: true,
         logoUrl: true,
         ein: true,
+        cnScore: true,
+        cnStars: true,
+        cnProfileUrl: true,
+        cnCheckedAt: true,
+        cnSource: true,
         categories: { select: { slug: true, name: true }, orderBy: { name: "asc" } },
       },
     }),
@@ -116,18 +129,18 @@ export default async function DiscoverPage({ searchParams }: Props) {
         <ul className="grid gap-(--space-section) sm:grid-cols-2">
           {results.map((org) => {
             const website = safeExternalUrl(org.website);
-            const logo = safeExternalUrl(org.logoUrl);
             const impactLabel = highestImpactLabel(org);
             return (
               <Card key={org.id} as="li" className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <OrgLogo src={logo} className="h-11 w-11" />
+                  <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={44} />
                   <div>
                     <h2 className="text-lg font-semibold">{org.name}</h2>
                     {impactLabel && <p className="text-sm font-medium text-muted">{impactLabel}</p>}
                   </div>
                 </div>
                 {org.description && <p className="text-fg">{org.description}</p>}
+                <CharityNavigatorBadge rating={org} now={now} />
                 <div className="flex flex-wrap gap-2">
                   {org.categories.map((c) => (
                     <Link key={c.slug} href={discoverHref(c.slug, "")} className="rounded-full border bg-inset px-3 py-1 text-sm text-fg hover:bg-accent-soft">
@@ -156,6 +169,16 @@ export default async function DiscoverPage({ searchParams }: Props) {
             );
           })}
         </ul>
+      )}
+
+      {results.some((o) => o.cnScore !== null) && (
+        <p className="text-sm text-muted">
+          Ratings from{" "}
+          <a href="https://www.charitynavigator.org/" target="_blank" rel="noopener" className="underline">
+            Charity Navigator
+          </a>
+          , shown as published. {CN_EXPLAINER}
+        </p>
       )}
     </div>
   );

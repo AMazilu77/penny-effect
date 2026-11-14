@@ -116,8 +116,12 @@ export const NOTICES = {
   hidden: "Hidden from users.",
   shown: "Active again (users see it only if it is also verified).",
   categories: "Categories saved.",
+  "cn-saved": "Charity Navigator rating saved, dated today.",
+  "cn-removed": "Charity Navigator rating removed.",
   "news-posted": "News posted. It appears in the feed of everyone following this organization's categories.",
   "news-removed": "News item removed.",
+  "news-image-saved": "Image saved.",
+  "news-image-removed": "Image removed. The feed shows the organization's cover image or a placeholder instead.",
 } as const;
 
 export const ERRORS = {
@@ -132,10 +136,12 @@ export const ERRORS = {
   "no-ein": "Every.org has no EIN for it, so it can't be verified (D-012).",
   "not-disbursable": "Every.org can't currently send donations to it, so it can't be verified.",
   hidden: "Make it active before verifying.",
+  "cn-invalid": "Rating not saved: the score must be a whole number from 0 to 100, stars (if shown) from 0 to 4, and the profile link must be this organization's Charity Navigator page (charitynavigator.org/ein/<its EIN>).",
   "note-required": `Write a verification note (${VERIFICATION_NOTE_MIN}–${VERIFICATION_NOTE_MAX} characters) saying what you checked, e.g. "IRS status current; 990 for 2024 on ProPublica; EIN in website footer".`,
   "news-invalid": "That news request wasn't valid. Reload the page and try again.",
   "news-org": "News can only be posted for an organization that is active and verified.",
   "news-not-found": "That news item no longer exists.",
+  "news-image-invalid": "Image not saved: it needs a full https:// image link and a description of 5–200 characters.",
 } as const;
 
 export type NoticeCode = keyof typeof NOTICES;

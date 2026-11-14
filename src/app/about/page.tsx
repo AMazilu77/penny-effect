@@ -1,6 +1,7 @@
 // app/about/page.tsx
 import { Card } from "@/components/ui/Card";
 import { BRAND_NAME } from "@/lib/brand";
+import { CN_EXPLAINER } from "@/lib/charity-navigator/rating";
 
 export const metadata = {
   title: `About | ${BRAND_NAME}`,
@@ -26,6 +27,20 @@ export default function AboutPage() {
           connection is live, gifts you record here are clearly marked &ldquo;recorded, not yet paid&rdquo;.
         </p>
         <p>Every number we show you comes from your own records. No sample data, no estimates presented as fact.</p>
+      </Card>
+      <Card className="space-y-2">
+        <h2 className="text-lg font-semibold">Ratings and credits</h2>
+        <p>
+          Some organizations show a rating from{" "}
+          <a href="https://www.charitynavigator.org/" target="_blank" rel="noopener" className="text-link underline">
+            Charity Navigator
+          </a>
+          , exactly as they publish it, with a link to the organization&apos;s Charity Navigator profile. {CN_EXPLAINER}
+        </p>
+        <p className="text-sm text-muted">
+          CHARITY NAVIGATOR and the CHARITY NAVIGATOR logo are registered trademarks of Charity Navigator. Nonprofit details
+          come from Every.org.
+        </p>
       </Card>
     </div>
   );

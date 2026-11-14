@@ -86,6 +86,26 @@ export default async function VerifyGuidePage() {
       </Card>
 
       <Card>
+        <CardHeader title="Optional: Charity Navigator rating" />
+        <div className="space-y-3">
+          <p>
+            After verifying, you can add the organization&apos;s Charity Navigator rating on its admin page: open its
+            Charity Navigator profile (the link is filled in), copy the score (0–100) and stars exactly, and save. The
+            profile link is required, and the date is set to the day you save it.
+          </p>
+          <p>
+            Never round, adjust or combine the rating with anything else: Charity Navigator&apos;s terms require it to
+            be shown exactly as published. It describes how a charity is run, not its impact per dollar. Ratings older
+            than about six months are labelled &ldquo;may be out of date&rdquo;; re-check and save to refresh them.
+          </p>
+          <p className="rounded-control border border-warn bg-warn-soft p-3 text-sm text-warn">
+            Until the owner confirms with Charity Navigator that copying ratings by hand is allowed (their API terms
+            cover it; their website terms are stricter), only enter ratings when the owner says so.
+          </p>
+        </div>
+      </Card>
+
+      <Card>
         <CardHeader title="Highest Impact" />
         <div className="space-y-3">
           <p>
