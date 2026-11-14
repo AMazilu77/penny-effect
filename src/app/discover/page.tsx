@@ -116,12 +116,11 @@ export default async function DiscoverPage({ searchParams }: Props) {
         <ul className="grid gap-(--space-section) sm:grid-cols-2">
           {results.map((org) => {
             const website = safeExternalUrl(org.website);
-            const logo = safeExternalUrl(org.logoUrl);
             const impactLabel = highestImpactLabel(org);
             return (
               <Card key={org.id} as="li" className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <OrgLogo src={logo} className="h-11 w-11" />
+                  <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={44} />
                   <div>
                     <h2 className="text-lg font-semibold">{org.name}</h2>
                     {impactLabel && <p className="text-sm font-medium text-muted">{impactLabel}</p>}

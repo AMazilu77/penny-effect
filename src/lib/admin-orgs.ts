@@ -118,6 +118,8 @@ export const NOTICES = {
   categories: "Categories saved.",
   "news-posted": "News posted. It appears in the feed of everyone following this organization's categories.",
   "news-removed": "News item removed.",
+  "news-image-saved": "Image saved.",
+  "news-image-removed": "Image removed. The feed shows the organization's cover image or a placeholder instead.",
 } as const;
 
 export const ERRORS = {
@@ -136,6 +138,7 @@ export const ERRORS = {
   "news-invalid": "That news request wasn't valid. Reload the page and try again.",
   "news-org": "News can only be posted for an organization that is active and verified.",
   "news-not-found": "That news item no longer exists.",
+  "news-image-invalid": "Image not saved: it needs a full https:// image link and a description of 5–200 characters.",
 } as const;
 
 export type NoticeCode = keyof typeof NOTICES;

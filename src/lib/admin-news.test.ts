@@ -15,6 +15,8 @@ describe("newsForm", () => {
       title: "Net distribution in Malawi completed",
       content: "AMF reports 1.2 million nets distributed across three districts.",
       sourceUrl: "https://www.againstmalaria.com/news",
+      imageUrl: null,
+      imageAlt: null,
     });
   });
 
@@ -99,5 +101,18 @@ describe("newsFieldErrors", () => {
     for (const c of cases) {
       expect(Object.keys(newsFieldErrors(c)).length === 0).toBe(newsForm.safeParse(c).success);
     }
+  });
+});
+
+describe("news image fields", () => {
+  it("stores an image with its description, trimmed", () => {
+    const r = newsForm.parse({ ...valid, imageUrl: " https://x.org/a.jpg ", imageAlt: " Bed nets in a warehouse " });
+    expect(r).toMatchObject({ imageUrl: "https://x.org/a.jpg", imageAlt: "Bed nets in a warehouse" });
+  });
+
+  it("rejects an image without a description, and names both fields in the messages", () => {
+    expect(newsForm.safeParse({ ...valid, imageUrl: "https://x.org/a.jpg", imageAlt: "" }).success).toBe(false);
+    const errors = newsFieldErrors({ ...valid, organizationId: "org_1", imageUrl: "https://x.org/a.jpg", imageAlt: "" });
+    expect(errors.imageAlt).toMatch(/required/);
   });
 });

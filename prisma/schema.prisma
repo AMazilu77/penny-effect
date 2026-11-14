@@ -239,6 +239,12 @@ model NewsItem {
   /// Link to where the organization published this update. The feed shows
   /// only items that have one, so nothing appears without a real source.
   sourceUrl      String?
+  /// The update's image: a URL only (we never copy the file), usually the
+  /// source page's og:image. Served through /media/news/<id>, which only
+  /// serves URLs stored here. Shown with "Image: <source site>" credit.
+  imageUrl       String?
+  /// Alt text, required whenever there's an image.
+  imageAlt       String?
   createdAt      DateTime     @default(now())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])

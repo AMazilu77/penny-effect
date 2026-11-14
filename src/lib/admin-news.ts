@@ -3,6 +3,7 @@
 // shows nothing without one. Pure, so it can be unit-tested.
 import { z } from "zod";
 import { safeExternalUrl } from "@/lib/feed";
+import { newsImageErrors } from "@/lib/news-image";
 
 /** Length limits, shown in the form and in error messages. */
 export const NEWS_LIMITS = {
@@ -11,7 +12,7 @@ export const NEWS_LIMITS = {
   sourceUrl: { max: 2000 },
 } as const;
 
-export type NewsField = "organizationId" | "title" | "content" | "sourceUrl";
+export type NewsField = "organizationId" | "title" | "content" | "sourceUrl" | "imageUrl" | "imageAlt";
 
 /** What admins see as each field's name. */
 export const NEWS_FIELD_LABELS: Record<NewsField, string> = {
@@ -19,6 +20,8 @@ export const NEWS_FIELD_LABELS: Record<NewsField, string> = {
   title: "Title",
   content: "Summary",
   sourceUrl: "Source link",
+  imageUrl: "Image link",
+  imageAlt: "Image description",
 };
 
 /**
@@ -53,10 +56,25 @@ export const newsForm = z.object({
       }
       return url;
     }),
-});
+  // Optional image (both empty = no image); rules in newsImageErrors.
+  imageUrl: z
+    .string()
+    .optional()
+    .transform((v) => v?.trim() || null),
+  imageAlt: z
+    .string()
+    .optional()
+    .transform((v) => (v ? normalizeText(v) : "") || null),
+})
+  .superRefine((v, ctx) => {
+    const problems = newsImageErrors({ imageUrl: v.imageUrl ?? "", imageAlt: v.imageAlt ?? "" });
+    for (const [path, message] of Object.entries(problems)) ctx.addIssue({ code: "custom", path: [path], message });
+  });
 
 export type NewsInput = z.infer<typeof newsForm>;
 export type NewsFormValues = Record<NewsField, string>;
+/** What the older tests and callers pass: the image fields are optional. */
+export type NewsFormInput = Omit<NewsFormValues, "imageUrl" | "imageAlt"> & Partial<Pick<NewsFormValues, "imageUrl" | "imageAlt">>;
 export type NewsFieldErrors = Partial<Record<NewsField, string>>;
 
 const n = (x: number) => x.toLocaleString("en-US");
@@ -66,7 +84,7 @@ const n = (x: number) => x.toLocaleString("en-US");
  * for length problems, the actual length. Computed from the values rather
  * than zod's messages so every message says exactly what to fix.
  */
-export function newsFieldErrors(values: NewsFormValues): NewsFieldErrors {
+export function newsFieldErrors(values: NewsFormInput): NewsFieldErrors {
   const errors: NewsFieldErrors = {};
   if (!values.organizationId.trim()) errors.organizationId = "Organization: choose one from the list.";
 
@@ -87,6 +105,7 @@ export function newsFieldErrors(values: NewsFormValues): NewsFieldErrors {
   else if (!safeExternalUrl(source))
     errors.sourceUrl = "Source link must be a full web address starting with https:// (or http://).";
 
+  Object.assign(errors, newsImageErrors({ imageUrl: values.imageUrl ?? "", imageAlt: values.imageAlt ?? "" }));
   return errors;
 }
 

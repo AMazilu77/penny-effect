@@ -8,7 +8,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { newsFeedWhere, safeExternalUrl } from "@/lib/feed";
 import { Card, CardHeader } from "@/components/ui/Card";
+import { MediaImage } from "@/components/ui/MediaImage";
 import { OrgLogo } from "@/components/ui/OrgLogo";
+import { sourceSite } from "@/lib/news-image";
 import { buttonSecondary } from "@/components/ui/buttons";
 
 export const dynamic = "force-dynamic";
@@ -41,8 +43,10 @@ export default async function FeedPage() {
       title: true,
       content: true,
       sourceUrl: true,
+      imageUrl: true,
+      imageAlt: true,
       createdAt: true,
-      organization: { select: { name: true, logoUrl: true, coverImageUrl: true } },
+      organization: { select: { id: true, name: true, logoUrl: true, coverImageUrl: true, everyOrgSlug: true } },
     },
   });
 
@@ -69,31 +73,50 @@ export default async function FeedPage() {
           </Link>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-(--space-section) md:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-(--space-section) md:grid-cols-2">
           {newsItems.map((item) => {
             const href = safeExternalUrl(item.sourceUrl);
-            const source = href ? new URL(href).hostname.replace(/^www\./, "") : null;
-            // The org's Every.org cover image, or the brand placeholder. (Per-item news images come in a later PR.)
-            const image = safeExternalUrl(item.organization.coverImageUrl);
+            const source = href ? sourceSite(href) : null;
+            // The item's own image, else the org's Every.org cover image, else the brand placeholder.
+            const org = item.organization;
+            const image = item.imageUrl
+              ? { src: `/media/news/${item.id}`, alt: item.imageAlt ?? "", credit: source, creditHref: href }
+              : org.coverImageUrl
+                ? {
+                    src: `/media/org/${org.id}/cover`,
+                    alt: "",
+                    credit: "Every.org",
+                    creditHref: org.everyOrgSlug ? `https://www.every.org/${encodeURIComponent(org.everyOrgSlug)}` : null,
+                  }
+                : null;
             return (
               <Card key={item.id} as="article" className="flex flex-col overflow-hidden p-0">
-                <div className="relative aspect-[16/9] border-b bg-inset">
-                  {image ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- remote image; served through our media route in the news-images PR
-                    <img src={image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span aria-hidden className="lorenz-mark absolute inset-6 opacity-30" />
+                <figure className="border-b">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-inset">
+                    <MediaImage src={image?.src ?? null} alt={image?.alt ?? ""} sizes="(min-width: 768px) 560px, 100vw" />
+                  </div>
+                  {image?.credit && (
+                    <figcaption className="px-(--space-card) py-2 text-sm text-muted">
+                      Image:{" "}
+                      {image.creditHref ? (
+                        <a href={image.creditHref} target="_blank" rel="noopener noreferrer" className="underline">
+                          {image.credit}
+                        </a>
+                      ) : (
+                        image.credit
+                      )}
+                    </figcaption>
                   )}
-                </div>
+                </figure>
                 <div className="flex flex-1 flex-col gap-3 p-(--space-card)">
                   <div className="flex items-center gap-2 text-sm text-muted">
-                    <OrgLogo src={safeExternalUrl(item.organization.logoUrl)} className="h-7 w-7" />
+                    <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={28} />
                     <span className="font-semibold text-fg">{item.organization.name}</span>
                     <span aria-hidden>·</span>
                     <time dateTime={item.createdAt.toISOString()}>{dateFormat.format(item.createdAt)}</time>
                   </div>
                   <h2 className="text-xl font-semibold">{item.title}</h2>
-                  {item.content && <p className="text-fg">{item.content}</p>}
+                  {item.content && <p className="whitespace-pre-line text-fg">{item.content}</p>}
                   {href && (
                     <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-2">
                       <span className="text-sm text-muted">Source: {source}</span>

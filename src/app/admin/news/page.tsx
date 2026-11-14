@@ -3,11 +3,12 @@ import { requireAdminPage } from "@/lib/admin";
 import { safeExternalUrl } from "@/lib/feed";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../Flash";
-import { removeNews } from "./actions";
+import { removeNews, updateNewsImage } from "./actions";
 import { NewsForm } from "./NewsForm";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
+const field = "w-full rounded-control border bg-card px-3 py-2 text-base text-fg";
 const button = "inline-flex items-center justify-center gap-2 rounded-control border bg-card px-3 py-1.5 text-sm font-semibold text-fg hover:bg-inset";
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });
 
@@ -25,7 +26,7 @@ export default async function AdminNewsPage({ searchParams }: Props) {
       where: { sourceUrl: { not: null } },
       orderBy: { createdAt: "desc" },
       take: 50,
-      select: { id: true, title: true, sourceUrl: true, createdAt: true, organization: { select: { name: true } } },
+      select: { id: true, title: true, sourceUrl: true, imageUrl: true, imageAlt: true, createdAt: true, organization: { select: { name: true } } },
     }),
     prisma.newsItem.count({ where: { sourceUrl: null } }),
   ]);
@@ -73,6 +74,30 @@ export default async function AdminNewsPage({ searchParams }: Props) {
                   <input type="hidden" name="newsItemId" value={item.id} />
                   <button className={button}>Remove</button>
                 </form>
+                <details className="w-full">
+                  <summary className="cursor-pointer text-sm font-semibold text-link">
+                    {item.imageUrl ? "Replace or remove image" : "Add an image"}
+                  </summary>
+                  <form action={updateNewsImage} className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+                    <input type="hidden" name="newsItemId" value={item.id} />
+                    <label className="space-y-1 text-sm">
+                      <span className="font-semibold text-heading">Image link</span>
+                      <input name="imageUrl" type="url" defaultValue={item.imageUrl ?? ""} className={field} />
+                    </label>
+                    <label className="space-y-1 text-sm">
+                      <span className="font-semibold text-heading">Image description (5–200 characters)</span>
+                      <input name="imageAlt" defaultValue={item.imageAlt ?? ""} maxLength={200} className={field} />
+                    </label>
+                    <button name="intent" value="save" className={button}>
+                      Save image
+                    </button>
+                    {item.imageUrl && (
+                      <button name="intent" value="remove" formNoValidate className={button}>
+                        Remove image
+                      </button>
+                    )}
+                  </form>
+                </details>
               </li>
             );
           })}
