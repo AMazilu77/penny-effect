@@ -17,6 +17,8 @@ import { newsImageErrors, parseOgImage } from "@/lib/news-image";
 import { safeFetch } from "@/lib/safe-fetch";
 import { ERRORS, formDataToObject, type ErrorCode, type NoticeCode } from "@/lib/admin-orgs";
 import { prisma } from "@/lib/prisma";
+import { rateLimit, RULES } from "@/lib/rate-limit";
+import { prismaRateLimitStore } from "@/lib/rate-limit-store";
 import { z } from "zod";
 
 const PAGE = "/admin/news";
@@ -78,7 +80,10 @@ export async function postNews(previous: NewsFormState | undefined, formData: Fo
  * Returns the image's URL, or a plain-language reason.
  */
 export async function fetchPreviewImage(sourceUrl: string): Promise<{ imageUrl: string } | { error: string }> {
-  await requireAdminPage();
+  const { userId } = await requireAdminPage();
+  // Each click makes our server fetch an outside page: cap it per admin (D-018).
+  const limited = await rateLimit(prismaRateLimitStore, [{ rule: RULES.fetchImageUser, identifier: userId }]);
+  if (!limited.ok) return { error: "Too many image lookups. Wait a few minutes, or paste an image link yourself." };
   const url = safeExternalUrl(sourceUrl.trim());
   if (!url) return { error: "Enter the source link first (starting with https://)." };
   try {

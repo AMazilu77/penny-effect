@@ -272,3 +272,17 @@ model NewsItem {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 }
+
+// Fixed-window rate-limit counters (D-018). One row per (rule, who, window).
+// `keyHash` is an HMAC of the IP, email or user id, never the raw value.
+// Expired rows are deleted by the weekly cron.
+model RateLimitHit {
+  bucket      String
+  keyHash     String
+  windowStart DateTime
+  count       Int      @default(1)
+  expiresAt   DateTime
+
+  @@id([bucket, keyHash, windowStart])
+  @@index([expiresAt])
+}
