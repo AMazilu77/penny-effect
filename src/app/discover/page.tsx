@@ -135,7 +135,15 @@ export default async function DiscoverPage({ searchParams }: Props) {
                 <div className="flex items-center gap-3">
                   <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={44} />
                   <div>
-                    <h2 className="text-lg font-semibold">{org.name}</h2>
+                    <h2 className="text-lg font-semibold">
+                      {org.everyOrgSlug ? (
+                        <Link href={`/org/${encodeURIComponent(org.everyOrgSlug)}`} className="hover:underline">
+                          {org.name}
+                        </Link>
+                      ) : (
+                        org.name
+                      )}
+                    </h2>
                     {impactLabel && <p className="text-sm font-medium text-muted">{impactLabel}</p>}
                   </div>
                 </div>

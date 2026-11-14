@@ -24,6 +24,31 @@ export function newsFeedWhere(followedCategoryIds: string[]): Prisma.NewsItemWhe
   };
 }
 
+/** How much of a news summary a feed card shows before "Read more". */
+export const FEED_PREVIEW_CHARS = 280;
+
+/**
+ * A short preview of a news summary for feed cards: the whole text if it's
+ * short, otherwise cut at the last word (or paragraph) boundary before
+ * `max` characters, with "…". `truncated` says whether "Read more" is needed.
+ */
+export function previewText(text: string, max = FEED_PREVIEW_CHARS): { preview: string; truncated: boolean } {
+  const trimmed = text.trim();
+  // A little slack, so "Read more" never hides just a few words.
+  if (trimmed.length <= max + 40) return { preview: trimmed, truncated: false };
+  const head = trimmed.slice(0, max);
+  const paragraph = head.lastIndexOf("\n");
+  const space = head.lastIndexOf(" ");
+  const cut = paragraph > max * 0.6 ? paragraph : space > max * 0.6 ? space : max;
+  return { preview: `${head.slice(0, cut).trimEnd().replace(/[.,;:!?-]+$/, "")}…`, truncated: true };
+}
+
+/** A valid /org/<slug> slug (Every.org's primary slug format), or null. */
+export function orgSlug(value: string): string | null {
+  const slug = value.trim().toLowerCase();
+  return /^[a-z0-9][a-z0-9-]{0,99}$/.test(slug) ? slug : null;
+}
+
 /**
  * Returns the URL if it is a well-formed http(s) link, otherwise null, so a
  * bad or `javascript:` value can never end up in an `href`.

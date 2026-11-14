@@ -7,11 +7,12 @@ import { formatCents } from '@/lib/money';
 
 type OrganizationOption = { id: string; name: string; description: string | null };
 
-export default function DonationForm() {
+export default function DonationForm({ initialOrganizationId }: { initialOrganizationId?: string } = {}) {
   const router = useRouter();
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [orgsLoaded, setOrgsLoaded] = useState(false);
-  const [organizationId, setOrganizationId] = useState('');
+  // Preselected when arriving from an organization's page (/dashboard?give=<id>).
+  const [organizationId, setOrganizationId] = useState(initialOrganizationId ?? '');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
@@ -30,7 +31,10 @@ export default function DonationForm() {
       try {
         const res = await fetch('/api/organizations');
         const data = await res.json();
-        setOrganizations(data.organizations || []);
+        const list: OrganizationOption[] = data.organizations || [];
+        setOrganizations(list);
+        // Drop a preselection that isn't (or is no longer) a visible organization.
+        setOrganizationId((current) => (list.some((o) => o.id === current) ? current : ''));
       } catch (err) {
         console.error('Failed to load organizations:', err);
       } finally {
