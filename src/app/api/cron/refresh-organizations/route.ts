@@ -6,6 +6,9 @@ import { Prisma } from "@/generated/prisma/client";
 import { isAuthorizedCronRequest } from "@/lib/cron-auth";
 import { createEveryOrgClient, EveryOrgError } from "@/lib/everyorg/client";
 import { refreshOrganizations, type RefreshStore } from "@/lib/org-refresh";
+import { charityNavigatorEnabled, CharityNavigatorError, createCharityNavigatorClient } from "@/lib/charity-navigator/client";
+import { refreshCharityNavigator, type CnRefreshSummary, type CnStore } from "@/lib/charity-navigator/refresh";
+import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 import { prisma } from "@/lib/prisma";
 
 // Never cache or prerender: every call does the work.
@@ -45,16 +48,46 @@ const store: RefreshStore = {
   },
 };
 
+const cnStore: CnStore = {
+  candidates: (limit) =>
+    prisma.organization
+      .findMany({
+        where: VISIBLE_ORGANIZATION_WHERE,
+        orderBy: { cnCheckedAt: { sort: "asc", nulls: "first" } },
+        take: limit,
+        select: { id: true, ein: true },
+      })
+      // VISIBLE_ORGANIZATION_WHERE guarantees an EIN; this narrows the type.
+      .then((orgs) => orgs.flatMap((o) => (o.ein ? [{ id: o.id, ein: o.ein }] : []))),
+  async save(id, data) {
+    await prisma.organization.update({ where: { id }, data, select: { id: true } });
+  },
+};
+
 export async function GET(request: Request) {
   if (!isAuthorizedCronRequest(request.headers.get("authorization"), process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const summary = await refreshOrganizations({ store, client: createEveryOrgClient() });
+    const cnEnabled = charityNavigatorEnabled();
+    // With the Charity Navigator step, Every.org gets 30 s and CN 20 s of the 60 s limit.
+    const summary = await refreshOrganizations({ store, client: createEveryOrgClient(), timeBudgetMs: cnEnabled ? 30_000 : 45_000 });
     // Counts only, never organization data; visible in Vercel's function logs.
     console.log("[org-refresh]", JSON.stringify(summary));
-    return NextResponse.json(summary);
+
+    let charityNavigator: CnRefreshSummary | "not configured" = "not configured";
+    if (cnEnabled) {
+      try {
+        charityNavigator = await refreshCharityNavigator({ store: cnStore, client: createCharityNavigatorClient() });
+        console.log("[cn-refresh]", JSON.stringify(charityNavigator));
+      } catch (error) {
+        // The Every.org refresh already succeeded; report the CN failure without failing the run.
+        console.error("[cn-refresh] failed:", error instanceof CharityNavigatorError ? error.message : "unexpected error");
+        charityNavigator = { checked: 0, updated: 0, noRating: 0, failed: 1, stoppedEarly: "failures" };
+      }
+    }
+    return NextResponse.json({ ...summary, charityNavigator });
   } catch (error) {
     // EveryOrgError messages never contain the key; anything else stays private.
     console.error("[org-refresh] failed:", error instanceof EveryOrgError ? error.message : "unexpected error");

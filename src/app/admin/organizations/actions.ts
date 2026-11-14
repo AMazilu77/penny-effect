@@ -28,6 +28,7 @@ import { createEveryOrgClient, EveryOrgError, type EveryOrgNonprofit } from "@/l
 import { normalizeEin } from "@/lib/everyorg/parse";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { manualRatingForm } from "@/lib/charity-navigator/rating";
 
 const LIST = "/admin/organizations";
 const orgPath = (id: string) => `${LIST}/${encodeURIComponent(id)}`;
@@ -223,4 +224,46 @@ export async function saveCategories(formData: FormData) {
     data: { categories: { set: valid } },
   });
   done(orgPath(organizationId), "categories");
+}
+
+/**
+ * Saves a Charity Navigator rating copied by an admin from the organization's
+ * CN profile (D-016). The profile link is required and must be CN's page for
+ * this organization's EIN. An API refresh later replaces it.
+ */
+export async function saveCharityNavigatorRating(formData: FormData) {
+  await requireAdminPage();
+  const raw = formDataToObject(formData);
+  const idOnly = orgIdForm.safeParse(raw);
+  if (!idOnly.success) fail(LIST, "invalid");
+  const path = orgPath(idOnly.data.organizationId);
+  const org = await prisma.organization.findUnique({ where: { id: idOnly.data.organizationId }, select: { ein: true } });
+  if (!org) fail(LIST, "not-found");
+  if (!org.ein) fail(path, "no-ein");
+  const input = manualRatingForm(org.ein).safeParse(raw);
+  if (!input.success) fail(path, "cn-invalid");
+  await prisma.organization.update({
+    where: { id: idOnly.data.organizationId },
+    data: {
+      cnScore: input.data.cnScore,
+      cnStars: input.data.cnStars,
+      cnProfileUrl: input.data.cnProfileUrl,
+      cnCheckedAt: new Date(),
+      cnSource: "MANUAL",
+    },
+  });
+  done(path, "cn-saved");
+}
+
+/** Removes the Charity Navigator rating (e.g. entered by mistake). */
+export async function removeCharityNavigatorRating(formData: FormData) {
+  await requireAdminPage();
+  const input = orgIdForm.safeParse(formDataToObject(formData));
+  if (!input.success) fail(LIST, "invalid");
+  const updated = await prisma.organization.updateMany({
+    where: { id: input.data.organizationId },
+    data: { cnScore: null, cnStars: null, cnProfileUrl: null, cnCheckedAt: null, cnSource: null },
+  });
+  if (updated.count === 0) fail(LIST, "not-found");
+  done(orgPath(input.data.organizationId), "cn-removed");
 }
