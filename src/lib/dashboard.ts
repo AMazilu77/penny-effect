@@ -4,7 +4,7 @@
 // Until the partner integration (Milestone 3) everything is PENDING, so
 // "given" is honestly $0.
 
-export type DonationStatusName = "PENDING" | "COMPLETED" | "FAILED";
+export type DonationStatusName = "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED" | "DISPUTED";
 
 /** One row of `prisma.donation.groupBy({ by: ["status"], _sum: { amountCents }, _count })`. */
 export type DonationStatusGroup = {
@@ -31,7 +31,8 @@ export function summarizeDonations(groups: readonly DonationStatusGroup[]): Dona
       summary.pendingCents += cents;
       summary.pendingCount += group._count._all;
     }
-    // FAILED donations count toward nothing.
+    // FAILED, REFUNDED and DISPUTED donations count toward nothing: the money
+    // didn't reach the nonprofit, or may be taken back.
   }
   return summary;
 }
@@ -40,6 +41,8 @@ const STATUS_LABELS: Record<DonationStatusName, string> = {
   PENDING: "Recorded, not yet paid",
   COMPLETED: "Paid",
   FAILED: "Payment failed",
+  REFUNDED: "Refunded",
+  DISPUTED: "Payment disputed",
 };
 
 export function donationStatusLabel(status: DonationStatusName): string {

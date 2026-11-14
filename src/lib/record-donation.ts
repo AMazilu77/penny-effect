@@ -22,7 +22,7 @@ export type RecordedDonation = {
   organizationId: string;
   amountCents: number | null;
   currency: string;
-  status: "PENDING" | "COMPLETED" | "FAILED";
+  status: "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED" | "DISPUTED";
   createdAt: Date;
 };
 
