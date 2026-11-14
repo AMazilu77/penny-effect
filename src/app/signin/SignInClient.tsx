@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 import { Card } from "@/components/ui/Card";
 import { buttonPrimary, textLink } from "@/components/ui/buttons";
+import { signInErrorMessage } from "@/lib/auth-errors";
 import { BRAND_NAME } from "@/lib/brand";
 
 const field = "w-full rounded-control border bg-inset px-3 py-2 text-base text-fg";
@@ -35,7 +36,8 @@ export default function SignInClient({
       });
 
       if (result?.error) {
-        setErrorMsg("Invalid email or password");
+        // "CredentialsSignin" → "Invalid email or password.", "RateLimited" → "Too many attempts…"
+        setErrorMsg(signInErrorMessage(result.error) ?? "Invalid email or password.");
         setLoading(false);
         return;
       }

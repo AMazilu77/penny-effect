@@ -8,6 +8,8 @@ import { prismaDonationStore } from "@/lib/donation-store";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 import { checkoutEnabled } from "@/lib/checkout";
 import { startCheckout } from "@/lib/start-checkout";
+import { clientIp, RULES, type RateCheck } from "@/lib/rate-limit";
+import { rateLimitResponse } from "@/lib/rate-limit-store";
 
 // Records a donation the user intends to make. No payment is taken here: the
 // row stays PENDING until the donation partner confirms it (Milestone 3).
@@ -35,6 +37,22 @@ export async function POST(req: Request) {
   const { organizationId, amountCents, message, idempotencyKey } = parsed.data;
 
   try {
+    // Rate limits (D-018). Starting a checkout is strict per user AND per IP
+    // (card-testing risk flagged by Every.org); checked before anything is
+    // recorded, so a refused request leaves no row behind.
+    const ip = clientIp(req.headers);
+    const checks: RateCheck[] = [{ rule: RULES.donateUser, identifier: userId }];
+    if (checkoutEnabled()) {
+      checks.push(
+        { rule: RULES.checkoutUserHour, identifier: userId },
+        { rule: RULES.checkoutUserDay, identifier: userId },
+        { rule: RULES.checkoutIpHour, identifier: ip },
+        { rule: RULES.checkoutIpDay, identifier: ip },
+      );
+    }
+    const limited = await rateLimitResponse(checks, "gifts in a short time");
+    if (limited) return limited;
+
     // Only organizations users can see may receive new gifts (D-012).
     const organization = await prisma.organization.findFirst({
       where: { id: organizationId, ...VISIBLE_ORGANIZATION_WHERE },
