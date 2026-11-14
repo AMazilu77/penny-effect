@@ -5,6 +5,8 @@ import { hash } from "bcrypt";
 import { z } from "zod";
 import { normalizeEmail } from "@/lib/email";
 import { findUserIdByEmail } from "@/lib/user-lookup";
+import { clientIp, RULES } from "@/lib/rate-limit";
+import { rateLimitResponse } from "@/lib/rate-limit-store";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(100),
@@ -14,6 +16,18 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Counted before anything else, so failed attempts count too (D-018).
+  try {
+    const limited = await rateLimitResponse(
+      [{ rule: RULES.registerIp, identifier: clientIp(req.headers) }],
+      "sign-up attempts from your network",
+    );
+    if (limited) return limited;
+  } catch (err) {
+    console.error("[register] rate limit", err instanceof Error ? err.name : "unknown error");
+    return NextResponse.json({ error: "Unable to create account." }, { status: 500 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();

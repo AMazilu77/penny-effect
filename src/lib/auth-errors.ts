@@ -14,6 +14,8 @@ const MESSAGES: Record<string, string> = {
   OAuthCallback: "Google sign-in didn't complete. Please try again.",
   OAuthSignin: "Couldn't start Google sign-in. Please try again.",
   CredentialsSignin: "Invalid email or password.",
+  // Too many attempts from this network or for this email (src/lib/rate-limit.ts).
+  RateLimited: "Too many sign-in attempts. Please wait 15 minutes and try again.",
   SessionRequired: "Please sign in to continue.",
 };
 
