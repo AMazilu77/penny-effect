@@ -111,6 +111,14 @@ model Donation {
   // Sent by the donation form (a UUID per gift) so a double-click or retry
   // can't record the same gift twice. Null for rows from before this column.
   idempotencyKey String?
+  // Milestone 3 (M3-PLAN, D-014): our id for this gift at Every.org, sent as
+  // partner_donation_id in the Donate Link and echoed back by the webhook.
+  // Random, server-generated, set when checkout starts. The donor can see it
+  // (it's in the link), so it is never proof of payment on its own.
+  checkoutToken  String?        @unique
+  // What the donor was sent to pay, frozen at checkout (the webhook must match it).
+  checkoutEin    String?
+  checkoutSlug   String?
   message        String?
   createdAt      DateTime       @default(now())
 

@@ -15,6 +15,7 @@ export default function DonationForm() {
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState('');
+  const [checkout, setCheckout] = useState<{ url: string; amount: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   // Updated immediately (unlike state), so a second click in the same instant is ignored.
   const inFlight = useRef(false);
@@ -45,6 +46,7 @@ export default function DonationForm() {
     inFlight.current = true;
     setSubmitting(true);
     setStatus('');
+    setCheckout(null);
 
     try {
       const res = await fetch('/api/donate', {
@@ -54,12 +56,16 @@ export default function DonationForm() {
       });
 
       if (res.ok) {
-        const data: { donation: { amountCents: number; currency: string } } = await res.json();
-        // Honest wording: nothing is charged until the donation partner is integrated.
-        setStatus(
-          `Recorded your ${formatCents(data.donation.amountCents, data.donation.currency)} gift. ` +
-            'No payment was taken. Real payments arrive with our donation partner.',
-        );
+        const data: { donation: { amountCents: number; currency: string }; checkoutUrl?: string } = await res.json();
+        const amountText = formatCents(data.donation.amountCents, data.donation.currency);
+        if (data.checkoutUrl) {
+          // Checkout (not live on production yet): the donor pays on Every.org.
+          setCheckout({ url: data.checkoutUrl, amount: amountText });
+          setStatus(`Recorded your ${amountText} gift. Finish paying on Every.org.`);
+        } else {
+          // Honest wording: nothing is charged until the donation partner is integrated.
+          setStatus(`Recorded your ${amountText} gift. No payment was taken. Real payments arrive with our donation partner.`);
+        }
         setAmount('');
         setMessage('');
         setIdempotencyKey(crypto.randomUUID()); // next gift gets a fresh key
@@ -126,6 +132,16 @@ export default function DonationForm() {
       </form>
 
       {status && <p className="mt-4 text-sm" role="status">{status}</p>}
+      {checkout && (
+        <div className="mt-3 space-y-2 rounded-control border bg-inset p-3">
+          <a href={checkout.url} className={buttonPrimary}>
+            Continue to Every.org to pay {checkout.amount}
+          </a>
+          <p className="text-sm text-muted">
+            Every.org takes the payment and emails your receipt. We never see your card or bank details.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
