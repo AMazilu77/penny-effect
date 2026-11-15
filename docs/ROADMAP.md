@@ -13,7 +13,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [x] Import `authOptions` only from `@/lib/auth`
 - [x] Remove `ignoreDuringBuilds`; fix lint errors; remove `any`s in touched files — `pnpm lint` clean, no `any` left in `src/`
 - [x] Add a test runner (Vitest) and CI (GitHub Actions: install, lint, typecheck, test, build)
-- [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping — _deferred by owner. Local dev uses the Neon `development` branch; Vercel Preview still uses production._
+- [ ] Separate dev/preview database from production (Neon branch); confirm Vercel env scoping — _deferred by owner. Local dev uses the Neon `development` branch; Vercel Preview still uses production._ Now a **blocking first item of Milestone 3** (steps there).
 - [ ] _Deferred:_ Migrate Neon project off Azure East US 2 (Neon has deprecated Azure regions)
 - [x] Replace README with real setup instructions
 
@@ -38,6 +38,18 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 
 ## Milestone 3 — Real giving
 
+- [ ] **BLOCKING: separate Vercel Preview database before any real payment testing.** Until this is checked off, no payment test (staging or real) runs on a Vercel Preview, and checkout stays off on Preview. Why: as of 2026-11-14 one `DATABASE_URL` in Vercel is scoped to **Production, Preview and Development**, so every PR preview reads and writes the **production** database, and `vercel env pull` would write the production URL into `.env.local`. A staging webhook hitting a preview would mark test-card gifts as Paid in production. Owner steps (about 20 minutes):
+  1. **Neon → Branches → Create branch.** Name `preview`, parent = the production branch. If Neon offers **Schema only**, choose it (no user data copied). Otherwise it copies real users: treat it like production (don't share its URL, don't paste rows).
+  2. On the new branch, click **Connect** and copy two strings: **pooled** (host contains `-pooler`) and **direct** (no `-pooler`). Put them in your password manager only, never in chat, a PR or an issue.
+  3. **Vercel → penny-effect → Settings → Environment Variables → `DATABASE_URL` → Edit:** untick **Preview** and **Development**, leaving **Production** only. Save.
+  4. **Add `DATABASE_URL`** with the `preview` **pooled** string, environment **Preview** only. Add **`DIRECT_URL`** with the `preview` **direct** string, **Preview** only.
+  5. Point Vercel **Development** (used by `vercel env pull` / `vercel dev`) at the Neon `development` branch: add `DATABASE_URL` (pooled) for **Development** only. Then edit the existing Development-only `DIRECT_URL` and check it is the `development` branch's direct string (not production's).
+  6. **Migrate the preview branch** from your laptop (preview builds never migrate, by design): `DIRECT_URL='<preview direct string>' pnpm prisma migrate deploy`. It should end with "All migrations have been successfully applied". Repeat this after every merged PR that adds a migration, until we automate it.
+  7. If you want sample organizations there: `DIRECT_URL='<preview direct>' DATABASE_URL='<preview pooled>' pnpm prisma db seed`. Never against production.
+  8. **Vercel → Deployments →** latest Preview → **⋯ → Redeploy** (untick "Use existing Build Cache"). Env changes only apply to new deployments.
+  9. **Check:** on that preview, sign up with a throwaway address (e.g. `preview-check+1@<your domain>`). In the Neon SQL Editor, run `SELECT count(*) FROM "User" WHERE email = 'preview-check+1@<your domain>';` on **`preview`** (expect 1) and on **production** (expect 0).
+  10. Tell me it's done. I'll then update the README, M3-PLAN ("Why not Vercel Preview?") and the env table, and add the preview-branch migration to the merge checklist.
+  - Also worth checking while you're there: `NEXTAUTH_URL` is shared by Preview and Production. If it is the production URL, sign-in on a preview redirects to production. Leaving it unset for **Preview** lets NextAuth use the preview's own URL. Google sign-in on previews would also need the preview URL as an authorized redirect, so email sign-in is enough there.
 - [ ] Integrate the chosen donation partner (D-001): checkout for a single gift
 - [ ] Align gift limits with Every.org (currently $1 min / $10,000 max in `src/lib/money.ts`; D-011)
 - [ ] Record donation as pending on start; mark completed from partner confirmation (webhook or verified redirect) — never from client-side claims alone
