@@ -3,25 +3,53 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
+// ---- Feed views (Local plan L2): Following / My causes / All ----
+
+export const FEED_VIEWS = ["following", "causes", "all"] as const;
+export type FeedView = (typeof FEED_VIEWS)[number];
+
+export const FEED_VIEW_LABELS: Record<FeedView, string> = {
+  following: "Following",
+  causes: "My causes",
+  all: "All",
+};
+
 /**
- * Which news items a user's feed shows.
- *
- * - Only items with a `sourceUrl`: every update must link to where the
- *   organization actually published it. Items without one (such as the old
- *   seeded placeholder headlines) are never shown.
- * - Only items from organizations users can see (active, verified, see
- *   src/lib/organizations.ts).
- * - If the user follows causes, only items from organizations in those causes.
- *   If they follow none, items from all organizations.
+ * The view from ?view=. Without one (or an unknown value): Following if the
+ * user follows at least one organization, otherwise My causes.
  */
-export function newsFeedWhere(followedCategoryIds: string[]): Prisma.NewsItemWhereInput {
-  return {
-    sourceUrl: { not: null },
-    organization: {
-      ...VISIBLE_ORGANIZATION_WHERE,
-      ...(followedCategoryIds.length > 0 ? { categories: { some: { id: { in: followedCategoryIds } } } } : {}),
-    },
-  };
+export function parseFeedView(value: unknown, followsAny: boolean): FeedView {
+  if (typeof value === "string" && (FEED_VIEWS as readonly string[]).includes(value)) return value as FeedView;
+  return followsAny ? "following" : "causes";
+}
+
+export function feedHref(view: FeedView): string {
+  return `/feed?view=${view}`;
+}
+
+/**
+ * Which news items a feed view shows. Every view shows only:
+ * - items with a `sourceUrl` (every update links to where the organization
+ *   actually published it; the old seeded headlines never show), and
+ * - items from organizations users can see (active, verified; src/lib/organizations.ts).
+ *
+ * Following: organizations the user follows. My causes: organizations in the
+ * user's causes. All: every visible organization. A view with nothing to
+ * match (no follows, no causes) shows nothing, and the page says why.
+ */
+export function newsFeedWhere(
+  view: FeedView,
+  { followedOrgIds, categoryIds }: { followedOrgIds: string[]; categoryIds: string[] },
+): Prisma.NewsItemWhereInput {
+  const base = { sourceUrl: { not: null } } as const;
+  switch (view) {
+    case "following":
+      return { ...base, organization: { ...VISIBLE_ORGANIZATION_WHERE, id: { in: followedOrgIds } } };
+    case "causes":
+      return { ...base, organization: { ...VISIBLE_ORGANIZATION_WHERE, categories: { some: { id: { in: categoryIds } } } } };
+    case "all":
+      return { ...base, organization: VISIBLE_ORGANIZATION_WHERE };
+  }
 }
 
 /** How much of a news summary a feed card shows before "Read more". */
