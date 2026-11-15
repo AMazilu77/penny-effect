@@ -10,6 +10,9 @@ import { donationStatusLabel, summarizeDonations } from "@/lib/dashboard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 import DonationForm from "@/components/DonationForm";
+import { FollowButton, FollowNotice } from "@/components/FollowButton";
+import { OrgLogo } from "@/components/ui/OrgLogo";
+import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +51,7 @@ export default async function DashboardPage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin");
 
-  const [statusGroups, causesFollowed, recentDonations] = await Promise.all([
+  const [statusGroups, causesFollowed, recentDonations, follows] = await Promise.all([
     prisma.donation.groupBy({
       by: ["status"],
       where: { userId },
@@ -68,6 +71,12 @@ export default async function DashboardPage({
         createdAt: true,
         organization: { select: { name: true } },
       },
+    }),
+    // Followed organizations users can still see (a hidden one reappears if it's unhidden).
+    prisma.organizationFollow.findMany({
+      where: { userId, organization: VISIBLE_ORGANIZATION_WHERE },
+      orderBy: { organization: { name: "asc" } },
+      select: { organization: { select: { id: true, name: true, everyOrgSlug: true, logoUrl: true } } },
     }),
   ]);
 
@@ -99,6 +108,8 @@ export default async function DashboardPage({
           </div>
         </div>
       </Card>
+
+      <FollowNotice value={params.notice} />
 
       {checkoutCancelled && (
         <p role="status" className="rounded-control border border-warn bg-warn-soft p-3 text-sm text-warn">
@@ -157,6 +168,34 @@ export default async function DashboardPage({
                   <time dateTime={d.createdAt.toISOString()} className="text-sm text-muted">
                     {dateFormat.format(d.createdAt)}
                   </time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            title="Organizations you follow"
+            description="Their updates appear in your feed under Following. Only you can see this list."
+          />
+          {follows.length === 0 ? (
+            <EmptyState title="You don't follow any organizations yet. Follow one from Discover or its page." actionHref="/discover" actionText="Find organizations" />
+          ) : (
+            <ul className="divide-y rounded-control border bg-inset">
+              {follows.map(({ organization: org }) => (
+                <li key={org.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <span className="flex items-center gap-2">
+                    <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={28} />
+                    {org.everyOrgSlug ? (
+                      <Link href={`/org/${encodeURIComponent(org.everyOrgSlug)}`} className="font-semibold text-fg hover:underline">
+                        {org.name}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-fg">{org.name}</span>
+                    )}
+                  </span>
+                  <FollowButton organizationId={org.id} organizationName={org.name} following signedIn returnTo="/dashboard" />
                 </li>
               ))}
             </ul>

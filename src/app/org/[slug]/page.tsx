@@ -6,8 +6,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 import { cache } from "react";
 import { CharityNavigatorBadge } from "@/components/CharityNavigatorBadge";
+import { FollowButton, FollowNotice } from "@/components/FollowButton";
+import { authOptions } from "@/lib/auth";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { OrgLogo } from "@/components/ui/OrgLogo";
@@ -22,7 +25,10 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
@@ -70,10 +76,18 @@ function requestTime(): Date {
   return new Date();
 }
 
-export default async function OrganizationPage({ params }: Props) {
+export default async function OrganizationPage({ params, searchParams }: Props) {
   const org = await loadOrg((await params).slug);
   if (!org) notFound();
   const now = requestTime();
+  const notice = (await searchParams)?.notice;
+
+  // Signed-in visitors see whether they follow it (the page itself is public).
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? null;
+  const following = userId
+    ? (await prisma.organizationFollow.count({ where: { userId, organizationId: org.id } })) > 0
+    : false;
 
   const website = safeExternalUrl(org.website);
   const everyOrgUrl = org.everyOrgSlug ? `https://www.every.org/${encodeURIComponent(org.everyOrgSlug)}` : null;
@@ -83,6 +97,7 @@ export default async function OrganizationPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-(--space-section)">
+      <FollowNotice value={notice} />
       <Card className="overflow-hidden p-0">
         {org.coverImageUrl && (
           <figure className="border-b">
@@ -130,6 +145,13 @@ export default async function OrganizationPage({ params }: Props) {
             <Link href={`/dashboard?give=${encodeURIComponent(org.id)}#give`} className={buttonPrimary}>
               Give to {org.name}
             </Link>
+            <FollowButton
+              organizationId={org.id}
+              organizationName={org.name}
+              following={following}
+              signedIn={userId !== null}
+              returnTo={`/org/${org.everyOrgSlug}`}
+            />
             {everyOrgUrl && (
               <a href={everyOrgUrl} target="_blank" rel="noopener noreferrer" className={buttonSecondary}>
                 View on Every.org

@@ -62,7 +62,7 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
       include: {
         categories: { select: { id: true } },
         verifiedBy: { select: { name: true, email: true } },
-        _count: { select: { donations: true, newsItems: true } },
+        _count: { select: { donations: true, newsItems: true, followers: true } },
       },
     }),
     prisma.causeCategory.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true } }),
@@ -109,6 +109,11 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
             {[org.locationCity, org.locationState].filter(Boolean).join(", ") || "unknown"}
             {org.locationZip && ` ${org.locationZip}`}
             {!org.locationCity && org.everyOrgId && <span className="text-muted"> (filled on the next refresh from Every.org)</span>}
+          </dd>
+          <dt className="text-muted">Followers</dt>
+          <dd>
+            {org._count.followers}
+            <span className="text-muted"> (admins only; never shown publicly for now)</span>
           </dd>
           <dt className="text-muted">Accepts donations</dt>
           <dd>{org.everyOrgId ? (org.isDisbursable ? "yes (Every.org)" : "no (Every.org)") : "unknown"}</dd>
