@@ -47,3 +47,19 @@ describe("donationStatusLabel", () => {
     expect(donationStatusLabel("PENDING")).toBe("Recorded, not yet paid");
   });
 });
+
+describe("refunds and disputes (Milestone 3 webhook)", () => {
+  it("never counts REFUNDED or DISPUTED gifts as given or pending", () => {
+    const summary = summarizeDonations([
+      { status: "COMPLETED", _sum: { amountCents: 1000 }, _count: { _all: 1 } },
+      { status: "REFUNDED", _sum: { amountCents: 2000 }, _count: { _all: 1 } },
+      { status: "DISPUTED", _sum: { amountCents: 3000 }, _count: { _all: 1 } },
+    ]);
+    expect(summary).toEqual({ givenCents: 1000, givenCount: 1, pendingCents: 0, pendingCount: 0 });
+  });
+
+  it("labels them plainly", () => {
+    expect(donationStatusLabel("REFUNDED")).toBe("Refunded");
+    expect(donationStatusLabel("DISPUTED")).toBe("Payment disputed");
+  });
+});

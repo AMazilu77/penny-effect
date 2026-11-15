@@ -98,6 +98,10 @@ enum DonationStatus {
   PENDING
   COMPLETED
   FAILED
+  // Set only from a verified Every.org webhook about a COMPLETED gift (M3-PLAN §2).
+  // Neither counts as "given".
+  REFUNDED
+  DISPUTED
 }
 
 model Donation {
@@ -119,6 +123,12 @@ model Donation {
   // What the donor was sent to pay, frozen at checkout (the webhook must match it).
   checkoutEin    String?
   checkoutSlug   String?
+  // Set only by Every.org's verified webhook (src/lib/everyorg-webhook):
+  // when it confirmed the payment, what reached the nonprofit after fees,
+  // and how the donor paid.
+  completedAt    DateTime?
+  netAmountCents Int?
+  paymentMethod  String?
   message        String?
   createdAt      DateTime       @default(now())
 
@@ -271,4 +281,43 @@ model NewsItem {
   createdAt      DateTime     @default(now())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+// Audit log of every authenticated webhook call from a donation partner
+// (M3-PLAN §2). Requests without the right bearer token are never stored.
+// `payload` keeps an allowlist of fields only: no donor name, email,
+// address or notes (D-014 update, data terms pending).
+model PartnerEvent {
+  id                String             @id @default(cuid())
+  provider          String             @default("EVERYORG")
+  kind              PartnerEventKind
+  status            PartnerEventStatus
+  reason            String?
+  // Every.org's charge id and our checkoutToken, as sent (may be missing on bad payloads).
+  chargeId          String?
+  partnerDonationId String?
+  // The donation this event matched, if any. Plain id, no foreign key, so the
+  // audit row survives whatever happens to the donation.
+  donationId        String?
+  payload           Json?
+  receivedAt        DateTime           @default(now())
+
+  // A retried webhook is stored once. Postgres allows many NULL chargeIds.
+  @@unique([provider, kind, chargeId])
+  @@index([status, receivedAt])
+  @@index([donationId])
+}
+
+enum PartnerEventKind {
+  DONATION
+  REFUND
+  DISPUTE
+  UNKNOWN
+}
+
+enum PartnerEventStatus {
+  APPLIED   // changed a donation
+  DUPLICATE // already applied earlier; nothing changed
+  REJECTED  // didn't match our records; nothing changed (admin should look)
+  IGNORED   // not an event we act on; nothing changed
 }
