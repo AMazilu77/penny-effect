@@ -23,6 +23,10 @@ describe("everyOrgFields", () => {
       isDisbursable: true,
       nteeCode: "P60",
       website: "https://www.givedirectly.org/",
+      locationCity: "New York",
+      locationState: "NY",
+      locationZip: "10008",
+      locationCountry: "US",
       lastSyncedAt: now,
     });
     // Our display name is never overwritten by a refresh.

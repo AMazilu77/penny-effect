@@ -104,6 +104,12 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
               "not linked"
             )}
           </dd>
+          <dt className="text-muted">Location</dt>
+          <dd>
+            {[org.locationCity, org.locationState].filter(Boolean).join(", ") || "unknown"}
+            {org.locationZip && ` ${org.locationZip}`}
+            {!org.locationCity && org.everyOrgId && <span className="text-muted"> (filled on the next refresh from Every.org)</span>}
+          </dd>
           <dt className="text-muted">Accepts donations</dt>
           <dd>{org.everyOrgId ? (org.isDisbursable ? "yes (Every.org)" : "no (Every.org)") : "unknown"}</dd>
           <dt className="text-muted">Website</dt>

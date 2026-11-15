@@ -3,6 +3,7 @@
 // src/app/admin/organizations/actions.ts apply them.
 import { z } from "zod";
 import type { EveryOrgNonprofit } from "@/lib/everyorg/parse";
+import { orgLocationFields } from "@/lib/everyorg/address";
 import { VERIFICATION_NOTE_MAX, VERIFICATION_NOTE_MIN } from "@/lib/verification-guide";
 
 /**
@@ -22,6 +23,8 @@ export function everyOrgFields(np: EveryOrgNonprofit, now: Date) {
     website: np.websiteUrl,
     logoUrl: np.logoUrl,
     coverImageUrl: np.coverImageUrl,
+    // City, state, ZIP. Left out (existing values kept) when the address can't be read.
+    ...orgLocationFields(np.locationAddress),
     lastSyncedAt: now,
   };
 }
