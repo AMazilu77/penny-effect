@@ -39,11 +39,11 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  accounts  Account[]
-  sessions  Session[]
-  donations Donation[]
-  interests UserInterest[]
-  location  UserLocation?
+  accounts              Account[]
+  sessions              Session[]
+  donations             Donation[]
+  interests             UserInterest[]
+  location              UserLocation?
   // Organizations this user (an admin) reviewed and verified.
   verifiedOrganizations Organization[] @relation("OrganizationVerifiedBy")
 
@@ -168,6 +168,9 @@ model Organization {
   locationCity    String?
   locationState   String?
   locationCountry String?
+  // From Every.org's address on import and in the weekly refresh
+  // (src/lib/everyorg/address.ts): city as written, 2-letter state, 5-digit ZIP.
+  locationZip     String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -193,13 +196,13 @@ model Organization {
   cnSource     RatingSource?
 
   // Admin review (D-012). Both set together when an admin verifies.
-  verifiedAt   DateTime?
-  verifiedById String?
+  verifiedAt       DateTime?
+  verifiedById     String?
   // Why the admin verified it (what they checked), shown to other admins.
   // Required when verifying from now on; NULL for orgs verified before notes
   // existed. Cleared together with verifiedAt.
-  verificationNote String? @db.Text
-  verifiedBy   User?     @relation("OrganizationVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verificationNote String?   @db.Text
+  verifiedBy       User?     @relation("OrganizationVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
 
   status OrganizationStatus @default(ACTIVE)
 
@@ -316,10 +319,10 @@ enum PartnerEventKind {
 }
 
 enum PartnerEventStatus {
-  APPLIED   // changed a donation
+  APPLIED // changed a donation
   DUPLICATE // already applied earlier; nothing changed
-  REJECTED  // didn't match our records; nothing changed (admin should look)
-  IGNORED   // not an event we act on; nothing changed
+  REJECTED // didn't match our records; nothing changed (admin should look)
+  IGNORED // not an event we act on; nothing changed
 }
 
 // Fixed-window rate-limit counters (D-018). One row per (rule, who, window).
