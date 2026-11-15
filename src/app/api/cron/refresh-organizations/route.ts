@@ -10,6 +10,7 @@ import { charityNavigatorEnabled, CharityNavigatorError, createCharityNavigatorC
 import { refreshCharityNavigator, type CnRefreshSummary, type CnStore } from "@/lib/charity-navigator/refresh";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 import { prisma } from "@/lib/prisma";
+import { pruneRateLimits } from "@/lib/rate-limit-store";
 
 // Never cache or prerender: every call does the work.
 export const dynamic = "force-dynamic";
@@ -87,7 +88,14 @@ export async function GET(request: Request) {
         charityNavigator = { checked: 0, updated: 0, noRating: 0, failed: 1, stoppedEarly: "failures" };
       }
     }
-    return NextResponse.json({ ...summary, charityNavigator });
+    // Housekeeping: drop rate-limit counters whose window has ended (D-018).
+    let rateLimitRowsPruned: number | "failed" = "failed";
+    try {
+      rateLimitRowsPruned = await pruneRateLimits();
+    } catch {
+      console.error("[rate-limit-prune] failed");
+    }
+    return NextResponse.json({ ...summary, charityNavigator, rateLimitRowsPruned });
   } catch (error) {
     // EveryOrgError messages never contain the key; anything else stays private.
     console.error("[org-refresh] failed:", error instanceof EveryOrgError ? error.message : "unexpected error");
