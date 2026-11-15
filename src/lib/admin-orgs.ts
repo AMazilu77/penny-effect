@@ -115,6 +115,8 @@ export const NOTICES = {
   unverified: "Verification removed.",
   hidden: "Hidden from users.",
   shown: "Active again (users see it only if it is also verified).",
+  "moved-hidden": "Hidden from users. It's now in the Hidden tab.",
+  "moved-shown": "Unhidden. It's back in Needs review, or in Live if it is verified.",
   categories: "Categories saved.",
   "cn-saved": "Charity Navigator rating saved, dated today.",
   "cn-removed": "Charity Navigator rating removed.",
