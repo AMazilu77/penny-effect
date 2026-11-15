@@ -38,6 +38,8 @@ export const RULES = {
   checkoutIpHour: { name: "checkout:ip", limit: 10, windowSeconds: HOUR },
   checkoutIpDay: { name: "checkout:ip:day", limit: 25, windowSeconds: DAY },
   fetchImageUser: { name: "fetch-image:user", limit: 30, windowSeconds: 10 * 60 },
+  // Follow / unfollow (Local plan L1): generous for real use, stops scripted churn.
+  followUser: { name: "follow:user", limit: 60, windowSeconds: 10 * 60 },
 } as const satisfies Record<string, RateRule>;
 
 export interface RateLimitStore {

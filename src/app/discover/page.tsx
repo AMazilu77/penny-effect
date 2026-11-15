@@ -3,6 +3,9 @@
 // filtered view can be shared. Only organizations users may see are listed
 // (src/lib/organizations.ts).
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { FollowButton, FollowNotice } from "@/components/FollowButton";
+import { authOptions } from "@/lib/auth";
 import { Card } from "@/components/ui/Card";
 import { OrgLogo } from "@/components/ui/OrgLogo";
 import { CharityNavigatorBadge } from "@/components/CharityNavigatorBadge";
@@ -32,10 +35,14 @@ function requestTime(): Date {
 }
 
 export default async function DiscoverPage({ searchParams }: Props) {
-  const { category, q } = parseDiscoverParams(await searchParams);
+  const params = await searchParams;
+  const { category, q } = parseDiscoverParams(params);
   const now = requestTime();
+  // Discover is public; signed-in visitors also see Follow buttons.
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id ?? null;
 
-  const [categories, orgRows] = await Promise.all([
+  const [categories, orgRows, follows] = await Promise.all([
     prisma.causeCategory.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true, description: true } }),
     prisma.organization.findMany({
       where: VISIBLE_ORGANIZATION_WHERE,
@@ -56,7 +63,9 @@ export default async function DiscoverPage({ searchParams }: Props) {
         categories: { select: { slug: true, name: true }, orderBy: { name: "asc" } },
       },
     }),
+    userId ? prisma.organizationFollow.findMany({ where: { userId }, select: { organizationId: true } }) : [],
   ]);
+  const followed = new Set(follows.map((f) => f.organizationId));
 
   const orgs = orgRows.map((o) => ({ ...o, categorySlugs: o.categories.map((c) => c.slug) }));
   const counts = countByCategory(orgs);
@@ -64,6 +73,7 @@ export default async function DiscoverPage({ searchParams }: Props) {
   const chips = categories.filter((c) => (counts.get(c.slug) ?? 0) > 0 || c.slug === category);
   const selected = categories.find((c) => c.slug === category) ?? null;
   const results = filterDirectory(orgs, { category: selected ? selected.slug : null, q });
+  const returnTo = discoverHref(selected?.slug ?? null, q);
 
   return (
     <div className="space-y-(--space-section)">
@@ -71,6 +81,8 @@ export default async function DiscoverPage({ searchParams }: Props) {
         <h1 className="text-3xl font-bold">Discover</h1>
         <p className="text-muted">Verified nonprofits you can support, by cause.</p>
       </header>
+
+      <FollowNotice value={params.notice} />
 
       <Card className="space-y-4">
         <form action="/discover" method="get" role="search" className="flex flex-wrap gap-2">
@@ -157,6 +169,13 @@ export default async function DiscoverPage({ searchParams }: Props) {
                   ))}
                 </div>
                 <div className="mt-auto flex flex-wrap items-center gap-3 border-t pt-3">
+                  <FollowButton
+                    organizationId={org.id}
+                    organizationName={org.name}
+                    following={followed.has(org.id)}
+                    signedIn={userId !== null}
+                    returnTo={returnTo}
+                  />
                   {org.everyOrgSlug && (
                     <a
                       href={`https://www.every.org/${encodeURIComponent(org.everyOrgSlug)}`}

@@ -43,9 +43,11 @@ model User {
   sessions              Session[]
   donations             Donation[]
   interests             UserInterest[]
+  // Organizations this user follows (D-019, Local plan L1).
+  follows               OrganizationFollow[]
   location              UserLocation?
   // Organizations this user (an admin) reviewed and verified.
-  verifiedOrganizations Organization[] @relation("OrganizationVerifiedBy")
+  verifiedOrganizations Organization[]       @relation("OrganizationVerifiedBy")
 
   // Flags
   hasCompletedOnboarding Boolean @default(false)
@@ -208,8 +210,9 @@ model Organization {
 
   // Relations
   donations  Donation[]
-  categories CauseCategory[] @relation("OrgCategories")
+  categories CauseCategory[]      @relation("OrgCategories")
   newsItems  NewsItem[]
+  followers  OrganizationFollow[]
 }
 
 // =======================================================
@@ -337,4 +340,18 @@ model RateLimitHit {
 
   @@id([bucket, keyHash, windowStart])
   @@index([expiresAt])
+}
+
+// A user following one organization (Local plan L1, D-019). Private: never
+// shown to other users or to the organization. Admins see only a count.
+// Hiding an organization keeps its follows; they show again if it's unhidden.
+model OrganizationFollow {
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, organizationId])
+  @@index([organizationId])
 }
