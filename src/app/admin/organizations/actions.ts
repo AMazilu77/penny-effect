@@ -29,6 +29,7 @@ import { normalizeEin } from "@/lib/everyorg/parse";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { manualRatingForm } from "@/lib/charity-navigator/rating";
+import { orgTabHref, parseOrgSearch, parseOrgTab } from "@/lib/admin-org-tabs";
 
 const LIST = "/admin/organizations";
 const orgPath = (id: string) => `${LIST}/${encodeURIComponent(id)}`;
@@ -194,6 +195,13 @@ async function setStatus(formData: FormData, status: "ACTIVE" | "HIDDEN") {
     data: { status },
   });
   if (updated.count === 0) fail(LIST, "not-found");
+  // From a row in the list: go back to the same tab and search (the org has
+  // left that tab). The URL is rebuilt from parsed values, never echoed.
+  if (formData.get("from") === "list") {
+    const back = orgTabHref(parseOrgTab(formData.get("tab")), parseOrgSearch(formData.get("q")));
+    revalidatePath("/admin", "layout");
+    redirect(`${back}${back.includes("?") ? "&" : "?"}notice=${status === "HIDDEN" ? "moved-hidden" : "moved-shown"}`);
+  }
   done(orgPath(input.data.organizationId), status === "HIDDEN" ? "hidden" : "shown");
 }
 
