@@ -1,17 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { newsFeedWhere, orgSlug, previewText, safeExternalUrl } from "@/lib/feed";
+import { FEED_VIEWS, feedHref, newsFeedWhere, orgSlug, parseFeedView, previewText, safeExternalUrl } from "@/lib/feed";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
 describe("newsFeedWhere", () => {
-  it("only shows sourced items from visible organizations when the user follows no causes", () => {
-    expect(newsFeedWhere([])).toEqual({ sourceUrl: { not: null }, organization: VISIBLE_ORGANIZATION_WHERE });
+  const ids = { followedOrgIds: ["org1", "org2"], categoryIds: ["cat1", "cat2"] };
+
+  it("Following: only organizations the user follows", () => {
+    expect(newsFeedWhere("following", ids)).toEqual({
+      sourceUrl: { not: null },
+      organization: { ...VISIBLE_ORGANIZATION_WHERE, id: { in: ["org1", "org2"] } },
+    });
   });
 
-  it("filters by followed causes and still requires a source link and a visible organization", () => {
-    expect(newsFeedWhere(["cat1", "cat2"])).toEqual({
+  it("My causes: organizations in the user's causes", () => {
+    expect(newsFeedWhere("causes", ids)).toEqual({
       sourceUrl: { not: null },
       organization: { ...VISIBLE_ORGANIZATION_WHERE, categories: { some: { id: { in: ["cat1", "cat2"] } } } },
     });
+  });
+
+  it("All: every visible organization", () => {
+    expect(newsFeedWhere("all", ids)).toEqual({ sourceUrl: { not: null }, organization: VISIBLE_ORGANIZATION_WHERE });
+  });
+
+  it("every view requires a source link and a visible organization, even with nothing followed", () => {
+    for (const view of FEED_VIEWS) {
+      const where = newsFeedWhere(view, { followedOrgIds: [], categoryIds: [] });
+      expect(where.sourceUrl).toEqual({ not: null });
+      expect(where.organization).toMatchObject(VISIBLE_ORGANIZATION_WHERE);
+    }
+  });
+});
+
+describe("parseFeedView", () => {
+  it("defaults to Following when the user follows an organization, else My causes", () => {
+    expect(parseFeedView(undefined, true)).toBe("following");
+    expect(parseFeedView(undefined, false)).toBe("causes");
+    expect(parseFeedView("nonsense", true)).toBe("following");
+    expect(parseFeedView(["all"], false)).toBe("causes");
+  });
+
+  it("keeps an explicit view", () => {
+    expect(parseFeedView("all", true)).toBe("all");
+    expect(parseFeedView("following", false)).toBe("following");
+  });
+
+  it("links keep the view in the URL", () => {
+    expect(feedHref("causes")).toBe("/feed?view=causes");
   });
 });
 
