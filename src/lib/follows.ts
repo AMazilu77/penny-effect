@@ -3,7 +3,7 @@
 import { z } from "zod";
 
 /** Where a Follow / Unfollow form may send the user back to. */
-const RETURN_PATHS = [/^\/org\/[a-z0-9][a-z0-9-]{0,99}$/, /^\/discover$/, /^\/feed$/, /^\/dashboard$/];
+const RETURN_PATHS = [/^\/org\/[a-z0-9][a-z0-9-]{0,99}$/, /^\/discover$/, /^\/feed$/, /^\/dashboard$/, /^\/following$/];
 
 /**
  * The page to return to after following, if it's one of ours; otherwise

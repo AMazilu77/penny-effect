@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isAdminPath, isProtectedPath } from "@/lib/protected-routes";
 
 describe("isProtectedPath", () => {
-  it.each(["/dashboard", "/feed", "/inbox", "/onboarding/interests", "/dashboard/settings", "/admin", "/admin/organizations", "/donations/abc/thanks"])(
+  it.each(["/dashboard", "/feed", "/inbox", "/onboarding/interests", "/dashboard/settings", "/admin", "/admin/organizations", "/donations/abc/thanks", "/donations", "/following"])(
     "protects %s",
     (path) => {
       expect(isProtectedPath(path)).toBe(true);
@@ -20,6 +20,7 @@ describe("isProtectedPath", () => {
     expect(isProtectedPath("/feedback")).toBe(false);
     expect(isProtectedPath("/inboxes")).toBe(false);
     expect(isProtectedPath("/dashboards")).toBe(false);
+    expect(isProtectedPath("/followings")).toBe(false);
   });
 });
 

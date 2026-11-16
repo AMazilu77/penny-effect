@@ -7,6 +7,7 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath("/discover?category=animal-welfare&q=dogs")).toBe("/discover?category=animal-welfare&q=dogs");
     expect(safeReturnPath("/feed?view=following")).toBe("/feed?view=following");
     expect(safeReturnPath("/dashboard")).toBe("/dashboard");
+    expect(safeReturnPath("/following")).toBe("/following");
   });
 
   it("sends anything else to /dashboard", () => {
