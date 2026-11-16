@@ -37,7 +37,11 @@ export default function WhyGivePage() {
 
   const amf = fact("givewell-amf");
   const mc = fact("givewell-mc");
-  const topRange = fact("givewell-top-charities-range");
+  const topAverages = fact("givewell-top-charities-averages");
+  const amfAvg = fact("givewell-amf-average");
+  const mcAvg = fact("givewell-mc-average");
+  const who = fact("who-malaria-factsheet");
+  const britannica = fact("britannica-ea");
   const netCost = fact("givewell-amf-net-cost");
   const smcCost = fact("givewell-mc-cycle-cost");
   const cochrane = fact("cochrane-itn");
@@ -67,8 +71,12 @@ export default function WhyGivePage() {
         <p>
           Singer argued that the principle behind that answer doesn&apos;t stop at the edge of the pond. If we can prevent
           something very bad from happening without giving up anything of comparable importance, we ought to do it, and it
-          shouldn&apos;t matter whether the person is in front of us or on the other side of the world. That argument helped
-          start the movement now called <em>effective altruism</em>: doing as much good as we can with what we give.
+          shouldn&apos;t matter whether the person is in front of us or on the other side of the world.
+        </p>
+        <p>
+          Encyclopaedia Britannica credits Singer, starting with this essay, with laying &ldquo;much of the philosophical
+          groundwork&rdquo; of the movement now called <em>effective altruism</em>: doing as much good as we can with what we
+          give. <Cite href={britannica.source.url}>Britannica</Cite>
         </p>
         <Cite href={singer.source.url}>{singer.source.name}. Paraphrased.</Cite>
       </Card>
@@ -143,8 +151,9 @@ export default function WhyGivePage() {
         <div className="space-y-2">
           <h2 className="text-xl font-semibold">A worked example: malaria</h2>
           <p>
-            Malaria is spread by mosquitoes that bite at night. It is preventable and treatable, yet it still kills hundreds of
-            thousands of people every year.
+            Malaria spreads to people mostly through the bites of some infected mosquitoes. The World Health Organization
+            describes it as preventable and curable, yet it still kills hundreds of thousands of people every year.{" "}
+            <Cite href={who.source.url}>WHO fact sheet, 4 December 2025</Cite>
           </p>
         </div>
         <ChartFigure
@@ -188,27 +197,30 @@ export default function WhyGivePage() {
           title="Estimated cost to save one life"
           summary={
             <>
-              GiveWell estimates roughly {dollars(amf.low ?? 0)} to {dollars(amf.high ?? 0)} per life saved through the Against
-              Malaria Foundation, and {dollars(mc.low ?? 0)} to {dollars(mc.high ?? 0)} through Malaria Consortium, depending on
-              the location (as of December 2023).
+              For the funding it directed in 2022&ndash;2024, GiveWell estimates an average of about {dollars(amfAvg.value ?? 0)}{" "}
+              per life saved through the Against Malaria Foundation and {dollars(mcAvg.value ?? 0)} through Malaria Consortium
+              (as of October 2026). Its earlier location-by-location estimates ranged from {dollars(amf.low ?? 0)} to{" "}
+              {dollars(amf.high ?? 0)} and {dollars(mc.low ?? 0)} to {dollars(mc.high ?? 0)} (as of December 2023).
             </>
           }
           chart={
             <RangeChart
               label="GiveWell's estimated cost to save one life, by charity"
               rows={[
-                { label: "Against Malaria Foundation (bed nets)", low: amf.low ?? 0, high: amf.high ?? 0 },
-                { label: "Malaria Consortium (preventive medicine)", low: mc.low ?? 0, high: mc.high ?? 0 },
+                { label: "Against Malaria Foundation (bed nets)", low: amf.low ?? 0, high: amf.high ?? 0, mark: amfAvg.value },
+                { label: "Malaria Consortium (preventive medicine)", low: mc.low ?? 0, high: mc.high ?? 0, mark: mcAvg.value },
               ]}
             />
           }
-          source={amf.source}
-          note={`Also: ${mc.source.name}, ${mc.source.url}. These are GiveWell's estimates, with real uncertainty, and GiveWell expects costs to rise over time.`}
+          source={amfAvg.source}
+          note={`Bars: GiveWell's range by location, as of December 2023 (${amf.source.url}; ${mc.source.url}). Open circles: its average for funding directed in 2022–2024, as of October 2026. These are GiveWell's estimates, with real uncertainty, and GiveWell expects costs to rise over time.`}
           table={{
             headers: ["Charity", "Estimated cost per life saved"],
             rows: [
-              ["Against Malaria Foundation", `${dollars(amf.low ?? 0)} to ${dollars(amf.high ?? 0)}`],
-              ["Malaria Consortium (SMC)", `${dollars(mc.low ?? 0)} to ${dollars(mc.high ?? 0)}`],
+              ["Against Malaria Foundation: average, 2022–2024 funding (Oct 2026)", dollars(amfAvg.value ?? 0)],
+              ["Against Malaria Foundation: range by location (Dec 2023)", `${dollars(amf.low ?? 0)} to ${dollars(amf.high ?? 0)}`],
+              ["Malaria Consortium: average, 2022–2024 funding (Oct 2026)", dollars(mcAvg.value ?? 0)],
+              ["Malaria Consortium: range by location (Dec 2023)", `${dollars(mc.low ?? 0)} to ${dollars(mc.high ?? 0)}`],
             ],
           }}
         />
@@ -240,8 +252,9 @@ export default function WhyGivePage() {
           <Cite href={ord.source.url}>Ord, 2013</Cite>
         </p>
         <p>
-          Across GiveWell&apos;s Top Charities, its models have typically estimated an average of {dollars(topRange.low ?? 0)}{" "}
-          to {dollars(topRange.high ?? 0)} to save a life. <Cite href={topRange.source.url}>GiveWell, {topRange.asOf}</Cite>
+          Across GiveWell&apos;s four Top Charities, its estimated averages for the funding it directed in 2022&ndash;2024 range
+          from {dollars(topAverages.low ?? 0)} to {dollars(topAverages.high ?? 0)} per life saved.{" "}
+          <Cite href={topAverages.source.url}>GiveWell, Top Charities page, updated October 2026</Cite>
         </p>
         <p>
           That&apos;s why The Penny Effect has a <strong>Highest Impact</strong> category: GiveWell&apos;s Top Charities, plus

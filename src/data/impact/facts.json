@@ -1,17 +1,46 @@
 {
  "id": "facts",
- "retrieved": "2026-11-15",
+ "retrieved": "2026-11-15 to 2026-11-16",
  "facts": [
   {
-   "id": "givewell-top-charities-range",
-   "claim": "GiveWell's models for grants to its Top Charities have typically estimated an average cost between $3,000 and $5,500 to save a life.",
-   "quote": "Over the past several years, our models for grants to our Top Charities have typically estimated an average cost between $3,000 and $5,500.",
-   "low": 3000,
-   "high": 5500,
-   "asOf": "April 2024 (page published April 2024, February 2024 version)",
+   "id": "givewell-amf-average",
+   "claim": "For the funding GiveWell directed to the Against Malaria Foundation in 2022-2024, its estimated average cost-effectiveness was $5,500 per life saved.",
+   "quote": "In 2022-2024, we directed funding to the Against Malaria Foundation to support this program at an estimated average cost-effectiveness of $5,500 per life saved.",
+   "value": 5500,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
    "source": {
-    "name": "GiveWell, “How Much Does It Cost To Save a Life?”",
-    "url": "https://www.givewell.org/how-much-does-it-cost-to-save-a-life",
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-mc-average",
+   "claim": "For the funding GiveWell directed to Malaria Consortium's seasonal malaria chemoprevention in 2022-2024, its estimated average cost-effectiveness was $4,000 per life saved.",
+   "quote": "In 2022-2024, we directed funding to the Malaria Consortium to support this program at an estimated average cost-effectiveness of $4,000 per life saved.",
+   "value": 4000,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-top-charities-averages",
+   "claim": "Across GiveWell's four Top Charities, its estimated average cost per life saved for funding directed in 2022-2024 ranged from $3,500 (Helen Keller Intl) to $5,500 (Against Malaria Foundation); Malaria Consortium $4,000, New Incentives $4,500.",
+   "quote": "...Helen Keller Intl ... at an estimated average cost-effectiveness of $3,500 per life saved. ... New Incentives ... $4,500 per life saved. ... Malaria Consortium ... $4,000 per life saved. ... Against Malaria Foundation ... $5,500 per life saved.",
+   "low": 3500,
+   "high": 5500,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
     "license": "CC BY-NC-SA 3.0 US",
     "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
    }
@@ -119,6 +148,32 @@
     "url": "https://www.jstor.org/stable/2265052",
     "license": "Paraphrased with citation",
     "licenseUrl": "https://www.jstor.org/stable/2265052"
+   }
+  },
+  {
+   "id": "who-malaria-factsheet",
+   "claim": "WHO: malaria is spread to people mostly through the bites of some infected female Anopheles mosquitoes, and it is preventable and curable.",
+   "quote": "Malaria is a life-threatening disease spread to humans by some types of mosquitoes. It is mostly found in tropical countries. It is preventable and curable. ... Malaria mostly spreads to people through the bites of some infected female Anopheles mosquitoes.",
+   "asOf": "fact sheet dated 4 December 2025",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "World Health Organization, “Malaria” fact sheet",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/malaria",
+    "license": "Quoted with citation (WHO terms of use)",
+    "licenseUrl": "https://www.who.int/about/policies/publishing/copyright"
+   }
+  },
+  {
+   "id": "britannica-ea",
+   "claim": "Encyclopaedia Britannica: Singer laid much of the philosophical groundwork of effective altruism, starting with his 1972 essay “Famine, Affluence, and Morality”.",
+   "quote": "The intellectual and philosophical roots of effective altruism can be attributed to philosophers Peter Singer and William MacAskill. Singer laid much of the philosophical groundwork of the movement ... In an essay published in 1972, “Famine, Affluence, and Morality,” Singer detailed several thought experiments regarding effective altruism.",
+   "asOf": "article most recently revised by Adam Augustyn; read 2026-11-16",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "Encyclopaedia Britannica, “Effective altruism”",
+    "url": "https://www.britannica.com/topic/effective-altruism",
+    "license": "Quoted with citation",
+    "licenseUrl": "https://www.britannica.com/topic/effective-altruism"
    }
   }
  ]

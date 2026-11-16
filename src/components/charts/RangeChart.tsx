@@ -7,7 +7,13 @@ import { useState } from "react";
 import { dollars, niceTicks } from "@/lib/impact";
 import { useWidth } from "./useWidth";
 
-export type Range = { label: string; low: number; high: number };
+export type Range = {
+  label: string;
+  low: number;
+  high: number;
+  /** An optional single estimate (e.g. an average), drawn as an open circle. */
+  mark?: number;
+};
 
 const BAR = "var(--primary)";
 const GRID = "#dfe5e0";
@@ -39,7 +45,7 @@ export function RangeChart({ rows, label }: { rows: Range[]; label: string }) {
         {rows.map((r, i) => {
           const top = M.top + i * ROW;
           const barY = top + 56;
-          const range = `${dollars(r.low)} to ${dollars(r.high)}`;
+          const range = `${dollars(r.low)} to ${dollars(r.high)}${r.mark !== undefined ? `; average ${dollars(r.mark)}` : ""}`;
           const active = hover === i;
           return (
             <g
@@ -65,6 +71,7 @@ export function RangeChart({ rows, label }: { rows: Range[]; label: string }) {
               <line x1={x(r.low)} x2={x(r.high)} y1={barY} y2={barY} stroke={BAR} strokeWidth={active ? 10 : 8} strokeLinecap="round" opacity={active ? 1 : 0.85} />
               <circle cx={x(r.low)} cy={barY} r={6} fill={BAR} stroke="#fff" strokeWidth={2} />
               <circle cx={x(r.high)} cy={barY} r={6} fill={BAR} stroke="#fff" strokeWidth={2} />
+              {r.mark !== undefined && <circle cx={x(r.mark)} cy={barY} r={7} fill="#fff" stroke="var(--text-heading)" strokeWidth={2.5} />}
               {active && <rect x={1} y={top + 1} width={width - 2} height={ROW - 2} rx={8} fill="none" stroke="var(--focus)" strokeWidth={2} />}
             </g>
           );

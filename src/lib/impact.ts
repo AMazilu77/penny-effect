@@ -37,7 +37,11 @@ export type Fact = {
   quote?: string;
   low?: number;
   high?: number;
+  /** A single estimate (e.g. an average), when the source gives one number. */
+  value?: number;
   asOf: string;
+  /** When we read it, if later than the file's `retrieved`. */
+  retrieved?: string;
   source: Source;
 };
 
