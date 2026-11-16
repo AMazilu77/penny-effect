@@ -32,6 +32,13 @@ function cityName(raw: string): string {
   return raw.toLowerCase().replace(/(^|[\s\-'.])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase());
 }
 
+/** "FL" → "Florida", "DC" → "District of Columbia"; an unknown code is returned as is. */
+export function stateName(code: string): string {
+  const name = Object.keys(STATES).find((n) => STATES[n] === code);
+  if (!name) return code;
+  return name.replace(/\b([a-z])/g, (c) => c.toUpperCase()).replace(/ Of /g, " of ");
+}
+
 /** Two-letter USPS code for a state name or code, or null. */
 export function stateCode(raw: string): string | null {
   const s = raw.trim();

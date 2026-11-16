@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { orgLocationFields, parseEveryOrgAddress, stateCode } from "@/lib/everyorg/address";
+import { orgLocationFields, parseEveryOrgAddress, stateCode, stateName } from "@/lib/everyorg/address";
 
 describe("parseEveryOrgAddress", () => {
   it("reads the common Every.org shape: city, state name, ZIP + country", () => {
@@ -54,5 +54,17 @@ describe("orgLocationFields", () => {
   it("is empty when unreadable, so a refresh never overwrites a good address with nothing", () => {
     expect(orgLocationFields("somewhere")).toEqual({});
     expect(orgLocationFields(null)).toEqual({});
+  });
+});
+
+describe("stateName", () => {
+  it.each([
+    ["FL", "Florida"],
+    ["NY", "New York"],
+    ["DC", "District of Columbia"],
+    ["PR", "Puerto Rico"],
+    ["ZZ", "ZZ"],
+  ])("%s is %s", (code, name) => {
+    expect(stateName(code)).toBe(name);
   });
 });
