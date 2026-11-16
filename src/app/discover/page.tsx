@@ -174,7 +174,10 @@ export default async function DiscoverPage({ searchParams }: Props) {
         {selected?.description && <p className="text-muted">{selected.description}</p>}
         {selected?.slug === HIGHEST_IMPACT_SLUG && (
           <p className="text-sm">
-            <span className="font-semibold text-heading">Who&apos;s included:</span> {HIGHEST_IMPACT_RULE}
+            <span className="font-semibold text-heading">Who&apos;s included:</span> {HIGHEST_IMPACT_RULE}{" "}
+            <Link href="/why-give" className={textLink}>
+              Why these charities?
+            </Link>
           </p>
         )}
         {category && !selected && <p className="text-muted">That cause doesn&apos;t exist. Showing all causes.</p>}

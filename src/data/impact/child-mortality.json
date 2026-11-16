@@ -1,0 +1,159 @@
+{
+ "id": "child-mortality",
+ "title": "Children who die before their fifth birthday, worldwide",
+ "unit": "deaths per 1,000 live births",
+ "definition": "The probability that a newborn dies before reaching age five, per 1,000 live births (under-5 mortality rate).",
+ "source": {
+  "name": "UN Inter-agency Group for Child Mortality Estimation (UN IGME), via World Bank World Development Indicators (SH.DYN.MORT)",
+  "url": "https://data.worldbank.org/indicator/SH.DYN.MORT",
+  "dataUrl": "https://api.worldbank.org/v2/country/WLD/indicator/SH.DYN.MORT?format=json&per_page=200",
+  "version": "WDI, last updated 2026-11-11",
+  "retrieved": "2026-11-15",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://datacatalog.worldbank.org/search/dataset/0037712",
+  "citation": "World Bank (2026), World Development Indicators: Mortality rate, under-5 (SH.DYN.MORT), estimates developed by UN IGME. Licence: CC BY 4.0."
+ },
+ "notes": "Taken from the World Bank's copy because UN IGME's own site is \u00a9 UNICEF with reuse only by written permission.",
+ "points": [
+  {
+   "year": 1990,
+   "value": 93.5
+  },
+  {
+   "year": 1991,
+   "value": 92.9
+  },
+  {
+   "year": 1992,
+   "value": 92.3
+  },
+  {
+   "year": 1993,
+   "value": 91.1
+  },
+  {
+   "year": 1994,
+   "value": 89.4
+  },
+  {
+   "year": 1995,
+   "value": 87.5
+  },
+  {
+   "year": 1996,
+   "value": 86.4
+  },
+  {
+   "year": 1997,
+   "value": 84.3
+  },
+  {
+   "year": 1998,
+   "value": 82.8
+  },
+  {
+   "year": 1999,
+   "value": 79.4
+  },
+  {
+   "year": 2000,
+   "value": 76.7
+  },
+  {
+   "year": 2001,
+   "value": 74.3
+  },
+  {
+   "year": 2002,
+   "value": 71.3
+  },
+  {
+   "year": 2003,
+   "value": 68.3
+  },
+  {
+   "year": 2004,
+   "value": 65.8
+  },
+  {
+   "year": 2005,
+   "value": 62.3
+  },
+  {
+   "year": 2006,
+   "value": 59.6
+  },
+  {
+   "year": 2007,
+   "value": 57
+  },
+  {
+   "year": 2008,
+   "value": 54.7
+  },
+  {
+   "year": 2009,
+   "value": 52.9
+  },
+  {
+   "year": 2010,
+   "value": 50.6
+  },
+  {
+   "year": 2011,
+   "value": 49.5
+  },
+  {
+   "year": 2012,
+   "value": 46.7
+  },
+  {
+   "year": 2013,
+   "value": 45.1
+  },
+  {
+   "year": 2014,
+   "value": 43.9
+  },
+  {
+   "year": 2015,
+   "value": 42.9
+  },
+  {
+   "year": 2016,
+   "value": 41.7
+  },
+  {
+   "year": 2017,
+   "value": 40.9
+  },
+  {
+   "year": 2018,
+   "value": 40
+  },
+  {
+   "year": 2019,
+   "value": 39.6
+  },
+  {
+   "year": 2020,
+   "value": 39.2
+  },
+  {
+   "year": 2021,
+   "value": 39.6
+  },
+  {
+   "year": 2022,
+   "value": 40
+  },
+  {
+   "year": 2023,
+   "value": 38.3
+  },
+  {
+   "year": 2024,
+   "value": 37.4
+  }
+ ]
+}

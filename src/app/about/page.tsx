@@ -1,4 +1,5 @@
 // app/about/page.tsx
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { BRAND_NAME } from "@/lib/brand";
 import { CN_EXPLAINER } from "@/lib/charity-navigator/rating";
@@ -27,6 +28,16 @@ export default function AboutPage() {
           connection is live, gifts you record here are clearly marked &ldquo;recorded, not yet paid&rdquo;.
         </p>
         <p>Every number we show you comes from your own records. No sample data, no estimates presented as fact.</p>
+      </Card>
+      <Card className="space-y-2">
+        <h2 className="text-lg font-semibold">Why give, and why it matters where</h2>
+        <p>
+          How much good a small amount can do, why some charities do far more per dollar than others, and the evidence behind
+          it, with every number sourced.{" "}
+          <Link href="/why-give" className="text-link underline">
+            Read Why give
+          </Link>
+        </p>
       </Card>
       <Card className="space-y-2">
         <h2 className="text-lg font-semibold">Ratings and credits</h2>
