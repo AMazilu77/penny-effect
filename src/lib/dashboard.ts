@@ -48,3 +48,20 @@ const STATUS_LABELS: Record<DonationStatusName, string> = {
 export function donationStatusLabel(status: DonationStatusName): string {
   return STATUS_LABELS[status];
 }
+
+/** How many gifts and followed organizations the dashboard shows before "See all (N)". */
+export const DASHBOARD_PREVIEW = 5;
+
+/** Gifts per page on /donations. */
+export const GIFTS_PER_PAGE = 50;
+
+/** A ?page= value as a page number from 1; anything else (missing, 0, "abc", "2.5", huge) is page 1. */
+export function parsePage(raw: unknown): number {
+  if (typeof raw !== "string" || !/^[1-9][0-9]{0,4}$/.test(raw)) return 1;
+  return Number(raw);
+}
+
+/** The number of pages for `total` items (at least 1, so an empty list still has a page). */
+export function pageCount(total: number, perPage: number): number {
+  return Math.max(1, Math.ceil(total / perPage));
+}

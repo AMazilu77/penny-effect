@@ -6,18 +6,15 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
-import { donationStatusLabel, summarizeDonations } from "@/lib/dashboard";
+import { DASHBOARD_PREVIEW, summarizeDonations } from "@/lib/dashboard";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 import DonationForm from "@/components/DonationForm";
-import { FollowButton, FollowNotice } from "@/components/FollowButton";
-import { OrgLogo } from "@/components/ui/OrgLogo";
+import { FollowNotice } from "@/components/FollowButton";
+import { FollowedOrgList, GiftList, SeeAll } from "@/components/dashboard/lists";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
 export const dynamic = "force-dynamic";
-
-// Dates are shown in UTC so server and browser render the same text.
-const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
 function MetricTile({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
@@ -51,7 +48,7 @@ export default async function DashboardPage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin");
 
-  const [statusGroups, causesFollowed, recentDonations, follows] = await Promise.all([
+  const [statusGroups, causesFollowed, recentDonations, follows, followCount] = await Promise.all([
     prisma.donation.groupBy({
       by: ["status"],
       where: { userId },
@@ -62,7 +59,7 @@ export default async function DashboardPage({
     prisma.donation.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: DASHBOARD_PREVIEW,
       select: {
         id: true,
         amountCents: true,
@@ -73,14 +70,18 @@ export default async function DashboardPage({
       },
     }),
     // Followed organizations users can still see (a hidden one reappears if it's unhidden).
+    // Only the first few here; /following lists them all.
     prisma.organizationFollow.findMany({
       where: { userId, organization: VISIBLE_ORGANIZATION_WHERE },
       orderBy: { organization: { name: "asc" } },
+      take: DASHBOARD_PREVIEW,
       select: { organization: { select: { id: true, name: true, everyOrgSlug: true, logoUrl: true } } },
     }),
+    prisma.organizationFollow.count({ where: { userId, organization: VISIBLE_ORGANIZATION_WHERE } }),
   ]);
 
   const summary = summarizeDonations(statusGroups);
+  const giftCount = statusGroups.reduce((n, g) => n + g._count._all, 0);
   // Every.org sends donors here when they leave checkout without paying.
   const params = await searchParams;
   const checkoutCancelled = params.checkout === "cancelled";
@@ -118,30 +119,39 @@ export default async function DashboardPage({
         </p>
       )}
 
-      {/* Impact overview: real numbers only */}
-      <Card>
-        <CardHeader title="Your giving" description="Only gifts our donation partner confirms count as given." />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <MetricTile
-            label="Given (paid)"
-            value={formatCents(summary.givenCents)}
-            note={
-              summary.givenCount === 0
-                ? "Payments start once our donation partner is connected."
-                : `${summary.givenCount} paid ${summary.givenCount === 1 ? "gift" : "gifts"}`
-            }
-          />
-          <MetricTile
-            label="Recorded, not yet paid"
-            value={formatCents(summary.pendingCents)}
-            note={`${summary.pendingCount} ${summary.pendingCount === 1 ? "gift" : "gifts"} · no money has moved`}
-          />
-          <MetricTile label="Causes followed" value={String(causesFollowed)} />
-        </div>
-      </Card>
+      {/* Giving comes first, on every screen size: it's the main thing to do here.
+          On wide screens the form and the totals sit side by side. */}
+      <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
+        <Card id="give" className="scroll-mt-24">
+          <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
+          <DonationForm initialOrganizationId={giveTo} />
+        </Card>
+
+        {/* Impact overview: real numbers only */}
+        <Card>
+          <CardHeader title="Your giving" description="Only gifts our donation partner confirms count as given." />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <MetricTile
+              label="Given (paid)"
+              value={formatCents(summary.givenCents)}
+              note={
+                summary.givenCount === 0
+                  ? "Payments start once our donation partner is connected."
+                  : `${summary.givenCount} paid ${summary.givenCount === 1 ? "gift" : "gifts"}`
+              }
+            />
+            <MetricTile
+              label="Recorded, not yet paid"
+              value={formatCents(summary.pendingCents)}
+              note={`${summary.pendingCount} ${summary.pendingCount === 1 ? "gift" : "gifts"} · no money has moved`}
+            />
+            <MetricTile label="Causes followed" value={String(causesFollowed)} />
+          </div>
+        </Card>
+      </div>
 
       <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
-        {/* Recent gifts */}
+        {/* Recent gifts: the latest few; /donations lists them all */}
         <Card>
           <CardHeader title="Recent gifts" />
           {recentDonations.length === 0 ? (
@@ -155,22 +165,10 @@ export default async function DashboardPage({
               actionText={causesFollowed === 0 ? "Choose causes" : undefined}
             />
           ) : (
-            <ul className="divide-y rounded-control border bg-inset">
-              {recentDonations.map((d) => (
-                <li key={d.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-3">
-                  <span>
-                    <span className="font-semibold text-heading">{formatCents(d.amountCents, d.currency)}</span> to{" "}
-                    {d.organization.name}
-                    <span className="ms-2 inline-flex rounded-full border px-2 py-0.5 text-sm text-muted">
-                      {donationStatusLabel(d.status)}
-                    </span>
-                  </span>
-                  <time dateTime={d.createdAt.toISOString()} className="text-sm text-muted">
-                    {dateFormat.format(d.createdAt)}
-                  </time>
-                </li>
-              ))}
-            </ul>
+            <>
+              <GiftList gifts={recentDonations} />
+              <SeeAll href="/donations" total={giftCount} shown={recentDonations.length} label="gifts" />
+            </>
           )}
         </Card>
 
@@ -182,29 +180,11 @@ export default async function DashboardPage({
           {follows.length === 0 ? (
             <EmptyState title="You don't follow any organizations yet. Follow one from Discover or its page." actionHref="/discover" actionText="Find organizations" />
           ) : (
-            <ul className="divide-y rounded-control border bg-inset">
-              {follows.map(({ organization: org }) => (
-                <li key={org.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                  <span className="flex items-center gap-2">
-                    <OrgLogo orgId={org.id} hasLogo={Boolean(org.logoUrl)} size={28} />
-                    {org.everyOrgSlug ? (
-                      <Link href={`/org/${encodeURIComponent(org.everyOrgSlug)}`} className="font-semibold text-fg hover:underline">
-                        {org.name}
-                      </Link>
-                    ) : (
-                      <span className="font-semibold text-fg">{org.name}</span>
-                    )}
-                  </span>
-                  <FollowButton organizationId={org.id} organizationName={org.name} following signedIn returnTo="/dashboard" />
-                </li>
-              ))}
-            </ul>
+            <>
+              <FollowedOrgList orgs={follows.map((f) => f.organization)} returnTo="/dashboard" />
+              <SeeAll href="/following" total={followCount} shown={follows.length} label="organizations you follow" />
+            </>
           )}
-        </Card>
-
-        <Card id="give" className="scroll-mt-24">
-          <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
-          <DonationForm initialOrganizationId={giveTo} />
         </Card>
       </div>
     </div>

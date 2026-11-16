@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { donationStatusLabel, summarizeDonations, type DonationStatusGroup } from "@/lib/dashboard";
+import { donationStatusLabel, pageCount, parsePage, summarizeDonations, type DonationStatusGroup } from "@/lib/dashboard";
 
 const group = (status: DonationStatusGroup["status"], cents: number | null, count: number): DonationStatusGroup => ({
   status,
@@ -61,5 +61,32 @@ describe("refunds and disputes (Milestone 3 webhook)", () => {
   it("labels them plainly", () => {
     expect(donationStatusLabel("REFUNDED")).toBe("Refunded");
     expect(donationStatusLabel("DISPUTED")).toBe("Payment disputed");
+  });
+});
+
+describe("parsePage", () => {
+  it.each([
+    [undefined, 1],
+    ["", 1],
+    ["0", 1],
+    ["-2", 1],
+    ["abc", 1],
+    ["2.5", 1],
+    ["01", 1],
+    ["999999", 1],
+    [["2"], 1],
+    ["1", 1],
+    ["3", 3],
+    ["99999", 99999],
+  ])("reads %j as page %i", (raw, page) => {
+    expect(parsePage(raw)).toBe(page);
+  });
+});
+
+describe("pageCount", () => {
+  it("is 1 for an empty list", () => expect(pageCount(0, 50)).toBe(1));
+  it("rounds up", () => {
+    expect(pageCount(50, 50)).toBe(1);
+    expect(pageCount(51, 50)).toBe(2);
   });
 });
