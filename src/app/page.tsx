@@ -24,6 +24,11 @@ export default function LandingPage() {
             Learn more
           </Link>
         </div>
+        <p>
+          <Link href="/why-give" className={textLink}>
+            Why give? How much good a small amount can do
+          </Link>
+        </p>
         <p className="text-sm text-muted">
           Already have an account?{" "}
           <button onClick={() => signIn()} className={textLink}>

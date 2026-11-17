@@ -1,0 +1,20 @@
+{
+ "id": "where-you-stand",
+ "year": 2024,
+ "usMedianPerDay": 72.07,
+ "usWelfareType": "income",
+ "worldShareBelowUsMedian": 93.7,
+ "worldShareBelowUsMedianEstimateType": "actual",
+ "worldShareBelow3PerDay": 10.1,
+ "source": {
+  "name": "World Bank, Poverty and Inequality Platform (PIP)",
+  "url": "https://pip.worldbank.org/",
+  "dataUrl": "https://api.worldbank.org/pip/v1/pip?country=USA&year=all&povline=3&ppp_version=2021 and https://api.worldbank.org/pip/v1/pip-grp?country=WLD&year=all&povline=72.0654&group_by=wb&ppp_version=2021",
+  "version": "PIP 20260922 (2021 PPPs)",
+  "retrieved": "2026-11-15",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://datacatalog.worldbank.org/search/dataset/0063646",
+  "citation": "World Bank (2026), Poverty and Inequality Platform (version 20260922_2021). Our calculation: world headcount below the 2024 US median. Licence: CC BY 4.0."
+ },
+ "notes": "The US figure is median disposable household income per person per day, in 2021 international dollars (adjusted for price differences between countries). Many poorer countries measure consumption instead of income, so this is an approximate comparison."
+}

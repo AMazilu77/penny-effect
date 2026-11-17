@@ -71,3 +71,8 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 - [ ] Error monitoring, basic analytics
 - [ ] Clear test donations and test accounts from production (owner's test data from Milestones 0–1, incl. duplicate PENDING donations recorded before the idempotency fix); confirm before deleting, never via the seed script
 - [ ] End-to-end real donation on production verified
+
+## Recurring and backlog
+
+- [ ] **Every year (next: November 2027): refresh the Why give numbers.** Re-download each dataset in `src/data/impact/` from the `dataUrl` it records, re-check GiveWell's current cost-per-life estimates and the licence of every source, update `retrieved` / `asOf`, and get the owner to re-review every claim before merging. The list of claims is in the PR that added `/why-give`.
+- [ ] _Backlog:_ a subtle animated Lorenz attractor on the home page. It must respect `prefers-reduced-motion` (show the still mark instead), stay lightweight (no large animation library), and never distract from the text.

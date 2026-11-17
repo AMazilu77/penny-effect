@@ -1,0 +1,119 @@
+{
+ "id": "malaria-deaths",
+ "title": "Malaria deaths worldwide",
+ "unit": "deaths per year",
+ "definition": "WHO's estimate of the number of people who died from malaria each year, all ages.",
+ "source": {
+  "name": "World Health Organization, Global Health Observatory, with minor processing by Our World in Data",
+  "url": "https://ourworldindata.org/grapher/number-of-deaths-from-malaria-who",
+  "dataUrl": "https://ourworldindata.org/grapher/number-of-deaths-from-malaria-who.csv?v=1&csvType=full&useColumnShortNames=false",
+  "version": "OWID indicator 1242319, WHO GHO 2026, last updated 2026-05-22",
+  "retrieved": "2026-11-15",
+  "license": "WHO terms for data (reuse for public-health purposes, with attribution; not for promoting a commercial enterprise); WHO materials CC BY-NC-SA 3.0 IGO",
+  "licenseUrl": "https://www.who.int/about/policies/publishing/data-policy/terms-and-conditions",
+  "citation": "World Health Organization \u2013 Global Health Observatory (2026) \u2013 with minor processing by Our World in Data. \u201cEstimated number of malaria deaths \u2013 WHO\u201d [dataset]. Accessed 2026-11-15."
+ },
+ "notes": "These are model estimates and carry uncertainty; only the central estimate is shown. Estimated deaths rose in 2020 and have stayed above the 2019 level since.",
+ "points": [
+  {
+   "year": 2000,
+   "value": 863523
+  },
+  {
+   "year": 2001,
+   "value": 872604
+  },
+  {
+   "year": 2002,
+   "value": 839722
+  },
+  {
+   "year": 2003,
+   "value": 810977
+  },
+  {
+   "year": 2004,
+   "value": 805560
+  },
+  {
+   "year": 2005,
+   "value": 766588
+  },
+  {
+   "year": 2006,
+   "value": 770629
+  },
+  {
+   "year": 2007,
+   "value": 747217
+  },
+  {
+   "year": 2008,
+   "value": 707532
+  },
+  {
+   "year": 2009,
+   "value": 715496
+  },
+  {
+   "year": 2010,
+   "value": 692678
+  },
+  {
+   "year": 2011,
+   "value": 654715
+  },
+  {
+   "year": 2012,
+   "value": 610323
+  },
+  {
+   "year": 2013,
+   "value": 583041
+  },
+  {
+   "year": 2014,
+   "value": 579066
+  },
+  {
+   "year": 2015,
+   "value": 578270
+  },
+  {
+   "year": 2016,
+   "value": 576447
+  },
+  {
+   "year": 2017,
+   "value": 574421
+  },
+  {
+   "year": 2018,
+   "value": 574784
+  },
+  {
+   "year": 2019,
+   "value": 567186
+  },
+  {
+   "year": 2020,
+   "value": 621344
+  },
+  {
+   "year": 2021,
+   "value": 600935
+  },
+  {
+   "year": 2022,
+   "value": 598407
+  },
+  {
+   "year": 2023,
+   "value": 598446
+  },
+  {
+   "year": 2024,
+   "value": 609930
+  }
+ ]
+}

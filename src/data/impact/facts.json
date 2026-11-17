@@ -1,0 +1,180 @@
+{
+ "id": "facts",
+ "retrieved": "2026-11-15 to 2026-11-16",
+ "facts": [
+  {
+   "id": "givewell-amf-average",
+   "claim": "For the funding GiveWell directed to the Against Malaria Foundation in 2022-2024, its estimated average cost-effectiveness was $5,500 per life saved.",
+   "quote": "In 2022-2024, we directed funding to the Against Malaria Foundation to support this program at an estimated average cost-effectiveness of $5,500 per life saved.",
+   "value": 5500,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-mc-average",
+   "claim": "For the funding GiveWell directed to Malaria Consortium's seasonal malaria chemoprevention in 2022-2024, its estimated average cost-effectiveness was $4,000 per life saved.",
+   "quote": "In 2022-2024, we directed funding to the Malaria Consortium to support this program at an estimated average cost-effectiveness of $4,000 per life saved.",
+   "value": 4000,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-top-charities-averages",
+   "claim": "Across GiveWell's four Top Charities, its estimated average cost per life saved for funding directed in 2022-2024 ranged from $3,500 (Helen Keller Intl) to $5,500 (Against Malaria Foundation); Malaria Consortium $4,000, New Incentives $4,500.",
+   "quote": "...Helen Keller Intl ... at an estimated average cost-effectiveness of $3,500 per life saved. ... New Incentives ... $4,500 per life saved. ... Malaria Consortium ... $4,000 per life saved. ... Against Malaria Foundation ... $5,500 per life saved.",
+   "low": 3500,
+   "high": 5500,
+   "asOf": "funding directed in 2022-2024 (page last updated October 2026)",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "GiveWell, “Our Top Charities”",
+    "url": "https://www.givewell.org/charities/top-charities",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-worked-example",
+   "claim": "GiveWell's worked example for one Malaria Consortium grant in Nigeria: $3,000 funds about 2,189 monthly courses of preventive malaria medicine, enough to protect 498 children for the high-transmission season; GiveWell estimates this averts about 1.3 deaths, or about one once it accounts for how other funders respond.",
+   "quote": "The cost of delivering one monthly course (or \"cycle\") of treatment is about $1.37, so $3,000 in donations can fund the delivery of about 2,189 cycles of medication. ... 498 children under the age of five will receive treatments for the full high-transmission season. ... In our initial estimate, this donation will avert 1.3 deaths. ... Once we adjust for the impact of that reduced funding, we estimate that this donation will save one life.",
+   "asOf": "2024 estimate for a 2023 grant (page published April 2024); GiveWell notes this grant may be more cost-effective than its average grant",
+   "source": {
+    "name": "GiveWell, “How Much Does It Cost To Save a Life?”",
+    "url": "https://www.givewell.org/how-much-does-it-cost-to-save-a-life",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-amf",
+   "claim": "GiveWell estimates it costs between $3,000 and $8,000 to save a life through the Against Malaria Foundation's net campaigns, 9x to 23x as cost-effective as direct cash transfers.",
+   "quote": "It costs between $3,000 and $8,000 to save a life in countries where GiveWell currently supports AMF to deliver ITN campaigns. This equates to being 9x to 23x as cost-effective as direct cash transfers (GiveWell’s benchmark for comparing different programs).",
+   "low": 3000,
+   "high": 8000,
+   "asOf": "December 2023 (page published December 2023)",
+   "source": {
+    "name": "GiveWell, “Against Malaria Foundation”",
+    "url": "https://www.givewell.org/charities/amf",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-amf-net-cost",
+   "claim": "GiveWell estimates each insecticide-treated net costs roughly $4 to $6 to buy and distribute, varying by location.",
+   "quote": "As of December 2023, we estimate that it costs between approximately $4 and $6 (varying by location) to distribute each ITN.",
+   "low": 4,
+   "high": 6,
+   "asOf": "December 2023",
+   "source": {
+    "name": "GiveWell, “Against Malaria Foundation”",
+    "url": "https://www.givewell.org/charities/amf",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-mc",
+   "claim": "GiveWell estimates it costs approximately $2,000 to $7,000, depending on location, to avert a death through Malaria Consortium's seasonal malaria chemoprevention.",
+   "quote": "As of December 2023, we estimate that it costs approximately $2,000 to $7,000 (depending on the location) to avert a death in areas where GiveWell supports SMC.",
+   "low": 2000,
+   "high": 7000,
+   "asOf": "December 2023 (page published January 2024, last updated April 2024)",
+   "source": {
+    "name": "GiveWell, “Malaria Consortium – Seasonal Malaria Chemoprevention”",
+    "url": "https://www.givewell.org/charities/malaria-consortium",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "givewell-mc-cycle-cost",
+   "claim": "GiveWell estimates one monthly course of preventive malaria medicine costs about $1.50 to deliver to a child.",
+   "quote": "As of December 2023, we estimate that it costs approximately $1.50 to deliver one cycle of SMC to a child in Malaria Consortium-supported programs (varying by country, from $1.40 in Nigeria to $1.81 in Chad).",
+   "low": 1.4,
+   "high": 1.81,
+   "asOf": "December 2023",
+   "source": {
+    "name": "GiveWell, “Malaria Consortium – Seasonal Malaria Chemoprevention”",
+    "url": "https://www.givewell.org/charities/malaria-consortium",
+    "license": "CC BY-NC-SA 3.0 US",
+    "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/3.0/us/"
+   }
+  },
+  {
+   "id": "cochrane-itn",
+   "claim": "Insecticide-treated nets reduce child deaths from all causes by 17% compared with no nets, about 5.6 lives saved each year for every 1,000 children protected (95% CI 3.6 to 7.6; high-certainty evidence). The trials were run between 1987 and 2001.",
+   "quote": "Insecticide-treated nets reduce child mortality from all causes by 17% compared to no nets (rate ratio 0.83, 95% CI 0.77 to 0.89; 5 trials, 200,833 participants, high-certainty evidence). This corresponds to a saving of 5.6 lives (95% CI 3.6 to 7.6) each year for every 1000 children protected with ITNs.",
+   "low": 3.6,
+   "high": 7.6,
+   "asOf": "Review published November 2018 (searches to April 2018)",
+   "source": {
+    "name": "Pryce J, Richardson M, Lengeler C. Insecticide-treated nets for preventing malaria. Cochrane Database of Systematic Reviews 2018, Issue 11. CD000363",
+    "url": "https://doi.org/10.1002/14651858.CD000363.pub3",
+    "license": "Quoted with citation (abstract via Europe PMC, PMID 30398672)",
+    "licenseUrl": "https://europepmc.org/article/MED/30398672"
+   }
+  },
+  {
+   "id": "ord-dcp2",
+   "claim": "Among HIV/AIDS interventions in the Disease Control Priorities data, the least effective produces less than 0.1 percent of the value of the most effective.",
+   "quote": "the least effective HIV/AIDS intervention produces less than 0.1 percent of the value of the most effective.",
+   "asOf": "Essay published March 8, 2013",
+   "source": {
+    "name": "Toby Ord, “The Moral Imperative toward Cost-Effectiveness in Global Health”, Center for Global Development, 2013",
+    "url": "https://www.cgdev.org/publication/moral-imperative-toward-cost-effectiveness-global-health",
+    "license": "Quoted with citation",
+    "licenseUrl": "https://www.cgdev.org/publication/moral-imperative-toward-cost-effectiveness-global-health"
+   }
+  },
+  {
+   "id": "singer-1972",
+   "claim": "Peter Singer's drowning-child argument (paraphrased, not quoted).",
+   "asOf": "Published 1972",
+   "source": {
+    "name": "Peter Singer, “Famine, Affluence, and Morality”, Philosophy & Public Affairs 1(3), Spring 1972, pp. 229–243",
+    "url": "https://www.jstor.org/stable/2265052",
+    "license": "Paraphrased with citation",
+    "licenseUrl": "https://www.jstor.org/stable/2265052"
+   }
+  },
+  {
+   "id": "who-malaria-factsheet",
+   "claim": "WHO: malaria is spread to people mostly through the bites of some infected female Anopheles mosquitoes, and it is preventable and curable.",
+   "quote": "Malaria is a life-threatening disease spread to humans by some types of mosquitoes. It is mostly found in tropical countries. It is preventable and curable. ... Malaria mostly spreads to people through the bites of some infected female Anopheles mosquitoes.",
+   "asOf": "fact sheet dated 4 December 2025",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "World Health Organization, “Malaria” fact sheet",
+    "url": "https://www.who.int/news-room/fact-sheets/detail/malaria",
+    "license": "Quoted with citation (WHO terms of use)",
+    "licenseUrl": "https://www.who.int/about/policies/publishing/copyright"
+   }
+  },
+  {
+   "id": "britannica-ea",
+   "claim": "Encyclopaedia Britannica: Singer laid much of the philosophical groundwork of effective altruism, starting with his 1972 essay “Famine, Affluence, and Morality”.",
+   "quote": "The intellectual and philosophical roots of effective altruism can be attributed to philosophers Peter Singer and William MacAskill. Singer laid much of the philosophical groundwork of the movement ... In an essay published in 1972, “Famine, Affluence, and Morality,” Singer detailed several thought experiments regarding effective altruism.",
+   "asOf": "article most recently revised by Adam Augustyn; read 2026-11-16",
+   "retrieved": "2026-11-16",
+   "source": {
+    "name": "Encyclopaedia Britannica, “Effective altruism”",
+    "url": "https://www.britannica.com/topic/effective-altruism",
+    "license": "Quoted with citation",
+    "licenseUrl": "https://www.britannica.com/topic/effective-altruism"
+   }
+  }
+ ]
+}

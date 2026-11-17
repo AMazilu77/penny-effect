@@ -1,0 +1,155 @@
+{
+ "id": "extreme-poverty",
+ "title": "Share of the world's people living in extreme poverty",
+ "unit": "% of world population",
+ "definition": "Living on less than $3 a day (the World Bank's international poverty line), in 2021 prices adjusted for differences in what money buys in each country (purchasing power parity).",
+ "source": {
+  "name": "World Bank, Poverty and Inequality Platform (PIP)",
+  "url": "https://pip.worldbank.org/",
+  "dataUrl": "https://api.worldbank.org/pip/v1/pip-grp?country=WLD&year=all&povline=3&group_by=wb&ppp_version=2021",
+  "version": "PIP 20260922 (2021 PPPs)",
+  "retrieved": "2026-11-15",
+  "license": "CC BY 4.0",
+  "licenseUrl": "https://datacatalog.worldbank.org/search/dataset/0063646",
+  "citation": "World Bank (2026), Poverty and Inequality Platform (version 20260922_2021). pip.worldbank.org. Licence: CC BY 4.0."
+ },
+ "notes": "Global figures combine income surveys (most rich countries) and consumption surveys (most poorer countries). Only years the World Bank marks as estimates are shown: 2019 (marked a projection) and 2025-2026 (marked nowcasts) are left out.",
+ "points": [
+  {
+   "year": 1990,
+   "value": 43.4
+  },
+  {
+   "year": 1991,
+   "value": 43.1
+  },
+  {
+   "year": 1992,
+   "value": 42.5
+  },
+  {
+   "year": 1993,
+   "value": 42.1
+  },
+  {
+   "year": 1994,
+   "value": 40.7
+  },
+  {
+   "year": 1995,
+   "value": 39.4
+  },
+  {
+   "year": 1996,
+   "value": 38.1
+  },
+  {
+   "year": 1997,
+   "value": 37.7
+  },
+  {
+   "year": 1998,
+   "value": 37.9
+  },
+  {
+   "year": 1999,
+   "value": 37.3
+  },
+  {
+   "year": 2000,
+   "value": 36.2
+  },
+  {
+   "year": 2001,
+   "value": 35.2
+  },
+  {
+   "year": 2002,
+   "value": 33.7
+  },
+  {
+   "year": 2003,
+   "value": 32.1
+  },
+  {
+   "year": 2004,
+   "value": 30.3
+  },
+  {
+   "year": 2005,
+   "value": 28.3
+  },
+  {
+   "year": 2006,
+   "value": 27.0
+  },
+  {
+   "year": 2007,
+   "value": 25.3
+  },
+  {
+   "year": 2008,
+   "value": 24.1
+  },
+  {
+   "year": 2009,
+   "value": 23.1
+  },
+  {
+   "year": 2010,
+   "value": 21.0
+  },
+  {
+   "year": 2011,
+   "value": 19.1
+  },
+  {
+   "year": 2012,
+   "value": 17.8
+  },
+  {
+   "year": 2013,
+   "value": 15.5
+  },
+  {
+   "year": 2014,
+   "value": 14.5
+  },
+  {
+   "year": 2015,
+   "value": 13.4
+  },
+  {
+   "year": 2016,
+   "value": 12.6
+  },
+  {
+   "year": 2017,
+   "value": 11.8
+  },
+  {
+   "year": 2018,
+   "value": 11.1
+  },
+  {
+   "year": 2020,
+   "value": 11.4
+  },
+  {
+   "year": 2021,
+   "value": 11.3
+  },
+  {
+   "year": 2022,
+   "value": 10.9
+  },
+  {
+   "year": 2023,
+   "value": 10.5
+  },
+  {
+   "year": 2024,
+   "value": 10.1
+  }
+ ]
+}
