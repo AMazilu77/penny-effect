@@ -3,6 +3,7 @@
 // live character count on the summary, and keeping what the admin typed
 // when the server finds a problem (useActionState returns their values and
 // one message per field).
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { NEWS_LIMITS, visibleLength } from "@/lib/admin-news";
 import { IMAGE_ALT } from "@/lib/news-image";
@@ -144,6 +145,12 @@ function ImageFields({
   return (
     <fieldset className="space-y-3 rounded-control border bg-inset p-4">
       <legend className="px-1 text-sm font-semibold text-heading">Image (optional)</legend>
+      <p className="text-sm">
+        Show people with dignity, not as victims, and only images the organization published itself.{" "}
+        <Link href="/admin/guide/images" className="font-medium text-link underline">
+          Choosing images
+        </Link>
+      </p>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" onClick={fetchFromSource} disabled={fetching} className={button}>
           {fetching ? "Looking…" : "Fetch image from source"}
