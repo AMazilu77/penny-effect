@@ -11,12 +11,15 @@ type CardProps = {
   as?: "section" | "div" | "article" | "li";
   /** For in-page links, e.g. /dashboard#give. */
   id?: string;
+  /** Names the panel for screen readers, e.g. the id of its heading. */
+  "aria-labelledby"?: string;
 };
 
-export function Card({ children, className, level = "card", as: Tag = "section", id }: CardProps) {
+export function Card({ children, className, level = "card", as: Tag = "section", id, "aria-labelledby": labelledBy }: CardProps) {
   return (
     <Tag
       id={id}
+      aria-labelledby={labelledBy}
       className={cn(
         "border",
         level === "card" ? "rounded-card bg-card p-(--space-card) shadow-sm" : "rounded-control bg-inset p-4",

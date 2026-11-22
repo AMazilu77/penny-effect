@@ -1,4 +1,5 @@
 // Post news from organizations, each linked to where they published it.
+import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin";
 import { safeExternalUrl } from "@/lib/feed";
 import { prisma } from "@/lib/prisma";
@@ -78,6 +79,13 @@ export default async function AdminNewsPage({ searchParams }: Props) {
                   <summary className="cursor-pointer text-sm font-semibold text-link">
                     {item.imageUrl ? "Replace or remove image" : "Add an image"}
                   </summary>
+                  <p className="mt-2 text-sm">
+                    Before choosing one, read{" "}
+                    <Link href="/admin/guide/images" className="font-medium text-link underline">
+                      Choosing images
+                    </Link>
+                    .
+                  </p>
                   <form action={updateNewsImage} className="mt-2 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
                     <input type="hidden" name="newsItemId" value={item.id} />
                     <label className="space-y-1 text-sm">
