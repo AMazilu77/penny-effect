@@ -69,18 +69,18 @@ Partner: Every.org (D-001 accepted). Build against Every.org staging first (`htt
 - [ ] Crypto giving through the partner if supported (ask: does the $10 minimum apply to crypto?)
 - [x] Rate limiting on register, sign-in, donate — Postgres counters (D-018, #52)
 
-## Milestone 3.5 — Profile page (private)
+## Milestone 3.5 — Profile page (private) — ✅ built (profile PR, 2026-11-22)
 
 A signed-in user's own page at `/profile`. Not visible to other users (public profiles are out of scope, charter §6), but the data is stored so a public view could be added later.
 
-- [ ] `/profile`: display name, email (read-only), sign-in method
-- [ ] Profile picture: upload, replace, remove (JPEG/PNG/WebP, ≤ 2 MB, cropped to a square); default is the Google avatar for Google sign-ins, otherwise initials
-- [ ] Short bio: plain text, up to 280 characters, live character count
-- [ ] Organizations I follow, with links and Unfollow (reuses `OrganizationFollow`)
-- [ ] Edit chosen causes (reuses onboarding validation — existing category IDs only)
-- [ ] Giving history from real `Donation` rows with status and partner receipt links when present; real empty state if none
-- [ ] Privacy setting: appear by name or anonymously in any public/collective totals — default anonymous (stored; nothing reads it until collective totals)
-- [ ] Account settings: change password (credentials users); delete account, keeping donation records anonymized for accounting
+- [x] `/profile`: display name, email (read-only), sign-in method
+- [x] Profile picture: upload, replace, remove (JPEG/PNG/WebP, ≤ 2 MB, cropped to a square); default is the Google avatar for Google sign-ins, otherwise initials — stored as a 256px WebP in Postgres (`UserAvatar`), no new service
+- [x] Short bio: plain text, up to 280 characters, live character count
+- [x] Organizations I follow, with links and Unfollow (reuses `OrganizationFollow`)
+- [x] Edit chosen causes (reuses onboarding validation — existing category IDs only)
+- [x] Giving history from real `Donation` rows with status; real empty state if none. Receipt links wait on Milestone 3 (Every.org's webhook has no receipt link; it emails the receipt)
+- [x] Privacy setting: appear by name or anonymously in any public/collective totals — default anonymous (`User.showNameInTotals`; nothing reads it until collective totals)
+- [x] Account settings: change password (credentials users); delete account, keeping donation records anonymized for accounting (`Donation.userId` set to NULL, `userDeletedAt`, message cleared)
 
 ## Milestone 4 — Penny Jar
 
