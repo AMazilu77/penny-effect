@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { BRAND_NAME } from "@/lib/brand";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 import { PROFILE_PREVIEW, initials, signInMethodLabel, signInMethods } from "@/lib/profile";
+import { avatarUrl } from "@/lib/avatar-store";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Avatar } from "@/components/ui/Avatar";
 import { buttonPrimary } from "@/components/ui/buttons";
@@ -18,6 +19,7 @@ import { FollowedOrgList, GiftList, SeeAll } from "@/components/dashboard/lists"
 import { DetailsForm } from "./DetailsForm";
 import { PrivacyForm } from "./PrivacyForm";
 import { CausesForm } from "./CausesForm";
+import { AvatarForm } from "./AvatarForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: `Your profile | ${BRAND_NAME}` };
@@ -46,7 +48,15 @@ export default async function ProfilePage({
     prisma.user.findUnique({
       where: { id: userId },
       // The password hash is read only to say whether one exists; it never leaves this function.
-      select: { name: true, email: true, image: true, bio: true, showNameInTotals: true, passwordHash: true },
+      select: {
+        name: true,
+        email: true,
+        image: true,
+        bio: true,
+        showNameInTotals: true,
+        passwordHash: true,
+        avatar: { select: { updatedAt: true } },
+      },
     }),
     prisma.account.findMany({ where: { userId }, select: { provider: true } }),
     prisma.causeCategory.findMany({ select: { id: true, name: true }, orderBy: { name: "asc" } }),
@@ -78,8 +88,9 @@ export default async function ProfilePage({
   }
 
   const methods = signInMethods(Boolean(user.passwordHash), providers.map((p) => p.provider));
-  // Default picture: the Google avatar for Google sign-ins, otherwise initials.
-  const pictureSrc = methods.includes("google") && user.image?.startsWith("https://") ? user.image : null;
+  // The uploaded picture; otherwise the Google avatar for Google sign-ins; otherwise initials.
+  const googlePicture = methods.includes("google") && user.image?.startsWith("https://") ? user.image : null;
+  const pictureSrc = user.avatar ? avatarUrl(user.avatar.updatedAt) : googlePicture;
   const displayName = user.name ?? user.email ?? "You";
   const params = await searchParams;
 
@@ -116,6 +127,10 @@ export default async function ProfilePage({
       <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
         <Card aria-labelledby="about-heading">
           <CardHeader title={<span id="about-heading">About you</span>} description="Your email can't be changed here." />
+          <div className="mb-5 border-b pb-5">
+            <h3 className="mb-2 text-sm font-semibold text-heading">Profile picture</h3>
+            <AvatarForm hasUpload={Boolean(user.avatar)} fallbackText={googlePicture ? "your Google picture" : "your initials"} />
+          </div>
           <DetailsForm name={user.name ?? ""} bio={user.bio ?? ""} />
         </Card>
 
