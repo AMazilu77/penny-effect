@@ -6,12 +6,19 @@ const mocks = vi.hoisted(() => ({
   currentUserId: vi.fn(),
   update: vi.fn(),
   rateLimitResponse: vi.fn(),
+  findCredentials: vi.fn(),
+  deleteUser: vi.fn(),
+  compare: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ currentUserId: mocks.currentUserId }));
 vi.mock("@/lib/profile-store", () => ({ profileStore: { update: mocks.update } }));
 vi.mock("@/lib/rate-limit-store", () => ({ rateLimitResponse: mocks.rateLimitResponse }));
+vi.mock("@/lib/account-store", () => ({
+  prismaAccountStore: { findCredentials: mocks.findCredentials, setPasswordHash: vi.fn(), deleteUser: mocks.deleteUser },
+  bcryptHasher: { compare: mocks.compare, hash: vi.fn() },
+}));
 
-import { PATCH } from "./route";
+import { DELETE, PATCH } from "./route";
 
 function patch(body: unknown) {
   return new Request("http://localhost:3000/api/profile", {
@@ -82,5 +89,50 @@ describe("PATCH /api/profile", () => {
     const res = await PATCH(patch({ name: "Ada" }));
     expect(res.status).toBe(500);
     expect(JSON.stringify(await res.json())).not.toContain("secret");
+  });
+});
+
+describe("DELETE /api/profile (account deletion)", () => {
+  function del(body: unknown) {
+    return new Request("http://localhost:3000/api/profile", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  beforeEach(() => {
+    for (const fn of Object.values(mocks)) fn.mockReset();
+    mocks.currentUserId.mockResolvedValue("user-a");
+    mocks.rateLimitResponse.mockResolvedValue(null);
+    mocks.findCredentials.mockResolvedValue({ passwordHash: "$2b$hash", email: "a@example.com" });
+    mocks.compare.mockResolvedValue(true);
+  });
+
+  it("is 401 when signed out", async () => {
+    mocks.currentUserId.mockResolvedValue(null);
+    expect((await DELETE(del({ confirmation: "delete my account", password: "pw" }))).status).toBe(401);
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("needs the typed confirmation", async () => {
+    const res = await DELETE(del({ confirmation: "yes", password: "pw" }));
+    expect(res.status).toBe(400);
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("needs the right password for an account that has one", async () => {
+    mocks.compare.mockResolvedValue(false);
+    const res = await DELETE(del({ confirmation: "delete my account", password: "wrong" }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: "Your password is incorrect." });
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+  });
+
+  it("deletes only the signed-in user, whatever the body says", async () => {
+    expect((await DELETE(del({ confirmation: "delete my account", password: "pw", userId: "user-b" }))).status).toBe(400);
+    expect(mocks.deleteUser).not.toHaveBeenCalled();
+    expect((await DELETE(del({ confirmation: "delete my account", password: "pw" }))).status).toBe(200);
+    expect(mocks.deleteUser).toHaveBeenCalledWith("user-a", "a@example.com");
   });
 });

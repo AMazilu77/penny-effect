@@ -20,6 +20,8 @@ import { DetailsForm } from "./DetailsForm";
 import { PrivacyForm } from "./PrivacyForm";
 import { CausesForm } from "./CausesForm";
 import { AvatarForm } from "./AvatarForm";
+import { PasswordForm } from "./PasswordForm";
+import { DeleteAccountForm } from "./DeleteAccountForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: `Your profile | ${BRAND_NAME}` };
@@ -105,6 +107,7 @@ export default async function ProfilePage({
             <h1 className="text-3xl font-bold break-words">{displayName}</h1>
             <p className="text-sm text-muted">Only you can see this page.</p>
           </div>
+
         </div>
         <dl className="relative mt-5 grid gap-3 sm:grid-cols-2">
           <div className="min-w-0 rounded-control border bg-inset p-3">
@@ -183,10 +186,23 @@ export default async function ProfilePage({
         <PrivacyForm showNameInTotals={user.showNameInTotals} />
       </Card>
 
-      <Card aria-labelledby="account-heading">
-        <CardHeader title={<span id="account-heading">Account</span>} />
-        <SignOutButton />
-      </Card>
+      <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
+        <Card aria-labelledby="account-heading">
+          <CardHeader
+            title={<span id="account-heading">Password</span>}
+            description={methods.includes("password") ? undefined : "You sign in with Google, so there's no password here to change."}
+          />
+          {methods.includes("password") ? <PasswordForm /> : null}
+          <div className={methods.includes("password") ? "mt-5 border-t pt-5" : undefined}>
+            <SignOutButton />
+          </div>
+        </Card>
+
+        <Card aria-labelledby="delete-heading">
+          <CardHeader title={<span id="delete-heading">Delete account</span>} />
+          <DeleteAccountForm hasPassword={methods.includes("password")} />
+        </Card>
+      </div>
     </div>
   );
 }

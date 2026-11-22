@@ -144,12 +144,16 @@ model Donation {
   message        String?
   createdAt      DateTime       @default(now())
 
-  // Foreign keys
-  userId         String
+  // Foreign keys. `userId` is null once the donor deletes their account: the
+  // gift stays for accounting (amount, organization, status, partner ids)
+  // but no longer points to a person (src/lib/account-store.ts).
+  userId         String?
   organizationId String
+  // When the donor's account was deleted (and this row anonymized).
+  userDeletedAt  DateTime?
 
   // Relations
-  user         User         @relation(fields: [userId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id])
 
   // One donation per (user, idempotency key). Postgres allows many NULL keys.
