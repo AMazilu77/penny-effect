@@ -52,6 +52,15 @@ model User {
   // Flags
   hasCompletedOnboarding Boolean @default(false)
   role                   Role    @default(USER)
+
+  // Profile (Milestone 3.5). Private to the user for now: no page shows
+  // these to anyone else, but they're stored so a public view could be
+  // added later. `bio` is plain text, at most 280 characters
+  // (src/lib/profile.ts), never rendered as HTML or markdown.
+  bio              String? @db.Text
+  // "Show my name in collective totals". Default anonymous. Nothing reads
+  // it yet; collective totals (Milestone 4) must respect it.
+  showNameInTotals Boolean @default(false)
 }
 
 model Account {

@@ -8,6 +8,8 @@ describe("safeReturnPath", () => {
     expect(safeReturnPath("/feed?view=following")).toBe("/feed?view=following");
     expect(safeReturnPath("/dashboard")).toBe("/dashboard");
     expect(safeReturnPath("/following")).toBe("/following");
+    expect(safeReturnPath("/profile")).toBe("/profile");
+    expect(safeReturnPath("/profiles")).toBe("/dashboard");
   });
 
   it("sends anything else to /dashboard", () => {

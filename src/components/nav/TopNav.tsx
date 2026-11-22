@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusCircle, Search, Shield } from "lucide-react";
+import { CircleUser, PlusCircle, Search, Shield } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Logo } from "@/components/brand/Logo";
 import { buttonPrimary } from "@/components/ui/buttons";
@@ -48,6 +48,12 @@ export function TopNav() {
           <Link href="/discover" className={navLink(isActive("/discover"))}>Discover</Link>
           <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>Dashboard</Link>
           <Link href="/about" className={navLink(isActive("/about"))}>About</Link>
+          {status === "authenticated" && (
+            <Link href="/profile" className={navLink(isActive("/profile"))}>
+              <CircleUser aria-hidden className="h-4 w-4" />
+              Profile
+            </Link>
+          )}
           {isAdmin && (
             <Link href="/admin" className={navLink(isActive("/admin"))}>
               <Shield aria-hidden className="h-4 w-4" />

@@ -40,6 +40,14 @@ export const RULES = {
   fetchImageUser: { name: "fetch-image:user", limit: 30, windowSeconds: 10 * 60 },
   // Follow / unfollow (Local plan L1): generous for real use, stops scripted churn.
   followUser: { name: "follow:user", limit: 60, windowSeconds: 10 * 60 },
+  // Profile page (Milestone 3.5). Saving details or causes: generous.
+  profileUser: { name: "profile:user", limit: 60, windowSeconds: 10 * 60 },
+  // Picture uploads do real image work on the server: a few per hour is plenty.
+  avatarUser: { name: "avatar:user", limit: 10, windowSeconds: HOUR },
+  // Anything that checks the current password (change password, delete
+  // account): slow enough that guessing it from a stolen session is useless.
+  passwordUser: { name: "password:user", limit: 5, windowSeconds: 15 * 60 },
+  passwordIp: { name: "password:ip", limit: 20, windowSeconds: 15 * 60 },
 } as const satisfies Record<string, RateRule>;
 
 export interface RateLimitStore {
