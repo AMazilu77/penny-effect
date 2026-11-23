@@ -17,6 +17,8 @@ import {
   formDataToObject,
   importForm,
   linkClearsVerification,
+  locationForm,
+  locationUpdate,
   orgIdForm,
   verifyBlocker,
   verifyForm,
@@ -124,7 +126,7 @@ export async function linkOrganization(formData: FormData) {
 
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
-    select: { ein: true, verifiedAt: true },
+    select: { ein: true, verifiedAt: true, locationManual: true },
   });
   if (!org) fail(LIST, "not-found");
 
@@ -136,7 +138,7 @@ export async function linkOrganization(formData: FormData) {
     await prisma.organization.update({
       where: { id: organizationId },
       data: {
-        ...everyOrgFields(np, new Date()),
+        ...everyOrgFields(np, new Date(), { keepLocation: org.locationManual }),
         ...(clearVerification ? { verifiedAt: null, verifiedById: null, verificationNote: null } : {}),
       },
     });
@@ -161,7 +163,7 @@ export async function verifyOrganization(formData: FormData) {
 
   const org = await prisma.organization.findUnique({
     where: { id: input.data.organizationId },
-    select: { ein: true, everyOrgId: true, isDisbursable: true, status: true },
+    select: { ein: true, everyOrgId: true, isDisbursable: true, status: true, serviceArea: true },
   });
   if (!org) fail(LIST, "not-found");
   const blocker = verifyBlocker(org);
@@ -274,4 +276,42 @@ export async function removeCharityNavigatorRating(formData: FormData) {
   });
   if (updated.count === 0) fail(LIST, "not-found");
   done(orgPath(input.data.organizationId), "cn-removed");
+}
+
+/**
+ * Saves where the organization is (city, county, state, ZIP), who it serves,
+ * and whether it takes volunteers (D-028). Changing the city, state or ZIP
+ * keeps them through Every.org refreshes (Organization.locationManual).
+ */
+export async function saveLocation(formData: FormData) {
+  await requireAdminPage();
+  const raw = formDataToObject(formData);
+  const idOnly = orgIdForm.safeParse(raw);
+  if (!idOnly.success) fail(LIST, "invalid");
+  const path = orgPath(idOnly.data.organizationId);
+  const input = locationForm.safeParse(raw);
+  if (!input.success) fail(path, "location-invalid");
+
+  const org = await prisma.organization.findUnique({
+    where: { id: input.data.organizationId },
+    select: { locationCity: true, locationState: true, locationZip: true, locationManual: true },
+  });
+  if (!org) fail(LIST, "not-found");
+  await prisma.organization.update({ where: { id: input.data.organizationId }, data: locationUpdate(input.data, org) });
+  revalidatePath("/discover");
+  revalidatePath("/org/[slug]", "page");
+  done(path, "location");
+}
+
+/** Lets Every.org's address replace a hand-entered one again, from the next refresh. */
+export async function restoreEveryOrgAddress(formData: FormData) {
+  await requireAdminPage();
+  const input = orgIdForm.safeParse(formDataToObject(formData));
+  if (!input.success) fail(LIST, "invalid");
+  const updated = await prisma.organization.updateMany({
+    where: { id: input.data.organizationId },
+    data: { locationManual: false },
+  });
+  if (updated.count === 0) fail(LIST, "not-found");
+  done(orgPath(input.data.organizationId), "location-everyorg");
 }

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/admin";
 import { verifyBlocker, ERRORS } from "@/lib/admin-orgs";
 import { safeExternalUrl } from "@/lib/feed";
+import { SERVICE_AREAS, SERVICE_AREA_HELP, SERVICE_AREA_LABELS } from "@/lib/area";
+import { stateName } from "@/lib/everyorg/address";
 import { prisma } from "@/lib/prisma";
 import { Flash } from "../../Flash";
 import { OrgBadges, OrgStatusExplained } from "../../badges";
@@ -23,7 +25,9 @@ import {
   removeCharityNavigatorRating,
   saveCharityNavigatorRating,
   saveCategories,
+  saveLocation,
   showOrganization,
+  restoreEveryOrgAddress,
   unverifyOrganization,
   verifyOrganization,
 } from "../actions";
@@ -56,7 +60,7 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
   await requireAdminPage();
   const [{ id }, flash] = await Promise.all([params, searchParams]);
 
-  const [org, categories] = await Promise.all([
+  const [org, categories, regionCounties] = await Promise.all([
     prisma.organization.findUnique({
       where: { id },
       include: {
@@ -66,6 +70,8 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
       },
     }),
     prisma.causeCategory.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true, slug: true } }),
+    // Counties already used by regions, suggested in the county box so spellings match.
+    prisma.regionCounty.findMany({ distinct: ["state", "county"], select: { state: true, county: true }, orderBy: [{ state: "asc" }, { county: "asc" }] }),
   ]);
   if (!org) notFound();
 
@@ -108,8 +114,15 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
           <dd>
             {[org.locationCity, org.locationState].filter(Boolean).join(", ") || "unknown"}
             {org.locationZip && ` ${org.locationZip}`}
-            {!org.locationCity && org.everyOrgId && <span className="text-muted"> (filled on the next refresh from Every.org)</span>}
+            {org.locationCounty && ` · ${org.locationCounty} County`}
+            {org.locationManual ? (
+              <span className="text-muted"> (entered by an admin; Every.org refreshes leave it alone)</span>
+            ) : (
+              !org.locationCity && org.everyOrgId && <span className="text-muted"> (filled on the next refresh from Every.org)</span>
+            )}
           </dd>
+          <dt className="text-muted">Serves</dt>
+          <dd>{org.serviceArea ? SERVICE_AREA_LABELS[org.serviceArea] : <span className="text-warn">not set (needed to verify)</span>}</dd>
           <dt className="text-muted">Followers</dt>
           <dd>
             {org._count.followers}
@@ -154,6 +167,78 @@ export default async function AdminOrganizationPage({ params, searchParams }: Pr
           </Field>
           <button className={button}>{org.everyOrgId ? "Refresh from Every.org" : "Link"}</button>
         </form>
+      </Section>
+
+      <Section title="Location and volunteering">
+        <p className="text-sm text-muted">
+          City, state and ZIP come from Every.org (the IRS address). The county doesn&apos;t, so add it: regions such as South Florida
+          match organizations by county. Check the organization&apos;s website or its 990 on ProPublica. Only a city or county,
+          never a street address, is shown to donors.{" "}
+          <Link href="/admin/guide/verify#location" className="text-link underline">
+            How to fill this in
+          </Link>
+        </p>
+        {!org.serviceArea && <p className="text-sm text-warn">Set who it serves before verifying.</p>}
+        {(org.serviceArea === "LOCAL" || org.serviceArea === "REGIONAL") && !org.locationCounty && (
+          <p className="text-sm text-warn">Add the county, or it won&apos;t appear when donors filter by a region.</p>
+        )}
+        <form action={saveLocation} className="space-y-4">
+          {hidden}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field id="locationCity" label="City" help="As people write it, e.g. West Palm Beach (not “West Palm Bch”).">
+              <input name="locationCity" defaultValue={org.locationCity ?? ""} maxLength={80} className={field} />
+            </Field>
+            <Field id="locationState" label="State" help="Two-letter code or name. Needed for a city or county.">
+              <input name="locationState" defaultValue={org.locationState ?? ""} maxLength={30} className={field} />
+            </Field>
+            <Field id="locationZip" label="ZIP" help="5 digits.">
+              <input name="locationZip" inputMode="numeric" pattern="[0-9]{5}" defaultValue={org.locationZip ?? ""} className={field} />
+            </Field>
+            <Field id="locationCounty" label="County" help="Without “County”, e.g. Palm Beach. Suggestions are the counties regions use.">
+              <input name="locationCounty" list="region-counties" defaultValue={org.locationCounty ?? ""} maxLength={60} className={field} />
+            </Field>
+            <datalist id="region-counties">
+              {regionCounties.map((c) => (
+                <option key={`${c.state}-${c.county}`} value={c.county}>
+                  {c.county}, {stateName(c.state)}
+                </option>
+              ))}
+            </datalist>
+          </div>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-semibold text-heading">Who it serves</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {SERVICE_AREAS.map((a) => (
+                <label key={a} className="flex gap-3 rounded-control border bg-inset p-3">
+                  <input type="radio" name="serviceArea" value={a} defaultChecked={org.serviceArea === a} className="mt-1 h-5 w-5 shrink-0" />
+                  <span>
+                    <span className="block font-semibold text-heading">{SERVICE_AREA_LABELS[a]}</span>
+                    <span className="block text-sm">{SERVICE_AREA_HELP[a]}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="text-sm text-muted">National organizations are listed in their own section on Discover, so local ones aren&apos;t buried.</p>
+          </fieldset>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="acceptsVolunteers" defaultChecked={org.acceptsVolunteers} className="h-5 w-5" />
+            Takes volunteers (shown on Discover&apos;s &ldquo;Volunteer opportunities&rdquo; filter)
+          </label>
+          <Field
+            id="volunteerUrl"
+            label="Volunteer page (optional)"
+            help="The organization's own page about volunteering, starting with https://. Shown as a Volunteer button only when “Takes volunteers” is ticked."
+          >
+            <input name="volunteerUrl" type="url" defaultValue={org.volunteerUrl ?? ""} maxLength={500} className={field} />
+          </Field>
+          <button className={button}>Save location and volunteering</button>
+        </form>
+        {org.locationManual && org.everyOrgId && (
+          <form action={restoreEveryOrgAddress}>
+            {hidden}
+            <button className={button}>Use Every.org&apos;s address again</button>
+          </form>
+        )}
       </Section>
 
       <Section title="Verification">

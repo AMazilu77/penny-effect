@@ -83,6 +83,19 @@ A signed-in user's own page at `/profile`. Not visible to other users (public pr
 - [x] Privacy setting: appear by name or anonymously in any public/collective totals — default anonymous (`User.showNameInTotals`; nothing reads it until collective totals)
 - [x] Account settings: change password (credentials users); delete account, keeping donation records anonymized for accounting (`Donation.userId` set to NULL, `userDeletedAt`, message cleared)
 
+## Milestone 3.6 — Local nonprofits: filter by location — ✅ built (local nonprofits PR, 2026-11-22)
+
+People looking to support or volunteer with organizations in their area can filter by a location **they choose**; nothing is detected or recommended automatically (D-028, charter §5 item 3). Small local nonprofits are first-class, and every one is still admin-verified.
+
+- [x] `Organization`: city, county, state, ZIP; service area (local / regional / statewide / national; required to verify); `acceptsVolunteers` and `volunteerUrl`. City/state/ZIP from Every.org (IRS short forms expanded), county by an admin; an admin's address survives refreshes. No lat/lng (no cheap source without a geocoding service)
+- [x] `Region` table of counties, as data: Palm Beach County, Broward County, Miami-Dade County, South Florida (= the three), inserted by the migration; admins add more
+- [x] "My area" on the user (a region, or a city + state; never an address; default none), set on the profile or from Discover's filter
+- [x] Discover: area (region or state) + city filter, "Volunteer opportunities" toggle, combined with cause and search; national organizations in their own section
+- [x] Feed: "Near me" tab when My area is set (prompt otherwise), following the never-empty default rule
+- [x] Organization page: where it's based, who it serves, Volunteer link
+- [x] Admin: location/service area/volunteering form per organization, `/admin/regions`, guide section
+- [ ] **Owner:** fill in county and service area for production organizations, and add local nonprofits through the admin import (four Palm Beach County ones with checked EINs are in the PR description)
+
 ## Milestone 4 — Penny Jar
 
 - [ ] Model: jar per user per cause/org, recurring intention amount + cadence, running tally, checkout threshold (card jars: threshold ≥ $10, labelled as a delayed transaction)
@@ -105,6 +118,8 @@ A signed-in user's own page at `/profile`. Not visible to other users (public pr
 - [ ] _Backlog:_ a subtle animated Lorenz attractor on the home page. It must respect `prefers-reduced-motion` (show the still mark instead), stay lightweight (no large animation library), and never distract from the text.
 
 ## Later (post-MVP, not scheduled)
+
+- Local, later (D-028): events with dates (charity 5Ks, adoption days), maps, distance/radius search (ZIP centroids), suggesting a county from the ZIP (Census ZIP-to-county file), finding local orgs in bulk from the IRS BMF. Detecting a user's location automatically stays out of scope (charter §6)
 
 - Opt-in consistency recognition (days given, streaks) — never ranked by dollar amount
 - The Penny Effect's own EA score (impact per dollar) once the method is defined; never using Charity Navigator scores as an input (D-016). Charity Navigator ratings themselves are already shown as information (#49); manual entries wait on CN's answer about copying from their site

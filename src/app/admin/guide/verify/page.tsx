@@ -127,6 +127,46 @@ export default async function VerifyGuidePage() {
       </Card>
 
       <Card>
+        <CardHeader title={<span id="location">Location, service area and volunteering</span>} />
+        <div className="space-y-3">
+          <p>
+            Donors can filter by area (a region such as South Florida, a state, or a city) and by &ldquo;Volunteer
+            opportunities&rdquo;. Small local nonprofits are as welcome as big national ones, but every one still needs
+            this full check: an EIN alone isn&apos;t enough.
+          </p>
+          <ol className="list-decimal space-y-2 ps-6">
+            <li>
+              <strong className="text-heading">City, state, ZIP.</strong> Filled from Every.org (the IRS address). Fix
+              short forms such as &ldquo;West Palm Bch&rdquo; to how people write the city. If you change them, refreshes
+              from Every.org keep your version; &ldquo;Use Every.org&apos;s address again&rdquo; undoes that.
+            </li>
+            <li>
+              <strong className="text-heading">County.</strong> Every.org doesn&apos;t give it. Look up the ZIP or city
+              (the organization&apos;s website, its 990 on ProPublica, or the county&apos;s own site) and write the name
+              without &ldquo;County&rdquo;, e.g. &ldquo;Palm Beach&rdquo;. Regions match organizations by county, so
+              without it a local organization won&apos;t appear under South Florida.
+            </li>
+            <li>
+              <strong className="text-heading">Who it serves</strong> (required before verifying): Local (one city or
+              community), Regional (several cities or counties), Statewide, or National. National ones get their own
+              section on Discover so local ones aren&apos;t buried. If unsure between local and regional, pick regional.
+            </li>
+            <li>
+              <strong className="text-heading">Volunteers.</strong> Tick it only if the organization&apos;s own website
+              invites volunteers, and paste that page&apos;s link. Don&apos;t guess.
+            </li>
+          </ol>
+          <p>
+            We only ever show a city and county, never a street address.{" "}
+            <Link href="/admin/regions" className={textLink}>
+              Regions
+            </Link>{" "}
+            are lists of counties; add one when donors in a new area need it.
+          </p>
+        </div>
+      </Card>
+
+      <Card>
         <CardHeader title="Writing the verification note" />
         <div className="space-y-3">
           <p>
