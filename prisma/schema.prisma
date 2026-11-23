@@ -46,12 +46,22 @@ model User {
   // Organizations this user follows (D-019, Local plan L1).
   follows               OrganizationFollow[]
   location              UserLocation?
+  avatar                UserAvatar?
   // Organizations this user (an admin) reviewed and verified.
   verifiedOrganizations Organization[]       @relation("OrganizationVerifiedBy")
 
   // Flags
   hasCompletedOnboarding Boolean @default(false)
   role                   Role    @default(USER)
+
+  // Profile (Milestone 3.5). Private to the user for now: no page shows
+  // these to anyone else, but they're stored so a public view could be
+  // added later. `bio` is plain text, at most 280 characters
+  // (src/lib/profile.ts), never rendered as HTML or markdown.
+  bio              String? @db.Text
+  // "Show my name in collective totals". Default anonymous. Nothing reads
+  // it yet; collective totals (Milestone 4) must respect it.
+  showNameInTotals Boolean @default(false)
 }
 
 model Account {
@@ -134,12 +144,16 @@ model Donation {
   message        String?
   createdAt      DateTime       @default(now())
 
-  // Foreign keys
-  userId         String
+  // Foreign keys. `userId` is null once the donor deletes their account: the
+  // gift stays for accounting (amount, organization, status, partner ids)
+  // but no longer points to a person (src/lib/account-store.ts).
+  userId         String?
   organizationId String
+  // When the donor's account was deleted (and this row anonymized).
+  userDeletedAt  DateTime?
 
   // Relations
-  user         User         @relation(fields: [userId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   organization Organization @relation(fields: [organizationId], references: [id])
 
   // One donation per (user, idempotency key). Postgres allows many NULL keys.
@@ -354,4 +368,18 @@ model OrganizationFollow {
 
   @@id([userId, organizationId])
   @@index([organizationId])
+}
+
+// A user's uploaded profile picture (Milestone 3.5). Always a 256×256 WebP
+// that our server made from the upload (src/lib/avatar-image.ts): resized,
+// cropped to a square and re-encoded, which also drops the original's
+// metadata (camera, GPS location). A few KB, so it lives in Postgres and
+// needs no file-storage service. Its own table, so loading a User never
+// loads the image. Served only to its owner for now (/api/profile/avatar).
+// Deleted with the user.
+model UserAvatar {
+  userId    String   @id
+  data      Bytes
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

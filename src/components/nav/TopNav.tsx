@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusCircle, Search, Shield } from "lucide-react";
+import { CircleUser, PlusCircle, Search, Shield } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Logo } from "@/components/brand/Logo";
 import { buttonPrimary } from "@/components/ui/buttons";
@@ -48,6 +48,12 @@ export function TopNav() {
           <Link href="/discover" className={navLink(isActive("/discover"))}>Discover</Link>
           <Link href="/dashboard" className={navLink(isActive("/dashboard"))}>Dashboard</Link>
           <Link href="/about" className={navLink(isActive("/about"))}>About</Link>
+          {status === "authenticated" && (
+            <Link href="/profile" className={navLink(isActive("/profile"))}>
+              <CircleUser aria-hidden className="h-4 w-4" />
+              Profile
+            </Link>
+          )}
           {isAdmin && (
             <Link href="/admin" className={navLink(isActive("/admin"))}>
               <Shield aria-hidden className="h-4 w-4" />
@@ -56,6 +62,20 @@ export function TopNav() {
           )}
         </nav>
         <div className="mx-2 hidden max-w-xs flex-1 lg:block">{search}</div>
+        {status === "authenticated" && (
+          // Phones: Profile lives here, top right, because the bottom bar has
+          // no room for a fifth or sixth tab at our 14px minimum text size.
+          <Link
+            href="/profile"
+            aria-label="Profile"
+            aria-current={isActive("/profile") ? "page" : undefined}
+            className={`ms-auto inline-flex h-11 w-11 items-center justify-center rounded-full md:hidden ${
+              isActive("/profile") ? "bg-accent-soft text-heading" : "text-fg hover:bg-inset"
+            }`}
+          >
+            <CircleUser aria-hidden className="h-6 w-6" />
+          </Link>
+        )}
         <div className="ms-auto hidden items-center gap-2 md:flex">
           {status === "authenticated" && (
             // The one giving action that works today: the dashboard's donation form.

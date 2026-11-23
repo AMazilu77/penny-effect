@@ -30,7 +30,7 @@ async function prepare(formData: FormData) {
 
 function finish(back: string, notice: "followed" | "unfollowed"): never {
   // The button's state shows on every page that lists organizations.
-  for (const path of ["/feed", "/discover", "/dashboard", "/following"]) revalidatePath(path);
+  for (const path of ["/feed", "/discover", "/dashboard", "/following", "/profile"]) revalidatePath(path);
   revalidatePath("/org/[slug]", "page");
   redirect(withNotice(back, notice));
 }

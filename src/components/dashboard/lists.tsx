@@ -42,7 +42,7 @@ export function GiftList({ gifts }: { gifts: readonly GiftRow[] }) {
 export type FollowedOrg = { id: string; name: string; everyOrgSlug: string | null; logoUrl: string | null };
 
 /** Followed organizations, each with an Unfollow button that comes back to `returnTo`. */
-export function FollowedOrgList({ orgs, returnTo }: { orgs: readonly FollowedOrg[]; returnTo: "/dashboard" | "/following" }) {
+export function FollowedOrgList({ orgs, returnTo }: { orgs: readonly FollowedOrg[]; returnTo: "/dashboard" | "/following" | "/profile" }) {
   return (
     <ul className="divide-y rounded-control border bg-inset">
       {orgs.map((org) => (
