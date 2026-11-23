@@ -1,6 +1,7 @@
 // app/feed/page.tsx
-// News in three views (Local plan L2): Following (organizations the user
-// follows), My causes, and All. A tab picked by hand is in the URL (?view=)
+// News in up to four views (Local plan L2, D-028): Following (organizations
+// the user follows), My causes, Near me (only once the user sets My area),
+// and All. A tab picked by hand is in the URL (?view=)
 // and remembered in a cookie; without one, the feed opens on a tab that has
 // updates (chooseFeedView in lib/feed.ts), so it's never empty on arrival.
 // Only updates that link to a real source are shown.
@@ -22,6 +23,9 @@ import {
   type FeedView,
 } from "@/lib/feed";
 import { FeedTabs } from "@/components/feed/FeedTabs";
+import { loadMyArea, orgIdsServing } from "@/lib/area-store";
+import { areaLabel, areaParamValue, type Area } from "@/lib/area";
+import { stateName } from "@/lib/everyorg/address";
 import { FollowButton, FollowNotice } from "@/components/FollowButton";
 import { ReadMore } from "@/components/feed/ReadMore";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -46,10 +50,24 @@ type EmptyAction = { href: string; label: string };
 
 const DISCOVER: EmptyAction = { href: "/discover", label: "Find organizations to follow" };
 
+/** Discover filtered to the user's area. */
+function discoverArea(area: Area): string {
+  const params = new URLSearchParams({ area: areaParamValue(area) });
+  if (area.city) params.set("city", area.city);
+  return `/discover?${params}`;
+}
+
 /** What an empty view says (why it's empty), and where it points: always to Discover. */
-function emptyState(view: FeedView, counts: { follows: number; causes: number }): { text: string; actions: EmptyAction[] } {
+function emptyState(view: FeedView, counts: { follows: number; causes: number }, area: Area | null): { text: string; actions: EmptyAction[] } {
   const seeAll: EmptyAction = { href: feedHref("all"), label: "See all updates" };
   switch (view) {
+    case "near":
+      return area
+        ? {
+            text: `No organization serving ${areaLabel(area, stateName)} has posted an update yet. We only show news that links to something an organization actually published.`,
+            actions: [{ href: discoverArea(area), label: "Find organizations near you" }, seeAll],
+          }
+        : { text: "Set your area on your profile to see news from nonprofits near you.", actions: [{ href: "/profile#area-heading", label: "Set my area" }, DISCOVER] };
     case "following":
       return counts.follows === 0
         ? { text: "You don't follow any organizations yet. Follow one and its updates will appear here.", actions: [DISCOVER, seeAll] }
@@ -81,18 +99,22 @@ export default async function FeedPage({ searchParams }: Props) {
   if (!userId) redirect("/signin?callbackUrl=/feed");
   const params = await searchParams;
 
-  const [interests, follows] = await Promise.all([
+  const [interests, follows, area] = await Promise.all([
     prisma.userInterest.findMany({ where: { userId }, select: { categoryId: true } }),
     prisma.organizationFollow.findMany({ where: { userId }, select: { organizationId: true } }),
+    loadMyArea(userId),
   ]);
   const categoryIds = interests.map((i) => i.categoryId);
   const followedOrgIds = follows.map((f) => f.organizationId);
   const followed = new Set(followedOrgIds);
-  const ids = { followedOrgIds, categoryIds };
+  const nearOrgIds = area ? await orgIdsServing(area) : [];
+  const ids = { followedOrgIds, categoryIds, nearOrgIds };
+  // Near me is a tab only for users who set My area.
+  const views = FEED_VIEWS.filter((v) => v !== "near" || area !== null);
 
   // Which tabs have at least one update (one tiny query each).
   const firstItems = await Promise.all(
-    FEED_VIEWS.map((v) => prisma.newsItem.findFirst({ where: newsFeedWhere(v, ids), select: { id: true } })),
+    FEED_VIEWS.map((v) => (views.includes(v) ? prisma.newsItem.findFirst({ where: newsFeedWhere(v, ids), select: { id: true } }) : null)),
   );
   const hasItems = Object.fromEntries(FEED_VIEWS.map((v, i) => [v, firstItems[i] !== null])) as Record<FeedView, boolean>;
   const { view, fellBackFrom } = chooseFeedView({
@@ -101,6 +123,7 @@ export default async function FeedPage({ searchParams }: Props) {
     hasItems,
     followsAny: followedOrgIds.length > 0,
     causesAny: categoryIds.length > 0,
+    nearAvailable: area !== null,
   });
   const returnTo = feedHref(view);
 
@@ -119,7 +142,7 @@ export default async function FeedPage({ searchParams }: Props) {
       organization: { select: { id: true, name: true, logoUrl: true, coverImageUrl: true, everyOrgSlug: true } },
     },
   });
-  const empty = emptyState(view, { follows: followedOrgIds.length, causes: categoryIds.length });
+  const empty = emptyState(view, { follows: followedOrgIds.length, causes: categoryIds.length }, area);
 
   const name = session?.user?.name?.split(" ")[0] ?? "there";
 
@@ -132,7 +155,24 @@ export default async function FeedPage({ searchParams }: Props) {
 
       <FollowNotice value={params.notice} />
 
-      <FeedTabs tabs={FEED_VIEWS.map((v) => ({ view: v, label: FEED_VIEW_LABELS[v], href: feedHref(v) }))} current={view} />
+      <FeedTabs tabs={views.map((v) => ({ view: v, label: FEED_VIEW_LABELS[v], href: feedHref(v) }))} current={view} />
+      {area ? (
+        view === "near" && (
+          <p className="text-sm text-muted">
+            Near me: organizations serving <span className="font-semibold text-heading">{areaLabel(area, stateName)}</span>.{" "}
+            <Link href="/profile#area-heading" className="underline">
+              Change
+            </Link>
+          </p>
+        )
+      ) : (
+        <p className="text-sm text-muted">
+          <Link href="/profile#area-heading" className="font-medium text-link underline">
+            Set your area
+          </Link>{" "}
+          to see news from nonprofits near you.
+        </p>
+      )}
 
       {fellBackFrom && newsItems.length > 0 && (
         <p className="text-sm text-muted" role="status">

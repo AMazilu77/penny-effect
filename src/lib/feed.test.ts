@@ -19,6 +19,15 @@ describe("newsFeedWhere", () => {
     });
   });
 
+  it("Near me: organizations serving the user's area", () => {
+    expect(newsFeedWhere("near", { ...ids, nearOrgIds: ["near1"] })).toEqual({
+      sourceUrl: { not: null },
+      organization: { ...VISIBLE_ORGANIZATION_WHERE, id: { in: ["near1"] } },
+    });
+    // No area: matches nothing.
+    expect(newsFeedWhere("near", ids).organization).toMatchObject({ id: { in: [] } });
+  });
+
   it("All: every visible organization", () => {
     expect(newsFeedWhere("all", ids)).toEqual({ sourceUrl: { not: null }, organization: VISIBLE_ORGANIZATION_WHERE });
   });
@@ -47,8 +56,8 @@ describe("parseFeedView", () => {
 });
 
 describe("chooseFeedView", () => {
-  const all = { following: true, causes: true, all: true };
-  const none = { following: false, causes: false, all: false };
+  const all = { following: true, causes: true, near: true, all: true };
+  const none = { following: false, causes: false, near: false, all: false };
   const base = { requested: undefined, remembered: undefined, followsAny: true, causesAny: true };
 
   it("a brand-new user (no follows, no causes) lands on All", () => {
@@ -63,16 +72,16 @@ describe("chooseFeedView", () => {
   });
 
   it("skips an empty Following for My causes, and an empty My causes for All", () => {
-    expect(chooseFeedView({ ...base, hasItems: { following: false, causes: true, all: true } }).view).toBe("causes");
-    expect(chooseFeedView({ ...base, hasItems: { following: false, causes: false, all: true } }).view).toBe("all");
+    expect(chooseFeedView({ ...base, hasItems: { following: false, causes: true, near: false, all: true } }).view).toBe("causes");
+    expect(chooseFeedView({ ...base, hasItems: { following: false, causes: false, near: false, all: true } }).view).toBe("all");
   });
 
   it("uses My causes only when the user chose causes", () => {
-    expect(chooseFeedView({ ...base, followsAny: false, hasItems: { following: false, causes: true, all: true } }).view).toBe(
+    expect(chooseFeedView({ ...base, followsAny: false, hasItems: { following: false, causes: true, near: false, all: true } }).view).toBe(
       "causes",
     );
     expect(
-      chooseFeedView({ ...base, followsAny: false, causesAny: false, hasItems: { following: false, causes: true, all: true } }).view,
+      chooseFeedView({ ...base, followsAny: false, causesAny: false, hasItems: { following: false, causes: true, near: false, all: true } }).view,
     ).toBe("all");
   });
 
@@ -86,7 +95,7 @@ describe("chooseFeedView", () => {
   });
 
   it("falls back to All when the remembered tab is empty, and says which tab was empty", () => {
-    expect(chooseFeedView({ ...base, remembered: "following", hasItems: { following: false, causes: true, all: true } })).toEqual({
+    expect(chooseFeedView({ ...base, remembered: "following", hasItems: { following: false, causes: true, near: false, all: true } })).toEqual({
       view: "all",
       fellBackFrom: "following",
     });
@@ -107,8 +116,30 @@ describe("chooseFeedView", () => {
     });
   });
 
+  it("Near me: shown when asked or remembered, only once My area is set", () => {
+    const near = { ...base, hasItems: { following: false, causes: false, near: true, all: true } };
+    expect(chooseFeedView({ ...near, requested: "near", nearAvailable: true }).view).toBe("near");
+    expect(chooseFeedView({ ...near, remembered: "near", nearAvailable: true })).toEqual({ view: "near", fellBackFrom: null });
+    // No area set: the tab doesn't exist, so a stale link or cookie is ignored (no "Nothing under Near me" note).
+    expect(chooseFeedView({ ...near, requested: "near" })).toEqual({ view: "all", fellBackFrom: null });
+    expect(chooseFeedView({ ...near, remembered: "near" })).toEqual({ view: "all", fellBackFrom: null });
+  });
+
+  it("Near me follows the never-empty rule: a remembered empty Near me falls back to All", () => {
+    expect(chooseFeedView({ ...base, remembered: "near", nearAvailable: true, hasItems: { ...all, near: false } })).toEqual({
+      view: "all",
+      fellBackFrom: "near",
+    });
+  });
+
+  it("Near me is never picked on its own: the default stays Following → My causes → All", () => {
+    expect(
+      chooseFeedView({ ...base, followsAny: false, causesAny: false, nearAvailable: true, hasItems: { ...none, near: true, all: true } }).view,
+    ).toBe("all");
+  });
+
   it("ignores an unknown ?view= and chooses as usual", () => {
-    expect(chooseFeedView({ ...base, requested: "bogus", hasItems: { following: false, causes: true, all: true } }).view).toBe(
+    expect(chooseFeedView({ ...base, requested: "bogus", hasItems: { following: false, causes: true, near: false, all: true } }).view).toBe(
       "causes",
     );
   });

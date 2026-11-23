@@ -3,14 +3,16 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
 
-// ---- Feed views (Local plan L2): Following / My causes / All ----
+// ---- Feed views (Local plan L2): Following / My causes / Near me / All ----
 
-export const FEED_VIEWS = ["following", "causes", "all"] as const;
+// Near me (D-028) exists only for users who set My area; the page leaves its tab out otherwise.
+export const FEED_VIEWS = ["following", "causes", "near", "all"] as const;
 export type FeedView = (typeof FEED_VIEWS)[number];
 
 export const FEED_VIEW_LABELS: Record<FeedView, string> = {
   following: "Following",
   causes: "My causes",
+  near: "Near me",
   all: "All",
 };
 
@@ -44,6 +46,8 @@ export type FeedChoice = {
  * 3. Otherwise Following if the user follows an organization and it has
  *    items, else My causes if they chose causes and it has items, else All.
  *
+ * Near me counts only when the user has set My area (`nearAvailable`);
+ * without it, a Near me in the URL or the cookie is ignored as if absent.
  * `hasItems` says whether each tab would show at least one update.
  */
 export function chooseFeedView({
@@ -52,17 +56,20 @@ export function chooseFeedView({
   hasItems,
   followsAny,
   causesAny,
+  nearAvailable = false,
 }: {
   requested: unknown;
   remembered: unknown;
   hasItems: Readonly<Record<FeedView, boolean>>;
   followsAny: boolean;
   causesAny: boolean;
+  nearAvailable?: boolean;
 }): FeedChoice {
-  const asked = parseFeedView(requested);
+  const usable = (v: FeedView | null) => (v === "near" && !nearAvailable ? null : v);
+  const asked = usable(parseFeedView(requested));
   if (asked) return { view: asked, fellBackFrom: null };
 
-  const picked = parseFeedView(remembered);
+  const picked = usable(parseFeedView(remembered));
   if (picked) {
     return hasItems[picked] || picked === "all" ? { view: picked, fellBackFrom: null } : { view: "all", fellBackFrom: picked };
   }
@@ -83,12 +90,14 @@ export function feedHref(view: FeedView): string {
  * - items from organizations users can see (active, verified; src/lib/organizations.ts).
  *
  * Following: organizations the user follows. My causes: organizations in the
- * user's causes. All: every visible organization. A view with nothing to
- * match (no follows, no causes) shows nothing, and the page says why.
+ * user's causes. Near me: organizations serving the user's My area
+ * (`nearOrgIds`, from src/lib/area.ts servesArea). All: every visible
+ * organization. A view with nothing to match (no follows, no causes, no
+ * area) shows nothing, and the page says why.
  */
 export function newsFeedWhere(
   view: FeedView,
-  { followedOrgIds, categoryIds }: { followedOrgIds: string[]; categoryIds: string[] },
+  { followedOrgIds, categoryIds, nearOrgIds = [] }: { followedOrgIds: string[]; categoryIds: string[]; nearOrgIds?: string[] },
 ): Prisma.NewsItemWhereInput {
   const base = { sourceUrl: { not: null } } as const;
   switch (view) {
@@ -96,6 +105,8 @@ export function newsFeedWhere(
       return { ...base, organization: { ...VISIBLE_ORGANIZATION_WHERE, id: { in: followedOrgIds } } };
     case "causes":
       return { ...base, organization: { ...VISIBLE_ORGANIZATION_WHERE, categories: { some: { id: { in: categoryIds } } } } };
+    case "near":
+      return { ...base, organization: { ...VISIBLE_ORGANIZATION_WHERE, id: { in: nearOrgIds } } };
     case "all":
       return { ...base, organization: VISIBLE_ORGANIZATION_WHERE };
   }

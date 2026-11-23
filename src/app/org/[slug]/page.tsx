@@ -18,6 +18,7 @@ import { buttonPrimary, buttonSecondary, textLink } from "@/components/ui/button
 import { ReadMore } from "@/components/feed/ReadMore";
 import { CN_EXPLAINER } from "@/lib/charity-navigator/rating";
 import { orgSlug, previewText, safeExternalUrl } from "@/lib/feed";
+import { SERVICE_AREA_HELP, SERVICE_AREA_LABELS, placeLine } from "@/lib/area";
 import { highestImpactLabel } from "@/lib/highest-impact";
 import { sourceSite } from "@/lib/news-image";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
@@ -49,6 +50,10 @@ const loadOrg = cache(async (raw: string) => {
       ein: true,
       locationCity: true,
       locationState: true,
+      locationCounty: true,
+      serviceArea: true,
+      acceptsVolunteers: true,
+      volunteerUrl: true,
       cnScore: true,
       cnStars: true,
       cnProfileUrl: true,
@@ -92,7 +97,8 @@ export default async function OrganizationPage({ params, searchParams }: Props) 
   const website = safeExternalUrl(org.website);
   const everyOrgUrl = org.everyOrgSlug ? `https://www.every.org/${encodeURIComponent(org.everyOrgSlug)}` : null;
   const impactLabel = highestImpactLabel({ ein: org.ein, categorySlugs: org.categories.map((c) => c.slug) });
-  const place = [org.locationCity, org.locationState].filter(Boolean).join(", ");
+  const place = placeLine(org);
+  const volunteerUrl = org.acceptsVolunteers ? safeExternalUrl(org.volunteerUrl) : null;
   const einText = org.ein ? `${org.ein.slice(0, 2)}-${org.ein.slice(2)}` : null;
 
   return (
@@ -125,8 +131,34 @@ export default async function OrganizationPage({ params, searchParams }: Props) 
           {org.description && <p className="text-lg text-fg">{org.description}</p>}
           <p className="text-sm text-muted">
             Verified nonprofit{einText && <> · EIN {einText}</>}
-            {place && <> · {place}</>}
           </p>
+          {(place || org.serviceArea || org.acceptsVolunteers) && (
+            <dl className="grid gap-3 sm:grid-cols-3">
+              {place && (
+                <div className="rounded-control border bg-inset p-3">
+                  <dt className="text-sm font-medium text-muted">Based in</dt>
+                  <dd className="font-semibold text-heading">{place}</dd>
+                </div>
+              )}
+              {org.serviceArea && (
+                <div className="rounded-control border bg-inset p-3">
+                  <dt className="text-sm font-medium text-muted">Serves</dt>
+                  <dd>
+                    <span className="font-semibold text-heading">{SERVICE_AREA_LABELS[org.serviceArea]}</span>
+                    <span className="block text-sm text-muted">{SERVICE_AREA_HELP[org.serviceArea]}</span>
+                  </dd>
+                </div>
+              )}
+              {org.acceptsVolunteers && (
+                <div className="rounded-control border bg-inset p-3">
+                  <dt className="text-sm font-medium text-muted">Volunteering</dt>
+                  <dd className="font-semibold text-heading">
+                    {volunteerUrl ? "Volunteers welcome" : "Volunteers welcome: contact them through their website"}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
           <CharityNavigatorBadge rating={org} now={now} detailed />
           {org.categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -152,6 +184,11 @@ export default async function OrganizationPage({ params, searchParams }: Props) 
               signedIn={userId !== null}
               returnTo={`/org/${org.everyOrgSlug}`}
             />
+            {volunteerUrl && (
+              <a href={volunteerUrl} target="_blank" rel="noopener noreferrer" className={buttonSecondary}>
+                Volunteer
+              </a>
+            )}
             {everyOrgUrl && (
               <a href={everyOrgUrl} target="_blank" rel="noopener noreferrer" className={buttonSecondary}>
                 View on Every.org
