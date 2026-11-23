@@ -61,9 +61,9 @@ describe("PATCH /api/profile", () => {
   });
 
   it("explains a bio that's too long", async () => {
-    const res = await PATCH(patch({ bio: "x".repeat(281) }));
+    const res = await PATCH(patch({ bio: "x".repeat(501) }));
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Keep your bio to 280 characters." });
+    expect(await res.json()).toEqual({ error: "Keep your bio to 500 characters." });
   });
 
   it("is 400 for bad JSON", async () => {

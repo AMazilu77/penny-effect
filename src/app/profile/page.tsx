@@ -7,7 +7,9 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BRAND_NAME } from "@/lib/brand";
-import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
+import { VISIBLE_ORGANIZATION_WHERE, isVisibleOrganization } from "@/lib/organizations";
+import { topSupported, type OrgGiving, type Supported } from "@/lib/top-supported";
+import { formatCents } from "@/lib/money";
 import { PROFILE_PREVIEW, initials, signInMethodLabel, signInMethods } from "@/lib/profile";
 import { avatarUrl } from "@/lib/avatar-store";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -25,6 +27,78 @@ import { DeleteAccountForm } from "./DeleteAccountForm";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: `Your profile | ${BRAND_NAME}` };
+
+function plural(n: number, one: string, many: string) {
+  return `${n} ${n === 1 ? one : many}`;
+}
+
+/** One "Most supported" line: the organization or cause, total given, number of gifts. */
+function SupportedTile({ label, item, href }: { label: string; item: Supported; href: string | null }) {
+  return (
+    <div className="min-w-0 rounded-control border bg-inset p-4">
+      <p className="text-sm font-medium text-muted">{label}</p>
+      <p className="mt-1 break-words text-lg font-semibold text-heading">
+        {href ? (
+          <Link href={href} className="hover:underline">
+            {item.name}
+          </Link>
+        ) : (
+          item.name
+        )}
+      </p>
+      <p className="mt-1">
+        <span className="font-semibold text-heading">{formatCents(item.totalCents)}</span> given in{" "}
+        {plural(item.gifts, "gift", "gifts")}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The organization and the cause this user has given the most to, from
+ * COMPLETED donations only (src/lib/top-supported.ts).
+ */
+async function loadTopSupported(userId: string) {
+  const groups = await prisma.donation.groupBy({
+    by: ["organizationId"],
+    // Every donation is in USD today; filtering keeps the sum honest if that changes.
+    where: { userId, status: "COMPLETED", currency: "USD" },
+    _sum: { amountCents: true },
+    _count: { _all: true },
+  });
+  if (groups.length === 0) return topSupported([]);
+  const orgs = await prisma.organization.findMany({
+    where: { id: { in: groups.map((g) => g.organizationId) } },
+    select: {
+      id: true,
+      name: true,
+      everyOrgSlug: true,
+      status: true,
+      verifiedAt: true,
+      ein: true,
+      isDisbursable: true,
+      categories: { select: { id: true, name: true, slug: true } },
+    },
+  });
+  const byId = new Map(orgs.map((o) => [o.id, o]));
+  const rows: OrgGiving[] = [];
+  for (const g of groups) {
+    const org = byId.get(g.organizationId);
+    if (!org) continue;
+    rows.push({
+      organization: {
+        id: org.id,
+        name: org.name,
+        // Link to the organization's page only while users can see it.
+        slug: isVisibleOrganization(org) ? org.everyOrgSlug : null,
+        categories: org.categories,
+      },
+      totalCents: g._sum.amountCents ?? 0,
+      gifts: g._count._all,
+    });
+  }
+  return topSupported(rows);
+}
 
 function Empty({ text, href, action }: { text: string; href: string; action: string }) {
   return (
@@ -46,7 +120,7 @@ export default async function ProfilePage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin?callbackUrl=%2Fprofile");
 
-  const [user, providers, categories, interests, follows, followCount, gifts, giftCount] = await Promise.all([
+  const [user, providers, categories, interests, follows, followCount, gifts, giftCount, top] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       // The password hash is read only to say whether one exists; it never leaves this function.
@@ -77,6 +151,7 @@ export default async function ProfilePage({
       select: { id: true, amountCents: true, currency: true, status: true, createdAt: true, organization: { select: { name: true } } },
     }),
     prisma.donation.count({ where: { userId } }),
+    loadTopSupported(userId),
   ]);
 
   // Signed in with a token for an account that's gone (deleted in another tab or device).
@@ -145,6 +220,37 @@ export default async function ProfilePage({
           <CausesForm categories={categories} selected={interests.map((i) => i.categoryId)} />
         </Card>
       </div>
+
+      <Card aria-labelledby="top-heading">
+        <CardHeader
+          title={<span id="top-heading">Most supported</span>}
+          description="From gifts our donation partner confirmed as paid."
+        />
+        {top.organization ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <SupportedTile
+              label="Top organization"
+              item={top.organization}
+              href={top.organization.slug ? `/org/${encodeURIComponent(top.organization.slug)}` : null}
+            />
+            {top.cause ? (
+              <SupportedTile label="Top cause" item={top.cause} href={`/discover?category=${encodeURIComponent(top.cause.slug ?? "")}`} />
+            ) : (
+              <div className="rounded-control border bg-inset p-4">
+                <p className="text-sm font-medium text-muted">Top cause</p>
+                <p className="mt-1">The organizations you&apos;ve given to aren&apos;t listed under a cause yet.</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Card level="inset" as="div">
+            <p>Your top organization will show here after your first gift.</p>
+            {giftCount > 0 && (
+              <p className="mt-2 text-sm text-muted">Gifts count here once our donation partner confirms they&apos;re paid.</p>
+            )}
+          </Card>
+        )}
+      </Card>
 
       <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
         <Card aria-labelledby="following-heading">

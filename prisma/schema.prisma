@@ -56,7 +56,7 @@ model User {
 
   // Profile (Milestone 3.5). Private to the user for now: no page shows
   // these to anyone else, but they're stored so a public view could be
-  // added later. `bio` is plain text, at most 280 characters
+  // added later. `bio` is plain text, at most 500 characters
   // (src/lib/profile.ts), never rendered as HTML or markdown.
   bio              String? @db.Text
   // "Show my name in collective totals". Default anonymous. Nothing reads

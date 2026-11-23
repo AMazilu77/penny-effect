@@ -1,6 +1,6 @@
 # Roadmap to MVP
 
-_Last updated: 2026-11-21_
+_Last updated: 2026-11-22_
 
 Work top to bottom. Each milestone should leave the live site working. Check items off and update `docs/STATUS.md` as you go. D-numbers (D-001 etc.) refer to the private decisions log in `../penny-effect-docs/DECISIONS.md`.
 
@@ -40,7 +40,7 @@ Work top to bottom. Each milestone should leave the live site working. Check ite
 
 Also shipped alongside Milestone 2 (from the Local and Giving paths plans in the private docs repo):
 
-- [x] Follow / unfollow organizations (#57); feed views Following / My causes / All (#58); dashboard shows 5 gifts and 5 followed orgs with `/donations` and `/following` pages (#59)
+- [x] Follow / unfollow organizations (#57); feed views Following / My causes / All (#58), opening on a tab that has updates and remembering the tab picked; dashboard shows 5 gifts and 5 followed orgs with `/donations` and `/following` pages (#59)
 - [x] Discover: filter by the organization's state and city (#60)
 - [x] "Why give" page with sourced data (#61, D-026), read as short cards with their own URLs (#62; image policy D-027)
 
@@ -75,10 +75,11 @@ A signed-in user's own page at `/profile`. Not visible to other users (public pr
 
 - [x] `/profile`: display name, email (read-only), sign-in method
 - [x] Profile picture: upload, replace, remove (JPEG/PNG/WebP, ≤ 2 MB, cropped to a square); default is the Google avatar for Google sign-ins, otherwise initials — stored as a 256px WebP in Postgres (`UserAvatar`), no new service
-- [x] Short bio: plain text, up to 280 characters, live character count
+- [x] Short bio: plain text, up to 500 characters (raised from 280), live character count
 - [x] Organizations I follow, with links and Unfollow (reuses `OrganizationFollow`)
 - [x] Edit chosen causes (reuses onboarding validation — existing category IDs only)
 - [x] Giving history from real `Donation` rows with status; real empty state if none. Receipt links wait on Milestone 3 (Every.org's webhook has no receipt link; it emails the receipt)
+- [x] "Most supported": the organization and the cause given to most, from completed donations only, with total and number of gifts; real empty state
 - [x] Privacy setting: appear by name or anonymously in any public/collective totals — default anonymous (`User.showNameInTotals`; nothing reads it until collective totals)
 - [x] Account settings: change password (credentials users); delete account, keeping donation records anonymized for accounting (`Donation.userId` set to NULL, `userDeletedAt`, message cleared)
 

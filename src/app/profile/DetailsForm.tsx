@@ -52,7 +52,7 @@ export function DetailsForm({ name: initialName, bio: initialBio }: { name: stri
         <textarea
           value={bio}
           onChange={(e) => setBio(e.target.value)}
-          rows={4}
+          rows={6}
           aria-invalid={bioOver}
           aria-describedby="bio-count bio-help"
           className={field}
