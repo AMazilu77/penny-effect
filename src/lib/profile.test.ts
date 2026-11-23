@@ -68,7 +68,7 @@ describe("profileUpdateSchema: bio", () => {
   });
 
   it("refuses absurdly long input before doing any work", () => {
-    expect(profileUpdateSchema.safeParse({ bio: "x".repeat(10_000) }).success).toBe(false);
+    expect(profileUpdateSchema.safeParse({ bio: "x".repeat(10_001) }).success).toBe(false);
   });
 });
 

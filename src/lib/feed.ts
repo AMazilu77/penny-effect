@@ -14,13 +14,62 @@ export const FEED_VIEW_LABELS: Record<FeedView, string> = {
   all: "All",
 };
 
+/** A view name if `value` is one (from ?view= or the cookie), otherwise null. */
+export function parseFeedView(value: unknown): FeedView | null {
+  return typeof value === "string" && (FEED_VIEWS as readonly string[]).includes(value) ? (value as FeedView) : null;
+}
+
 /**
- * The view from ?view=. Without one (or an unknown value): Following if the
- * user follows at least one organization, otherwise My causes.
+ * Cookie that remembers the tab the user last picked by hand. Set in the
+ * browser when a tab is clicked (src/components/feed/FeedTabs.tsx); it holds
+ * only a view name, nothing personal.
  */
-export function parseFeedView(value: unknown, followsAny: boolean): FeedView {
-  if (typeof value === "string" && (FEED_VIEWS as readonly string[]).includes(value)) return value as FeedView;
-  return followsAny ? "following" : "causes";
+export const FEED_VIEW_COOKIE = "pe_feed_view";
+export const FEED_VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+export type FeedChoice = {
+  view: FeedView;
+  /** The remembered tab that was empty, so the page can say why it shows All instead. */
+  fellBackFrom: FeedView | null;
+};
+
+/**
+ * Which tab the feed opens on. A new user who follows nothing must never land
+ * on an empty feed:
+ *
+ * 1. A tab in the URL (?view=, from clicking a tab or a link) is shown as
+ *    asked, even if empty; the page then says why and links to Discover.
+ * 2. Otherwise the tab the user last picked, if it has items; if it's empty,
+ *    All.
+ * 3. Otherwise Following if the user follows an organization and it has
+ *    items, else My causes if they chose causes and it has items, else All.
+ *
+ * `hasItems` says whether each tab would show at least one update.
+ */
+export function chooseFeedView({
+  requested,
+  remembered,
+  hasItems,
+  followsAny,
+  causesAny,
+}: {
+  requested: unknown;
+  remembered: unknown;
+  hasItems: Readonly<Record<FeedView, boolean>>;
+  followsAny: boolean;
+  causesAny: boolean;
+}): FeedChoice {
+  const asked = parseFeedView(requested);
+  if (asked) return { view: asked, fellBackFrom: null };
+
+  const picked = parseFeedView(remembered);
+  if (picked) {
+    return hasItems[picked] || picked === "all" ? { view: picked, fellBackFrom: null } : { view: "all", fellBackFrom: picked };
+  }
+
+  if (followsAny && hasItems.following) return { view: "following", fellBackFrom: null };
+  if (causesAny && hasItems.causes) return { view: "causes", fellBackFrom: null };
+  return { view: "all", fellBackFrom: null };
 }
 
 export function feedHref(view: FeedView): string {

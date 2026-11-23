@@ -6,7 +6,7 @@ import { z } from "zod";
 /** Longest display name, in characters. */
 export const NAME_MAX = 60;
 /** Longest bio, in characters (the live counter on the page uses the same count). */
-export const BIO_MAX = 280;
+export const BIO_MAX = 500;
 
 /**
  * Characters as a person counts them: an emoji is one, not two. Used by both
@@ -53,7 +53,7 @@ const nameField = z
 
 const bioField = z
   .string()
-  .max(5000, `Keep your bio to ${BIO_MAX} characters.`)
+  .max(10_000, `Keep your bio to ${BIO_MAX} characters.`)
   .transform(normalizeBio)
   .refine((bio) => charCount(bio) <= BIO_MAX, `Keep your bio to ${BIO_MAX} characters.`)
   // An empty bio is stored as "no bio".

@@ -1,20 +1,34 @@
 // app/feed/page.tsx
 // News in three views (Local plan L2): Following (organizations the user
-// follows), My causes, and All. The view is in the URL (?view=). Only updates
-// that link to a real source are shown (see lib/feed.ts).
+// follows), My causes, and All. A tab picked by hand is in the URL (?view=)
+// and remembered in a cookie; without one, the feed opens on a tab that has
+// updates (chooseFeedView in lib/feed.ts), so it's never empty on arrival.
+// Only updates that link to a real source are shown.
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { FEED_VIEW_LABELS, FEED_VIEWS, feedHref, newsFeedWhere, parseFeedView, previewText, safeExternalUrl, type FeedView } from "@/lib/feed";
+import {
+  FEED_VIEW_COOKIE,
+  FEED_VIEW_LABELS,
+  FEED_VIEWS,
+  chooseFeedView,
+  feedHref,
+  newsFeedWhere,
+  previewText,
+  safeExternalUrl,
+  type FeedView,
+} from "@/lib/feed";
+import { FeedTabs } from "@/components/feed/FeedTabs";
 import { FollowButton, FollowNotice } from "@/components/FollowButton";
 import { ReadMore } from "@/components/feed/ReadMore";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { OrgLogo } from "@/components/ui/OrgLogo";
 import { sourceSite } from "@/lib/news-image";
-import { buttonSecondary, chip } from "@/components/ui/buttons";
+import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -28,20 +42,37 @@ const dateFormat = new Intl.DateTimeFormat("en-US", {
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
-/** What an empty view says, and where it points. */
-function emptyState(view: FeedView, counts: { follows: number; causes: number }) {
-  if (view === "following" && counts.follows === 0) {
-    return { text: "You don't follow any organizations yet. Follow one and its updates will appear here.", href: "/discover", action: "Find organizations" };
+type EmptyAction = { href: string; label: string };
+
+const DISCOVER: EmptyAction = { href: "/discover", label: "Find organizations to follow" };
+
+/** What an empty view says (why it's empty), and where it points: always to Discover. */
+function emptyState(view: FeedView, counts: { follows: number; causes: number }): { text: string; actions: EmptyAction[] } {
+  const seeAll: EmptyAction = { href: feedHref("all"), label: "See all updates" };
+  switch (view) {
+    case "following":
+      return counts.follows === 0
+        ? { text: "You don't follow any organizations yet. Follow one and its updates will appear here.", actions: [DISCOVER, seeAll] }
+        : {
+            text: "The organizations you follow haven't posted an update yet. We only show news that links to something an organization actually published. Follow more organizations to see more here.",
+            actions: [DISCOVER, seeAll],
+          };
+    case "causes":
+      return counts.causes === 0
+        ? {
+            text: "You haven't chosen any causes yet. Choose some, or follow organizations directly.",
+            actions: [{ href: "/profile#causes-heading", label: "Choose causes" }, DISCOVER],
+          }
+        : {
+            text: "No organization in your causes has posted an update yet. We only show news that links to something an organization actually published.",
+            actions: [DISCOVER, seeAll],
+          };
+    case "all":
+      return {
+        text: "No organization has posted an update yet. We only show news that links to something an organization actually published. Follow organizations now and their updates will appear here.",
+        actions: [DISCOVER],
+      };
   }
-  if (view === "causes" && counts.causes === 0) {
-    return { text: "You haven't chosen any causes yet.", href: "/onboarding/interests", action: "Choose causes" };
-  }
-  const whose = view === "following" ? "the organizations you follow" : view === "causes" ? "your causes" : "any organization";
-  return {
-    text: `We only show news that links to something the organization actually published, and none has been posted for ${whose} yet. Check back soon.`,
-    href: view === "all" ? null : feedHref("all"),
-    action: view === "all" ? null : "See all updates",
-  };
 }
 
 export default async function FeedPage({ searchParams }: Props) {
@@ -57,11 +88,24 @@ export default async function FeedPage({ searchParams }: Props) {
   const categoryIds = interests.map((i) => i.categoryId);
   const followedOrgIds = follows.map((f) => f.organizationId);
   const followed = new Set(followedOrgIds);
-  const view = parseFeedView(params.view, followedOrgIds.length > 0);
+  const ids = { followedOrgIds, categoryIds };
+
+  // Which tabs have at least one update (one tiny query each).
+  const firstItems = await Promise.all(
+    FEED_VIEWS.map((v) => prisma.newsItem.findFirst({ where: newsFeedWhere(v, ids), select: { id: true } })),
+  );
+  const hasItems = Object.fromEntries(FEED_VIEWS.map((v, i) => [v, firstItems[i] !== null])) as Record<FeedView, boolean>;
+  const { view, fellBackFrom } = chooseFeedView({
+    requested: params.view,
+    remembered: (await cookies()).get(FEED_VIEW_COOKIE)?.value,
+    hasItems,
+    followsAny: followedOrgIds.length > 0,
+    causesAny: categoryIds.length > 0,
+  });
   const returnTo = feedHref(view);
 
   const newsItems = await prisma.newsItem.findMany({
-    where: newsFeedWhere(view, { followedOrgIds, categoryIds }),
+    where: newsFeedWhere(view, ids),
     orderBy: { createdAt: "desc" },
     take: 50,
     select: {
@@ -88,23 +132,25 @@ export default async function FeedPage({ searchParams }: Props) {
 
       <FollowNotice value={params.notice} />
 
-      <nav aria-label="Feed views" className="flex flex-wrap gap-2">
-        {FEED_VIEWS.map((v) => (
-          <Link key={v} href={feedHref(v)} className={chip(v === view)} aria-current={v === view ? "page" : undefined}>
-            {FEED_VIEW_LABELS[v]}
-          </Link>
-        ))}
-      </nav>
+      <FeedTabs tabs={FEED_VIEWS.map((v) => ({ view: v, label: FEED_VIEW_LABELS[v], href: feedHref(v) }))} current={view} />
+
+      {fellBackFrom && newsItems.length > 0 && (
+        <p className="text-sm text-muted" role="status">
+          Nothing under {FEED_VIEW_LABELS[fellBackFrom]} yet, so you&apos;re seeing all updates.
+        </p>
+      )}
 
       {newsItems.length === 0 ? (
         <Card>
           <CardHeader title="No updates yet" />
           <p>{empty.text}</p>
-          {empty.href && empty.action && (
-            <Link href={empty.href} className={`${buttonSecondary} mt-4`}>
-              {empty.action}
-            </Link>
-          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {empty.actions.map((a, i) => (
+              <Link key={a.href} href={a.href} className={i === 0 ? buttonPrimary : buttonSecondary}>
+                {a.label}
+              </Link>
+            ))}
+          </div>
         </Card>
       ) : (
         <div className="grid grid-cols-1 items-start gap-(--space-section) md:grid-cols-2">
