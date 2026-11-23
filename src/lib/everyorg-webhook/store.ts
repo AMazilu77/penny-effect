@@ -57,9 +57,12 @@ export const prismaWebhookStore: WebhookStore = {
   },
 
   async recordEvent(event) {
-    try {
-      await prisma.partnerEvent.create({
-        data: {
+    // A retried delivery: the first one is already in the log. skipDuplicates
+    // (ON CONFLICT DO NOTHING) skips it without an error, so Prisma's error
+    // log stays for real failures.
+    await prisma.partnerEvent.createMany({
+      data: [
+        {
           provider: "EVERYORG",
           kind: event.kind,
           status: event.status,
@@ -69,11 +72,8 @@ export const prismaWebhookStore: WebhookStore = {
           donationId: event.donationId,
           payload: event.payload ?? Prisma.JsonNull,
         },
-      });
-    } catch (err) {
-      // A retried delivery: the first one is already in the log.
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") return;
-      throw err;
-    }
+      ],
+      skipDuplicates: true,
+    });
   },
 };
