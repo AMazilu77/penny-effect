@@ -62,6 +62,16 @@ model User {
   // "Show my name in collective totals". Default anonymous. Nothing reads
   // it yet; collective totals (Milestone 4) must respect it.
   showNameInTotals Boolean @default(false)
+
+  // "My area" (local nonprofits, D-028): chosen by the user, coarse only,
+  // never a street address. Either a region, or a city with its state, or
+  // nothing (the default). A database CHECK keeps it to one of those.
+  // Used for the feed's Near me tab and Discover's "Use my area".
+  areaRegionId String?
+  areaRegion   Region? @relation(fields: [areaRegionId], references: [id], onDelete: SetNull)
+  areaCity     String?
+  // Two-letter USPS code, set together with areaCity.
+  areaState    String?
 }
 
 model Account {
@@ -166,6 +176,16 @@ enum RatingSource {
   MANUAL
 }
 
+// Who an organization serves (local nonprofits, D-028). Set by an admin.
+// Discover lists national organizations in their own section, so local ones
+// aren't buried under them.
+enum ServiceArea {
+  LOCAL // one city or community
+  REGIONAL // several cities or counties
+  STATEWIDE // the whole state it's based in
+  NATIONAL // the whole country, or beyond
+}
+
 // Organizations are hidden, never deleted, so donation history stays intact.
 enum OrganizationStatus {
   ACTIVE
@@ -175,20 +195,31 @@ enum OrganizationStatus {
 // Users see an organization only when it is ACTIVE, has an EIN, Every.org
 // reports it disbursable, and an admin has verified it (D-012).
 model Organization {
-  id              String   @id @default(cuid())
+  id                String       @id @default(cuid())
   // Display name. Not unique: the EIN is the identity.
-  name            String
-  description     String?
-  website         String?
-  logoUrl         String?
-  locationCity    String?
-  locationState   String?
-  locationCountry String?
+  name              String
+  description       String?
+  website           String?
+  logoUrl           String?
+  locationCity      String?
+  locationState     String?
+  locationCountry   String?
   // From Every.org's address on import and in the weekly refresh
   // (src/lib/everyorg/address.ts): city as written, 2-letter state, 5-digit ZIP.
-  locationZip     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  locationZip       String?
+  // County name without the word "County" (e.g. "Palm Beach"), entered by an
+  // admin (Every.org has no county). With locationState, it's what matches
+  // regions (src/lib/area.ts).
+  locationCounty    String?
+  // An admin set city/state/ZIP by hand, so the Every.org refresh leaves them alone.
+  locationManual    Boolean      @default(false)
+  // Null until an admin sets it (required to verify from now on).
+  serviceArea       ServiceArea?
+  // Volunteering (D-028). The link is shown only when it's a valid http(s) URL.
+  acceptsVolunteers Boolean      @default(false)
+  volunteerUrl      String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   // US registry ID: 9 digits, no dash (e.g. "123456789").
   ein           String?   @unique
@@ -282,6 +313,33 @@ model UserLocation {
   longitude Float?
 
   user User @relation(fields: [userId], references: [id])
+}
+
+// A named area made of counties, e.g. "South Florida" = Palm Beach, Broward
+// and Miami-Dade (local nonprofits, D-028). Data, not code: the first four
+// were inserted by the migration that added this table; admins add more at
+// /admin/regions. Organizations match a region by their county and state.
+model Region {
+  id        String         @id @default(cuid())
+  // URL key for Discover's ?area= (at least 3 characters, so it can't be read as a state code).
+  slug      String         @unique
+  name      String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  counties  RegionCounty[]
+  // Users who chose this region as My area (set to none if it's deleted).
+  users     User[]
+}
+
+model RegionCounty {
+  regionId String
+  // Two-letter USPS code.
+  state    String
+  // As shown, without "County" (e.g. "Miami-Dade").
+  county   String
+  region   Region @relation(fields: [regionId], references: [id], onDelete: Cascade)
+
+  @@id([regionId, state, county])
 }
 
 // news items

@@ -8,6 +8,8 @@ import {
   formDataToObject,
   importForm,
   linkClearsVerification,
+  locationForm,
+  locationUpdate,
   messageFor,
   verifyBlocker,
 } from "@/lib/admin-orgs";
@@ -32,6 +34,95 @@ describe("everyOrgFields", () => {
     // Our display name is never overwritten by a refresh.
     expect(fields).not.toHaveProperty("name");
   });
+
+  it("leaves out the address when an admin entered it by hand", () => {
+    const fields = everyOrgFields(parseNonprofitResponse(givedirectly), new Date(), { keepLocation: true });
+    expect(fields).not.toHaveProperty("locationCity");
+    expect(fields).not.toHaveProperty("locationZip");
+    expect(fields).toMatchObject({ ein: "271661997" });
+  });
+});
+
+describe("locationForm", () => {
+  const base = { organizationId: "org1" };
+
+  it("reads a full local entry: city, state (any form), ZIP, county without 'County', volunteers", () => {
+    expect(
+      locationForm.parse({
+        ...base,
+        locationCity: " West Palm Beach ",
+        locationState: "florida",
+        locationZip: "33407",
+        locationCounty: "Palm Beach County",
+        serviceArea: "LOCAL",
+        acceptsVolunteers: "on",
+        volunteerUrl: "https://thelordsplace.org/make-a-difference/volunteer/",
+      }),
+    ).toEqual({
+      organizationId: "org1",
+      locationCity: "West Palm Beach",
+      locationState: "FL",
+      locationZip: "33407",
+      locationCounty: "Palm Beach",
+      serviceArea: "LOCAL",
+      acceptsVolunteers: true,
+      volunteerUrl: "https://thelordsplace.org/make-a-difference/volunteer/",
+    });
+  });
+
+  it("treats empty fields and an unticked box as not set", () => {
+    expect(locationForm.parse({ ...base, locationCity: "", locationState: "", serviceArea: "" })).toEqual({
+      organizationId: "org1",
+      locationCity: null,
+      locationState: null,
+      locationZip: null,
+      locationCounty: null,
+      serviceArea: null,
+      acceptsVolunteers: false,
+      volunteerUrl: null,
+    });
+  });
+
+  it("refuses bad values", () => {
+    for (const bad of [
+      { locationState: "ZZ" },
+      { locationState: "FL", locationZip: "3340" },
+      { locationState: "FL", locationCity: "<b>Miami</b>" },
+      { locationState: "FL", serviceArea: "GALACTIC" },
+      { volunteerUrl: "javascript:alert(1)" },
+      { volunteerUrl: "not a url" },
+      { acceptsVolunteers: "yes" },
+      // A city or county needs a state.
+      { locationCity: "Miami" },
+      { locationCounty: "Broward" },
+    ]) {
+      expect(locationForm.safeParse({ ...base, ...bad }).success).toBe(false);
+    }
+  });
+});
+
+describe("locationUpdate", () => {
+  const fromEveryOrg = { locationCity: "West Palm Beach", locationState: "FL", locationZip: "33407", locationManual: false };
+  const input = {
+    organizationId: "org1",
+    locationCity: "West Palm Beach",
+    locationState: "FL",
+    locationZip: "33407",
+    locationCounty: "Palm Beach",
+    serviceArea: "LOCAL" as const,
+    acceptsVolunteers: true,
+    volunteerUrl: null,
+  };
+
+  it("adding only county, service area or volunteering keeps Every.org in charge of the address", () => {
+    expect(locationUpdate(input, fromEveryOrg)).toMatchObject({ locationCounty: "Palm Beach", serviceArea: "LOCAL", locationManual: false });
+  });
+
+  it("changing the city, state or ZIP marks the address as entered by hand", () => {
+    expect(locationUpdate({ ...input, locationCity: "Riviera Beach" }, fromEveryOrg).locationManual).toBe(true);
+    expect(locationUpdate({ ...input, locationZip: "33409" }, fromEveryOrg).locationManual).toBe(true);
+    expect(locationUpdate(input, { ...fromEveryOrg, locationManual: true }).locationManual).toBe(true);
+  });
 });
 
 describe("linkClearsVerification", () => {
@@ -44,7 +135,7 @@ describe("linkClearsVerification", () => {
 });
 
 describe("verifyBlocker", () => {
-  const ready = { ein: "271661997", everyOrgId: "x", isDisbursable: true, status: "ACTIVE" as const };
+  const ready = { ein: "271661997", everyOrgId: "x", isDisbursable: true, status: "ACTIVE" as const, serviceArea: "LOCAL" as const };
 
   it("allows a linked, disbursable, active organization with an EIN", () => {
     expect(verifyBlocker(ready)).toBeNull();
@@ -55,6 +146,7 @@ describe("verifyBlocker", () => {
     expect(verifyBlocker({ ...ready, ein: null })).toBe("no-ein");
     expect(verifyBlocker({ ...ready, isDisbursable: false })).toBe("not-disbursable");
     expect(verifyBlocker({ ...ready, status: "HIDDEN" })).toBe("hidden");
+    expect(verifyBlocker({ ...ready, serviceArea: null })).toBe("no-service-area");
   });
 });
 
