@@ -145,6 +145,15 @@ model Donation {
   // What the donor was sent to pay, frozen at checkout (the webhook must match it).
   checkoutEin    String?
   checkoutSlug   String?
+  // The amount the donor chose on our site, frozen when checkout starts.
+  // Every.org's Donate Link can't lock the amount, so the donor may change it
+  // there; once Every.org confirms, `amountCents` holds what Every.org
+  // reported and this keeps what was asked (src/lib/everyorg-webhook).
+  requestedAmountCents Int?
+  // Rows recorded before real payments existed (all of them PENDING
+  // intentions, or test rows). Never counted in any total and labelled as such
+  // in history (src/lib/gift-state.ts). Set by the migration that added it.
+  legacy         Boolean        @default(false)
   // Set only by Every.org's verified webhook (src/lib/everyorg-webhook):
   // when it confirmed the payment, what reached the nonprofit after fees,
   // and how the donor paid.

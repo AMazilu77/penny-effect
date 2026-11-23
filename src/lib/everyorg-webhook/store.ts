@@ -7,6 +7,7 @@ const matchFields = {
   id: true,
   status: true,
   amountCents: true,
+  requestedAmountCents: true,
   currency: true,
   checkoutToken: true,
   checkoutEin: true,
@@ -28,10 +29,12 @@ export const prismaWebhookStore: WebhookStore = {
       // Conditional update: only a still-PENDING, unmatched row changes, so
       // two deliveries racing can't both apply.
       const { count } = await prisma.donation.updateMany({
-        where: { id: donationId, status: "PENDING", externalId: null },
+        where: { id: donationId, status: "PENDING", externalId: null, legacy: false },
         data: {
           status: "COMPLETED",
           externalId: data.chargeId,
+          amountCents: data.amountCents,
+          requestedAmountCents: data.requestedAmountCents,
           completedAt: data.completedAt,
           netAmountCents: data.netAmountCents,
           paymentMethod: data.paymentMethod,

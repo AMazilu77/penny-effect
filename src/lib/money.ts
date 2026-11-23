@@ -3,6 +3,12 @@
 
 /** Smallest gift we accept: $1.00. */
 export const MIN_DONATION_CENTS = 100;
+/**
+ * Smallest gift paid through Every.org: $10.00 (D-017). Every.org's minimum,
+ * kept because tiny card charges invite card testing. Smaller amounts can
+ * still be recorded as intentions (for the Penny Jar, Milestone 4).
+ */
+export const CHECKOUT_MIN_CENTS = 1000;
 /** Largest single gift we accept for now: $10,000.00. */
 export const MAX_DONATION_CENTS = 1_000_000;
 

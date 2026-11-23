@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { BRAND_NAME } from "@/lib/brand";
 import { GIFTS_PER_PAGE, pageCount, parsePage } from "@/lib/dashboard";
+import { GIFT_ROW_SELECT, toGiftRow } from "@/lib/gift-rows";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 import { GiftList } from "@/components/dashboard/lists";
@@ -33,15 +34,9 @@ export default async function DonationsPage({
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     skip: (page - 1) * GIFTS_PER_PAGE,
     take: GIFTS_PER_PAGE,
-    select: {
-      id: true,
-      amountCents: true,
-      currency: true,
-      status: true,
-      createdAt: true,
-      organization: { select: { name: true } },
-    },
+    select: GIFT_ROW_SELECT,
   });
+  const now = new Date();
 
   return (
     <div className="space-y-(--space-section)">
@@ -54,7 +49,7 @@ export default async function DonationsPage({
         <CardHeader
           as="h1"
           title={`Your gifts (${total})`}
-          description="Newest first. Only gifts our donation partner confirms are marked Paid."
+          description="Newest first. Only gifts Every.org confirms are marked Paid. Every.org emails each tax receipt."
         />
         {total === 0 ? (
           <Card level="inset" as="div">
@@ -64,7 +59,7 @@ export default async function DonationsPage({
             </Link>
           </Card>
         ) : (
-          <GiftList gifts={gifts} />
+          <GiftList gifts={gifts.map((d) => toGiftRow(d, now))} />
         )}
         {pages > 1 && (
           <nav aria-label="Pages of gifts" className="mt-4 flex flex-wrap items-center justify-between gap-3">
