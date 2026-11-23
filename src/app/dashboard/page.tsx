@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { DASHBOARD_PREVIEW, summarizeDonations } from "@/lib/dashboard";
 import { countedDonationsWhere } from "@/lib/gift-state";
+import { checkoutEnabled } from "@/lib/checkout";
 import { GIFT_ROW_SELECT, toGiftRow } from "@/lib/gift-rows";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
@@ -81,6 +82,7 @@ export default async function DashboardPage({
   ]);
 
   const summary = summarizeDonations(statusGroups);
+  const checkoutOn = checkoutEnabled();
   // Every.org sends donors here when they leave checkout without paying.
   const params = await searchParams;
   const checkoutCancelled = params.checkout === "cancelled";
@@ -122,8 +124,15 @@ export default async function DashboardPage({
           On wide screens the form and the totals sit side by side. */}
       <div className="grid items-start gap-(--space-section) lg:grid-cols-2">
         <Card id="give" className="scroll-mt-24">
-          <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
-          <DonationForm initialOrganizationId={giveTo} />
+          {checkoutOn ? (
+            <CardHeader
+              title="Give"
+              description="Gifts of $10 or more are paid on Every.org. Smaller amounts are recorded as intentions, never charged."
+            />
+          ) : (
+            <CardHeader title="Record a donation" description="Nothing is charged yet: this records your intention." />
+          )}
+          <DonationForm initialOrganizationId={giveTo} checkoutOn={checkoutOn} />
         </Card>
 
         {/* Impact overview: real numbers only */}
@@ -135,7 +144,9 @@ export default async function DashboardPage({
               value={formatCents(summary.givenCents)}
               note={
                 summary.givenCount === 0
-                  ? "Payments start once our donation partner is connected."
+                  ? checkoutOn
+                    ? "No gifts confirmed by Every.org yet."
+                    : "Payments start once our donation partner is connected."
                   : `${summary.givenCount} paid ${summary.givenCount === 1 ? "gift" : "gifts"}`
               }
             />

@@ -174,7 +174,15 @@ export default async function OrganizationPage({ params, searchParams }: Props) 
             </div>
           )}
           <div className="flex flex-wrap items-center gap-3 border-t pt-4">
-            <Link href={`/dashboard?give=${encodeURIComponent(org.id)}#give`} className={buttonPrimary}>
+            {/* The Give page needs a signed-in donor; signed-out visitors sign in first and come back. */}
+            <Link
+              href={
+                userId
+                  ? `/give/${encodeURIComponent(org.everyOrgSlug ?? "")}`
+                  : `/signin?callbackUrl=${encodeURIComponent(`/give/${org.everyOrgSlug ?? ""}`)}`
+              }
+              className={buttonPrimary}
+            >
               Give to {org.name}
             </Link>
             <FollowButton
