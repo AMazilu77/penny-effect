@@ -24,6 +24,8 @@ import { CausesForm } from "./CausesForm";
 import { AvatarForm } from "./AvatarForm";
 import { PasswordForm } from "./PasswordForm";
 import { DeleteAccountForm } from "./DeleteAccountForm";
+import { AreaForm } from "./AreaForm";
+import { stateOptions } from "@/lib/everyorg/address";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: `Your profile | ${BRAND_NAME}` };
@@ -120,7 +122,7 @@ export default async function ProfilePage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin?callbackUrl=%2Fprofile");
 
-  const [user, providers, categories, interests, follows, followCount, gifts, giftCount, top] = await Promise.all([
+  const [user, providers, categories, interests, follows, followCount, gifts, giftCount, top, regions] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       // The password hash is read only to say whether one exists; it never leaves this function.
@@ -132,6 +134,9 @@ export default async function ProfilePage({
         showNameInTotals: true,
         passwordHash: true,
         avatar: { select: { updatedAt: true } },
+        areaCity: true,
+        areaState: true,
+        areaRegion: { select: { slug: true } },
       },
     }),
     prisma.account.findMany({ where: { userId }, select: { provider: true } }),
@@ -152,6 +157,7 @@ export default async function ProfilePage({
     }),
     prisma.donation.count({ where: { userId } }),
     loadTopSupported(userId),
+    prisma.region.findMany({ orderBy: { name: "asc" }, select: { slug: true, name: true } }),
   ]);
 
   // Signed in with a token for an account that's gone (deleted in another tab or device).
@@ -214,7 +220,7 @@ export default async function ProfilePage({
 
         <Card aria-labelledby="causes-heading">
           <CardHeader
-            title={<span id="causes-heading">Your causes</span>}
+            title={<span id="causes-heading" className="scroll-mt-28">Your causes</span>}
             description="Your feed shows news from these under My causes."
           />
           <CausesForm categories={categories} selected={interests.map((i) => i.categoryId)} />
@@ -283,6 +289,24 @@ export default async function ProfilePage({
           )}
         </Card>
       </div>
+
+      <Card aria-labelledby="area-heading">
+        <CardHeader
+          title={<span id="area-heading" className="scroll-mt-28">Your area</span>}
+          description="Optional. Your feed gets a Near me tab with news from nonprofits serving it, and Discover can filter by it."
+        />
+        <AreaForm
+          regions={regions}
+          states={stateOptions()}
+          current={
+            user.areaRegion
+              ? { kind: "region", regionSlug: user.areaRegion.slug }
+              : user.areaCity && user.areaState
+                ? { kind: "city", state: user.areaState, city: user.areaCity }
+                : { kind: "none" }
+          }
+        />
+      </Card>
 
       <Card aria-labelledby="privacy-heading">
         <CardHeader

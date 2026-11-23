@@ -50,6 +50,14 @@ describe("refreshOrganizations", () => {
     expect(summary).toMatchObject({ checked: 1, updated: 1, unverified: 0, stoppedEarly: null });
   });
 
+  it("keeps an address an admin entered by hand (locationManual), and still refreshes the rest", async () => {
+    const store = fakeStore([candidate({ locationManual: true })]);
+    await refreshOrganizations({ store, client: clientReturning(GD), now: () => NOW });
+    const data = store.update.mock.calls[0][1];
+    expect(data).toMatchObject({ ein: GD.ein, lastSyncedAt: NOW });
+    for (const key of ["locationCity", "locationState", "locationZip", "locationCountry"]) expect(data).not.toHaveProperty(key);
+  });
+
   it("clears verification when Every.org reports a different EIN", async () => {
     const store = fakeStore([candidate({ ein: "123456789" })]);
     const summary = await refreshOrganizations({ store, client: clientReturning(GD), now: () => NOW });

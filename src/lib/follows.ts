@@ -30,7 +30,7 @@ export const followForm = z.object({
 });
 
 /** Adds ?notice=<code> (or &notice=) to a return path. */
-export function withNotice(path: string, notice: "followed" | "unfollowed" | "follow-limited" | "follow-unavailable"): string {
+export function withNotice(path: string, notice: keyof typeof FOLLOW_NOTICES): string {
   const url = new URL(path, "https://penny.invalid");
   url.searchParams.set("notice", notice);
   return `${url.pathname}${url.search}`;
@@ -41,6 +41,10 @@ export const FOLLOW_NOTICES = {
   unfollowed: "Unfollowed.",
   "follow-limited": "Too many follow changes in a short time. Try again in a few minutes.",
   "follow-unavailable": "That organization isn't available to follow.",
+  // "Save as my area" on Discover (src/app/actions/area.ts) reports back the same way.
+  "area-saved": "Saved as your area. Your feed now has a Near me tab.",
+  "area-invalid": "That area couldn't be saved. Choose a region, or a city in a state.",
+  "area-limited": "Too many changes in a short time. Try again in a few minutes.",
 } as const;
 
 /** The message for a ?notice= value from a follow action, or null. */

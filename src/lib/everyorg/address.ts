@@ -26,10 +26,33 @@ const US_NAMES = new Set(["united states", "united states of america", "usa", "u
 
 export type OrgLocation = { city: string; state: string; zip: string | null };
 
-/** "NEW YORK" → "New York"; mixed-case names ("McAllen", "DeLand") are kept as written. */
+// Short forms in IRS records (which Every.org's address comes from), e.g.
+// "WEST PALM BCH", "PALM BEACH GDNS", "FT LAUDERDALE". Expanded so the city
+// matches what people type in Discover's city filter. Only whole words, and
+// only in all-capitals addresses (the IRS style).
+const IRS_CITY_WORDS: Record<string, string> = {
+  BCH: "BEACH",
+  GDNS: "GARDENS",
+  SPGS: "SPRINGS",
+  HTS: "HEIGHTS",
+  HGTS: "HEIGHTS",
+  PNES: "PINES",
+  LKS: "LAKES",
+  MTN: "MOUNTAIN",
+  FT: "FORT",
+};
+
+/**
+ * "NEW YORK" → "New York", "WEST PALM BCH" → "West Palm Beach"; mixed-case
+ * names ("McAllen", "DeLand") are kept as written.
+ */
 function cityName(raw: string): string {
   if (raw !== raw.toUpperCase()) return raw;
-  return raw.toLowerCase().replace(/(^|[\s\-'.])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase());
+  const expanded = raw
+    .split(/\s+/)
+    .map((word) => IRS_CITY_WORDS[word.replace(/\.$/, "")] ?? word)
+    .join(" ");
+  return expanded.toLowerCase().replace(/(^|[\s\-'.])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase());
 }
 
 /** "FL" → "Florida", "DC" → "District of Columbia"; an unknown code is returned as is. */
@@ -77,4 +100,9 @@ export function parseEveryOrgAddress(address: string | null | undefined): OrgLoc
 export function orgLocationFields(address: string | null | undefined) {
   const loc = parseEveryOrgAddress(address);
   return loc ? { locationCity: loc.city, locationState: loc.state, locationZip: loc.zip, locationCountry: "US" } : {};
+}
+
+/** Every state and territory as { code, name }, by name (for state pickers). */
+export function stateOptions(): { code: string; name: string }[] {
+  return [...STATE_CODES].map((code) => ({ code, name: stateName(code) })).sort((a, b) => a.name.localeCompare(b.name));
 }

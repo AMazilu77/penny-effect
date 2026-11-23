@@ -37,6 +37,8 @@ export type RefreshCandidate = {
   everyOrgId: string;
   ein: string | null;
   verifiedAt: Date | null;
+  /** An admin entered the address by hand: keep it (D-028). */
+  locationManual?: boolean;
 };
 
 export type RefreshUpdate = ReturnType<typeof everyOrgFields> & {
@@ -133,7 +135,7 @@ export async function refreshOrganizations({
 
     const clearVerification = org.verifiedAt !== null && linkClearsVerification(org.ein, np.ein);
     const data: RefreshUpdate = {
-      ...everyOrgFields(np, now()),
+      ...everyOrgFields(np, now(), { keepLocation: org.locationManual ?? false }),
       ...(clearVerification ? { verifiedAt: null, verifiedById: null, verificationNote: null } : {}),
     };
     if ((await store.update(org.id, data)) === "conflict") {

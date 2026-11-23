@@ -2,9 +2,11 @@
 //
 // - Never deletes anything. Safe to run again and again (upserts).
 // - Refuses to run when VERCEL_ENV=production.
-// - Seeds the 9 categories and a dozen real nonprofits (EINs checked on
-//   Every.org), marked verified so they show up locally like a reviewed
-//   directory. No news: news must link to a real source (admins post it).
+// - Seeds the 9 categories and 16 real nonprofits (EINs checked on
+//   Every.org; the four Palm Beach County ones also on ProPublica), marked
+//   verified so they show up locally like a reviewed directory. No news:
+//   news must link to a real source (admins post it). Regions come from
+//   their migration, not from here.
 //
 // Organizations are matched by EIN, then Every.org slug, then exact name, so
 // rows from the old seed get linked instead of duplicated. Existing category
@@ -48,11 +50,23 @@ async function main() {
       website: org.website,
       isDisbursable: true,
       status: "ACTIVE" as const,
+      // Local ones: where they are, checked against ProPublica (D-028).
+      ...(org.location
+        ? {
+            locationCity: org.location.city,
+            locationState: org.location.state,
+            locationZip: org.location.zip,
+            locationCounty: org.location.county,
+            locationCountry: "US",
+            locationManual: true,
+          }
+        : {}),
+      ...(org.volunteerUrl ? { acceptsVolunteers: true, volunteerUrl: org.volunteerUrl } : {}),
     };
 
     const existing = await prisma.organization.findFirst({
       where: { OR: [{ ein: org.ein }, { everyOrgSlug: org.everyOrgSlug }, { name: org.name }] },
-      select: { id: true, description: true, verifiedAt: true },
+      select: { id: true, description: true, verifiedAt: true, serviceArea: true },
     });
 
     if (existing) {
@@ -61,6 +75,7 @@ async function main() {
         data: {
           ...fields,
           description: existing.description ?? org.description,
+          serviceArea: existing.serviceArea ?? org.serviceArea,
           verifiedAt: existing.verifiedAt ?? new Date(),
           ...(existing.verifiedAt ? {} : { verificationNote: SEED_NOTE }),
           categories: { connect: categories },
@@ -72,6 +87,7 @@ async function main() {
         data: {
           name: org.name,
           description: org.description,
+          serviceArea: org.serviceArea,
           ...fields,
           verifiedAt: new Date(),
           verificationNote: SEED_NOTE,

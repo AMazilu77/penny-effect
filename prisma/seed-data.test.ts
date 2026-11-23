@@ -24,6 +24,19 @@ describe("seed data", () => {
     }
   });
 
+  it("every organization has a service area; local ones have a full place and an https volunteer link", () => {
+    for (const org of SEED_ORGANIZATIONS) {
+      expect(["LOCAL", "REGIONAL", "STATEWIDE", "NATIONAL"], org.name).toContain(org.serviceArea);
+      if (org.location) {
+        expect(org.location.state, org.name).toMatch(/^[A-Z]{2}$/);
+        expect(org.location.zip, org.name).toMatch(/^\d{5}$/);
+        expect(org.location.county, org.name).not.toMatch(/county/i);
+      }
+      if (org.volunteerUrl) expect(org.volunteerUrl, org.name).toMatch(/^https:\/\//);
+    }
+    expect(SEED_ORGANIZATIONS.filter((o) => o.location?.county === "Palm Beach")).toHaveLength(4);
+  });
+
   it("puts exactly the five D-013 charities in Highest Impact", () => {
     expect(SEED_ORGANIZATIONS.filter((o) => o.categorySlugs.includes("highest-impact")).map((o) => o.everyOrgSlug).sort()).toEqual(
       ["againstmalaria", "givedirectly", "hki", "malaria-consortium", "newincentives"],

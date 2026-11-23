@@ -25,7 +25,7 @@ const store: RefreshStore = {
         where: { status: "ACTIVE", everyOrgId: { not: null } },
         orderBy: { lastSyncedAt: { sort: "asc", nulls: "first" } },
         take: limit,
-        select: { id: true, everyOrgId: true, ein: true, verifiedAt: true },
+        select: { id: true, everyOrgId: true, ein: true, verifiedAt: true, locationManual: true },
       })
       // The where clause guarantees everyOrgId; this narrows the type.
       .then((orgs) => orgs.flatMap((o) => (o.everyOrgId ? [{ ...o, everyOrgId: o.everyOrgId }] : []))),

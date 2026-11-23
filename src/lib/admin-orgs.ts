@@ -3,16 +3,18 @@
 // src/app/admin/organizations/actions.ts apply them.
 import { z } from "zod";
 import type { EveryOrgNonprofit } from "@/lib/everyorg/parse";
-import { orgLocationFields } from "@/lib/everyorg/address";
+import { orgLocationFields, stateCode } from "@/lib/everyorg/address";
+import { SERVICE_AREAS, normalizeCountyName, type ServiceAreaName } from "@/lib/area";
 import { VERIFICATION_NOTE_MAX, VERIFICATION_NOTE_MIN } from "@/lib/verification-guide";
 
 /**
  * The Organization fields that come from Every.org. Used when importing a
  * new organization and when linking or refreshing an existing one. Our own
  * `name` is set only on import, so an admin's chosen display name survives
- * a refresh.
+ * a refresh. So does an address an admin entered by hand
+ * (`keepLocation`, from Organization.locationManual).
  */
-export function everyOrgFields(np: EveryOrgNonprofit, now: Date) {
+export function everyOrgFields(np: EveryOrgNonprofit, now: Date, { keepLocation = false }: { keepLocation?: boolean } = {}) {
   return {
     ein: np.ein,
     everyOrgId: np.everyOrgId,
@@ -24,7 +26,7 @@ export function everyOrgFields(np: EveryOrgNonprofit, now: Date) {
     logoUrl: np.logoUrl,
     coverImageUrl: np.coverImageUrl,
     // City, state, ZIP. Left out (existing values kept) when the address can't be read.
-    ...orgLocationFields(np.locationAddress),
+    ...(keepLocation ? {} : orgLocationFields(np.locationAddress)),
     lastSyncedAt: now,
   };
 }
@@ -42,9 +44,10 @@ type VerifiableOrg = {
   everyOrgId: string | null;
   isDisbursable: boolean;
   status: "ACTIVE" | "HIDDEN";
+  serviceArea: ServiceAreaName | null;
 };
 
-export type VerifyBlocker = "no-everyorg" | "no-ein" | "not-disbursable" | "hidden";
+export type VerifyBlocker = "no-everyorg" | "no-ein" | "not-disbursable" | "hidden" | "no-service-area";
 
 /**
  * Why an admin can't verify this organization yet, or null if they can.
@@ -55,6 +58,8 @@ export function verifyBlocker(org: VerifiableOrg): VerifyBlocker | null {
   if (!org.ein) return "no-ein";
   if (!org.isDisbursable) return "not-disbursable";
   if (org.status !== "ACTIVE") return "hidden";
+  // Discover separates local from national organizations, so an admin says which before it's listed (D-028).
+  if (!org.serviceArea) return "no-service-area";
   return null;
 }
 
@@ -95,6 +100,77 @@ export const categoriesForm = z.object({
   categoryIds: z.array(id).max(50),
 });
 
+// Location and volunteering (D-028), set by an admin on the organization's page.
+const optional = (schema: z.ZodType<string>) => z.union([z.literal("").transform(() => null), schema]);
+const CITY = /^[\p{L} .'-]{1,80}$/u;
+
+export const locationForm = z
+  .object({
+    organizationId: id,
+    locationCity: optional(z.string().trim().regex(CITY)).prefault(""),
+    locationState: optional(
+      z
+        .string()
+        .trim()
+        .transform((s, ctx) => stateCode(s) ?? (ctx.addIssue({ code: "custom", message: "state" }), z.NEVER)),
+    ).prefault(""),
+    locationZip: optional(z.string().trim().regex(/^\d{5}$/)).prefault(""),
+    locationCounty: optional(
+      z
+        .string()
+        .trim()
+        .regex(/^[\p{L} .'-]{1,60}$/u)
+        .transform(normalizeCountyName)
+        .refine((c) => c.length > 0),
+    ).prefault(""),
+    serviceArea: z.union([z.literal("").transform(() => null), z.enum(SERVICE_AREAS)]).prefault(""),
+    acceptsVolunteers: z
+      .literal("on")
+      .optional()
+      .transform((v) => v === "on"),
+    volunteerUrl: optional(
+      z
+        .string()
+        .trim()
+        .max(500)
+        .refine((u) => {
+          try {
+            const url = new URL(u);
+            return url.protocol === "https:" || url.protocol === "http:";
+          } catch {
+            return false;
+          }
+        }),
+    ).prefault(""),
+  })
+  // A city or county means nothing without its state.
+  .refine((f) => f.locationState !== null || (f.locationCity === null && f.locationCounty === null));
+
+export type LocationInput = z.infer<typeof locationForm>;
+
+/**
+ * The Organization update for the location form. If the admin changed the
+ * city, state or ZIP from what's stored (usually Every.org's), the address
+ * is marked as entered by hand so the weekly Every.org refresh keeps it.
+ */
+export function locationUpdate(
+  input: LocationInput,
+  current: { locationCity: string | null; locationState: string | null; locationZip: string | null; locationManual: boolean },
+) {
+  const changed =
+    input.locationCity !== current.locationCity || input.locationState !== current.locationState || input.locationZip !== current.locationZip;
+  return {
+    locationCity: input.locationCity,
+    locationState: input.locationState,
+    locationZip: input.locationZip,
+    locationCounty: input.locationCounty,
+    locationManual: current.locationManual || changed,
+    serviceArea: input.serviceArea,
+    acceptsVolunteers: input.acceptsVolunteers,
+    volunteerUrl: input.volunteerUrl,
+  };
+}
+
 /** Reads a FormData into a plain object (repeated keys become arrays). */
 export function formDataToObject(formData: FormData, arrayKeys: readonly string[] = []) {
   const result: Record<string, string | string[]> = {};
@@ -121,6 +197,11 @@ export const NOTICES = {
   "moved-hidden": "Hidden from users. It's now in the Hidden tab.",
   "moved-shown": "Unhidden. It's back in Needs review, or in Live if it is verified.",
   categories: "Categories saved.",
+  location: "Location and volunteering saved.",
+  "location-everyorg": "The address will come from Every.org again. Press Refresh from Every.org to fill it now.",
+  "region-created": "Region created.",
+  "region-saved": "Region saved.",
+  "region-deleted": "Region deleted. Anyone who had it as My area now has no area set.",
   "cn-saved": "Charity Navigator rating saved, dated today.",
   "cn-removed": "Charity Navigator rating removed.",
   "news-posted": "News posted. It appears in the feed of everyone following this organization's categories.",
@@ -141,6 +222,11 @@ export const ERRORS = {
   "no-ein": "Every.org has no EIN for it, so it can't be verified (D-012).",
   "not-disbursable": "Every.org can't currently send donations to it, so it can't be verified.",
   hidden: "Make it active before verifying.",
+  "no-service-area": "Set who it serves (local, regional, statewide or national) under Location and volunteering first.",
+  "location-invalid": "Location not saved: check the state (a US state), city (letters only), 5-digit ZIP, county, and that the volunteer link is a full http(s):// address. A city or county needs a state.",
+  "region-invalid": "Region not saved: it needs a name (3–60 characters) and at least one county, one per line, written like “Palm Beach, FL”.",
+  "region-taken": "Another region already has that name or web address.",
+  "region-not-found": "That region no longer exists.",
   "cn-invalid": "Rating not saved: the score must be a whole number from 0 to 100, stars (if shown) from 0 to 4, and the profile link must be this organization's Charity Navigator page (charitynavigator.org/ein/<its EIN>).",
   "note-required": `Write a verification note (${VERIFICATION_NOTE_MIN}–${VERIFICATION_NOTE_MAX} characters) saying what you checked, e.g. "IRS status current; 990 for 2024 on ProPublica; EIN in website footer".`,
   "news-invalid": "That news request wasn't valid. Reload the page and try again.",

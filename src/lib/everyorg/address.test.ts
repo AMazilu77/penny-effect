@@ -13,6 +13,15 @@ describe("parseEveryOrgAddress", () => {
     expect(parseEveryOrgAddress("McAllen, Texas, 78501 United States")?.city).toBe("McAllen");
   });
 
+  it("expands IRS short forms in all-capitals city names (as in the live API, 2026-11-22)", () => {
+    expect(parseEveryOrgAddress("WEST PALM BCH, FL")).toEqual({ city: "West Palm Beach", state: "FL", zip: null });
+    expect(parseEveryOrgAddress("PALM BEACH GDNS, Florida, 33410 United States")?.city).toBe("Palm Beach Gardens");
+    expect(parseEveryOrgAddress("FT LAUDERDALE, FL")?.city).toBe("Fort Lauderdale");
+    // Only whole words, and never in mixed-case names.
+    expect(parseEveryOrgAddress("BCHWOOD, FL")?.city).toBe("Bchwood");
+    expect(parseEveryOrgAddress("Ft Myers, FL")?.city).toBe("Ft Myers");
+  });
+
   it("reads abbreviated states with no ZIP", () => {
     expect(parseEveryOrgAddress("San Francisco, CA, USA")).toEqual({ city: "San Francisco", state: "CA", zip: null });
   });
