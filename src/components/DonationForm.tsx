@@ -7,7 +7,10 @@ import { formatCents } from '@/lib/money';
 
 type OrganizationOption = { id: string; name: string; description: string | null };
 
-export default function DonationForm({ initialOrganizationId }: { initialOrganizationId?: string } = {}) {
+export default function DonationForm({
+  initialOrganizationId,
+  checkoutOn = false,
+}: { initialOrganizationId?: string; checkoutOn?: boolean } = {}) {
   const router = useRouter();
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [orgsLoaded, setOrgsLoaded] = useState(false);
@@ -67,8 +70,12 @@ export default function DonationForm({ initialOrganizationId }: { initialOrganiz
           setCheckout({ url: data.checkoutUrl, amount: amountText });
           setStatus(`Recorded your ${amountText} gift. Finish paying on Every.org.`);
         } else {
-          // Honest wording: nothing is charged until the donation partner is integrated.
-          setStatus(`Recorded your ${amountText} gift. No payment was taken. Real payments arrive with our donation partner.`);
+          // Honest wording: nothing is charged (checkout off, or under Every.org's $10 minimum).
+          setStatus(
+            checkoutOn
+              ? `Recorded your ${amountText} intention. Nothing was charged: Every.org's minimum gift is $10.`
+              : `Recorded your ${amountText} gift. No payment was taken. Real payments arrive with our donation partner.`,
+          );
         }
         setAmount('');
         setMessage('');
@@ -130,9 +137,13 @@ export default function DonationForm({ initialOrganizationId }: { initialOrganiz
         </label>
 
         <button type="submit" disabled={submitting} aria-busy={submitting} className={`${buttonPrimary} disabled:cursor-wait disabled:opacity-70`}>
-          {submitting ? "Recording…" : "Record donation"}
+          {submitting ? "Recording…" : checkoutOn ? "Continue" : "Record donation"}
         </button>
-        <p className="text-sm text-muted">No payment is taken yet.</p>
+        <p className="text-sm text-muted">
+          {checkoutOn
+            ? "$10 or more: you'll pay on Every.org, which processes the donation and emails your receipt. Under $10: recorded only (Every.org's minimum is $10)."
+            : "No payment is taken yet."}
+        </p>
       </form>
 
       {status && <p className="mt-4 text-sm" role="status">{status}</p>}

@@ -1,6 +1,6 @@
 # Roadmap to MVP
 
-_Last updated: 2026-11-22_
+_Last updated: 2026-11-23_
 
 Work top to bottom. Each milestone should leave the live site working. Check items off and update `docs/STATUS.md` as you go. D-numbers (D-001 etc.) refer to the private decisions log in `../penny-effect-docs/DECISIONS.md`.
 
@@ -60,12 +60,15 @@ Partner: Every.org (D-001 accepted). Build against Every.org staging first (`htt
   9. **Check:** on that preview, sign up with a throwaway address (e.g. `preview-check+1@<your domain>`). In the Neon SQL Editor, run `SELECT count(*) FROM "User" WHERE email = 'preview-check+1@<your domain>';` on **`preview`** (expect 1) and on **production** (expect 0).
   10. Tell me it's done. I'll then update the README, M3-PLAN ("Why not Vercel Preview?") and the env table, and add the preview-branch migration to the merge checklist.
   - Also worth checking while you're there: `NEXTAUTH_URL` is shared by Preview and Production. If it is the production URL, sign-in on a preview redirects to production. Leaving it unset for **Preview** lets NextAuth use the preview's own URL. Google sign-in on previews would also need the preview URL as an authorized redirect, so email sign-in is enough there.
-- [ ] Integrate Every.org: checkout for a single gift — Donate Link groundwork built behind the flag; not yet tested end to end on staging
-- [ ] Record donation as pending on start; mark completed from Every.org's webhook — never from client-side claims alone — built behind the flag; not yet tested end to end on staging
+- [x] Integrate Every.org: checkout for a single gift — Give page `/give/<slug>` with a $10 minimum and the partner disclosure; Donate Link with our id (`partner_donation_id`) and return URLs (giving PR, 2026-11-23)
+- [x] Record donation as pending on start; mark completed from Every.org's webhook — never from client-side claims alone — stores the amount Every.org reports; thanks page waits for the webhook
+- [ ] **Owner:** one real test payment on Every.org **staging** (test card) through a tunnel, with the staging webhook registered. Every.org staging blocks automated browsers, so this can't be scripted
+- [x] Pending cleanup: a checkout Every.org hasn't confirmed within 48 hours shows as "Not completed" (display only, never deleted)
+- [x] Legacy rows: every donation from before real payments (19 on production) is marked `legacy`, listed in history as "Before real payments, not counted", and excluded from all totals
 - [x] Verify webhooks with the bearer token in the `Authorization` header; never treat `webhook_token` (part of the donate link) as a secret — constant-time check, fails closed (D-014 update); confirm on staging
-- [ ] Handle refund/dispute events and donor-data-exclusion payloads (being enabled on staging, requested 2026-11-21) — refund/dispute handled with an assumed payload shape; donor-data exclusion not yet
-- [ ] Respect Every.org's $10 minimum for card gifts (D-017): only gifts of $10+ get a Donate Link; smaller ones stay recorded intentions for the Penny Jar. Today `src/lib/money.ts` still accepts $1–$10,000 for every recorded gift
-- [ ] Receipts: link to partner receipt; show in history. Every.org's webhook payload has no receipt link (Every.org emails the tax receipt), so find out what can be linked
+- [ ] Handle refund/dispute events and donor-data-exclusion payloads (being enabled on staging, requested 2026-11-21) — donor-data exclusion handled (documented shape); refund/dispute handled with an **assumed** payload shape until Every.org sends real ones
+- [x] Respect Every.org's $10 minimum for card gifts (D-017): only gifts of $10+ get a Donate Link (`CHECKOUT_MIN_CENTS`); the Give page refuses less; smaller dashboard entries stay recorded intentions for the Penny Jar
+- [x] Receipts: history shows confirmed gifts with Every.org's confirmation date and net amount, and says Every.org emails the tax receipt. Every.org's webhook has no receipt link (docs checked 2026-11-23); add one if Every.org ever provides it
 - [ ] Crypto giving through the partner if supported (ask: does the $10 minimum apply to crypto?)
 - [x] Rate limiting on register, sign-in, donate — Postgres counters (D-018, #52)
 
