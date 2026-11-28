@@ -3,9 +3,13 @@
 // double-click reuses it), freezes which nonprofit the donor is sent to, and
 // returns the Donate Link. Never changes the donation's status.
 import { prisma } from "@/lib/prisma";
-import { buildDonateLink, donateHost, newCheckoutToken, siteUrl } from "@/lib/checkout";
+import { buildDonateLink, donateHost, newCheckoutToken, siteUrl, webhookToken } from "@/lib/checkout";
 
-export async function startCheckout(donationId: string): Promise<string | null> {
+/**
+ * `exitPath`: where Every.org sends the donor if they leave without paying
+ * (a path on our site; the dashboard unless the Give page passes its own).
+ */
+export async function startCheckout(donationId: string, exitPath = "/dashboard?checkout=cancelled"): Promise<string | null> {
   const donation = await prisma.donation.findUnique({
     where: { id: donationId },
     select: {
@@ -26,6 +30,8 @@ export async function startCheckout(donationId: string): Promise<string | null> 
       where: { id: donationId, checkoutToken: null },
       data: {
         checkoutToken: newCheckoutToken(),
+        // What the donor chose here; Every.org may confirm a different amount.
+        requestedAmountCents: donation.amountCents,
         checkoutEin: donation.organization.ein,
         checkoutSlug: donation.organization.everyOrgSlug,
       },
@@ -46,7 +52,7 @@ export async function startCheckout(donationId: string): Promise<string | null> 
     amountCents: donation.amountCents,
     checkoutToken,
     successUrl: `${site}/donations/${donationId}/thanks`,
-    exitUrl: `${site}/dashboard?checkout=cancelled`,
-    webhookToken: process.env.EVERYORG_WEBHOOK_TOKEN || undefined,
+    exitUrl: `${site}${exitPath.startsWith("/") ? exitPath : "/dashboard?checkout=cancelled"}`,
+    webhookToken: webhookToken(),
   });
 }

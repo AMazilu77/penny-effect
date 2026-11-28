@@ -18,6 +18,7 @@ import { buttonPrimary } from "@/components/ui/buttons";
 import { SignOutButton } from "@/components/SignOutButton";
 import { FollowNotice } from "@/components/FollowButton";
 import { FollowedOrgList, GiftList, SeeAll } from "@/components/dashboard/lists";
+import { GIFT_ROW_SELECT, toGiftRow } from "@/lib/gift-rows";
 import { DetailsForm } from "./DetailsForm";
 import { PrivacyForm } from "./PrivacyForm";
 import { CausesForm } from "./CausesForm";
@@ -64,7 +65,8 @@ async function loadTopSupported(userId: string) {
   const groups = await prisma.donation.groupBy({
     by: ["organizationId"],
     // Every donation is in USD today; filtering keeps the sum honest if that changes.
-    where: { userId, status: "COMPLETED", currency: "USD" },
+    // Legacy rows (before real payments) never count, whatever their status.
+    where: { userId, status: "COMPLETED", currency: "USD", legacy: false },
     _sum: { amountCents: true },
     _count: { _all: true },
   });
@@ -122,6 +124,7 @@ export default async function ProfilePage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin?callbackUrl=%2Fprofile");
 
+  const now = new Date();
   const [user, providers, categories, interests, follows, followCount, gifts, giftCount, top, regions] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
@@ -153,7 +156,7 @@ export default async function ProfilePage({
       where: { userId },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
       take: PROFILE_PREVIEW,
-      select: { id: true, amountCents: true, currency: true, status: true, createdAt: true, organization: { select: { name: true } } },
+      select: GIFT_ROW_SELECT,
     }),
     prisma.donation.count({ where: { userId } }),
     loadTopSupported(userId),
@@ -252,7 +255,7 @@ export default async function ProfilePage({
           <Card level="inset" as="div">
             <p>Your top organization will show here after your first gift.</p>
             {giftCount > 0 && (
-              <p className="mt-2 text-sm text-muted">Gifts count here once our donation partner confirms they&apos;re paid.</p>
+              <p className="mt-2 text-sm text-muted">Gifts count here once Every.org confirms they&apos;re paid.</p>
             )}
           </Card>
         )}
@@ -283,7 +286,7 @@ export default async function ProfilePage({
             <Empty text="No gifts recorded yet." href="/dashboard#give" action="Record a donation" />
           ) : (
             <>
-              <GiftList gifts={gifts} />
+              <GiftList gifts={gifts.map((d) => toGiftRow(d, now))} />
               <SeeAll href="/donations" total={giftCount} shown={gifts.length} label="gifts" />
             </>
           )}

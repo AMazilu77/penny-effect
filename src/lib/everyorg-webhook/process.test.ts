@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import oneTime from "./fixtures/donation-one-time.json";
+import donorExcluded from "./fixtures/donation-donor-excluded.json";
 import refund from "./fixtures/refund-assumed.json";
 import dispute from "./fixtures/dispute-assumed.json";
 import {
@@ -52,6 +53,7 @@ function pending(overrides: Partial<Row> = {}): Row {
     id: "don_1",
     status: "PENDING",
     amountCents: 1000,
+    requestedAmountCents: 1000,
     currency: "USD",
     checkoutToken: TOKEN,
     checkoutEin: "271661997",
@@ -103,8 +105,9 @@ describe("donation events", () => {
     ["a missing partnerDonationId", { partnerDonationId: undefined }, /no partnerDonationId/],
     ["another nonprofit's EIN", { toNonprofit: { slug: "givedirectly", ein: "123456789" } }, /EIN/],
     ["no EIN when we expect one", { toNonprofit: { slug: "givedirectly" } }, /EIN/],
-    ["a different amount", { amount: "15.00" }, /amount 1500/],
     ["a malformed amount", { amount: "$10" }, /plain dollar/],
+    ["a zero amount", { amount: "0.00" }, /zero/],
+    ["an implausibly large amount", { amount: "100000.01" }, /review limit/],
     ["another currency", { currency: "EUR" }, /currency/],
     ["a monthly gift", { frequency: "Monthly" }, /One-time/],
     ["a missing chargeId", { chargeId: undefined }, /invalid donation payload: chargeId/],
@@ -119,6 +122,25 @@ describe("donation events", () => {
       expect(mem.events).toHaveLength(1);
     });
   }
+
+  it("stores the amount Every.org reports, and keeps what the donor chose on our site", async () => {
+    const result = await processPartnerWebhook(mem.store, { ...oneTime, amount: "25.00", netAmount: "24.15" }, NOW);
+    expect(result.status).toBe("APPLIED");
+    expect(mem.rows[0]).toMatchObject({ status: "COMPLETED", amountCents: 2500, requestedAmountCents: 1000, netAmountCents: 2415 });
+  });
+
+  it("a gift started before requestedAmountCents existed keeps its old amount as the requested one", async () => {
+    mem = memoryStore([pending({ requestedAmountCents: null })]);
+    await processPartnerWebhook(mem.store, { ...oneTime, amount: "12.00", netAmount: null }, NOW);
+    expect(mem.rows[0]).toMatchObject({ amountCents: 1200, requestedAmountCents: 1000 });
+  });
+
+  it("completes a gift when Every.org excludes donor data (matched by our id only)", async () => {
+    const result = await processPartnerWebhook(mem.store, donorExcluded, NOW);
+    expect(result).toMatchObject({ kind: "DONATION", status: "APPLIED", donationId: "don_1" });
+    expect(mem.rows[0]).toMatchObject({ status: "COMPLETED", amountCents: 1000, externalId: "ch_test_0003" });
+    expect(JSON.stringify(mem.events)).not.toMatch(/Anonymous|Donor/);
+  });
 
   it("matches by slug when we have no EIN snapshot", async () => {
     mem = memoryStore([pending({ checkoutEin: null })]);

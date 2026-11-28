@@ -5,7 +5,14 @@
 // - Only this code may set COMPLETED, REFUNDED or DISPUTED (D-001, D-011).
 // - A donation event completes a gift only if it matches what we sent the
 //   donor to pay: our checkoutToken (partnerDonationId), the nonprofit's EIN
-//   (slug as fallback), the exact amount in cents, USD, one-time.
+//   (slug as fallback), USD, one-time.
+// - The amount stored is the one Every.org reports, not the one typed on our
+//   site: Every.org's Donate Link can't lock the amount, so the donor may
+//   change it there. What they asked for stays in requestedAmountCents.
+//   (Before the bearer token existed, D-014 required an exact amount match as
+//   an anti-forgery check; the token now authenticates the sender.)
+// - Donor data may be excluded by Every.org ("Anonymous Donor", no email):
+//   we never use it anyway, matching is by our own id.
 // - Idempotent: the donation's own state decides (externalId = chargeId is
 //   unique, and the update only applies to a PENDING row), so a retried or
 //   concurrent webhook changes nothing the second time.
@@ -34,6 +41,7 @@ export type MatchableDonation = {
   id: string;
   status: DonationStatusName;
   amountCents: number;
+  requestedAmountCents: number | null;
   currency: string;
   checkoutToken: string | null;
   checkoutEin: string | null;
@@ -53,6 +61,10 @@ export type PartnerEventRecord = {
 
 export type CompletionData = {
   chargeId: string;
+  /** What Every.org reports the donor gave. */
+  amountCents: number;
+  /** What the donor chose on our site (kept when Every.org's amount differs). */
+  requestedAmountCents: number;
   netAmountCents: number | null;
   paymentMethod: string | null;
   completedAt: Date;
@@ -72,6 +84,9 @@ export interface WebhookStore {
 export type WebhookResult = Pick<PartnerEventRecord, "kind" | "status" | "reason" | "donationId">;
 
 type Decision = { status: PartnerEventStatusName; reason: string | null; donationId: string | null };
+
+/** Every.org's minimum is $10 (D-017); anything over this is held for an admin rather than counted. */
+export const MAX_REPORTED_AMOUNT_CENTS = 10_000_000; // $100,000.00
 
 const rejected = (reason: string, donationId: string | null = null): Decision => ({
   status: "REJECTED",
@@ -127,9 +142,8 @@ async function handleDonation(store: WebhookStore, body: unknown, now: Date): Pr
 
   const cents = parseAmountCents(event.amount);
   if (cents === null) return rejected("amount isn't a plain dollar amount", donation.id);
-  if (cents !== donation.amountCents) {
-    return rejected(`amount ${cents} cents doesn't match the gift's ${donation.amountCents}`, donation.id);
-  }
+  if (cents <= 0) return rejected("amount is zero", donation.id);
+  if (cents > MAX_REPORTED_AMOUNT_CENTS) return rejected(`amount ${cents} cents is over the review limit`, donation.id);
   if (event.currency.toUpperCase() !== donation.currency.toUpperCase()) {
     return rejected(`currency ${event.currency} doesn't match`, donation.id);
   }
@@ -138,6 +152,8 @@ async function handleDonation(store: WebhookStore, body: unknown, now: Date): Pr
   const net = event.netAmount ? parseAmountCents(event.netAmount) : null;
   const changed = await store.complete(donation.id, {
     chargeId: event.chargeId,
+    amountCents: cents,
+    requestedAmountCents: donation.requestedAmountCents ?? donation.amountCents,
     // A net amount larger than the gift makes no sense; don't store it.
     netAmountCents: net !== null && net <= cents ? net : null,
     paymentMethod: event.paymentMethod ?? null,

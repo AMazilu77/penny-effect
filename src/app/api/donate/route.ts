@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { donationRequestSchema } from "@/lib/donations";
+import { checkoutPlan, donationRequestSchema } from "@/lib/donations";
 import { recordDonation } from "@/lib/record-donation";
 import { prismaDonationStore } from "@/lib/donation-store";
 import { VISIBLE_ORGANIZATION_WHERE } from "@/lib/organizations";
@@ -11,10 +11,12 @@ import { startCheckout } from "@/lib/start-checkout";
 import { clientIp, RULES, type RateCheck } from "@/lib/rate-limit";
 import { rateLimitResponse } from "@/lib/rate-limit-store";
 
-// Records a donation the user intends to make. No payment is taken here: the
-// row stays PENDING until the donation partner confirms it (Milestone 3).
-// With checkout enabled (never on production yet), it also returns the
-// Every.org Donate Link where the donor pays.
+// Records a donation as PENDING. No payment is taken here: the row stays
+// PENDING until Every.org's verified webhook confirms it (Milestone 3).
+// With checkout enabled (never on Vercel production or Preview yet) and a gift
+// of at least $10 (D-017), it also returns the Every.org Donate Link where the
+// donor pays. The Give page sends `checkout: true`: then a gift that can't go
+// to Every.org is refused instead of recorded.
 // Idempotent: the same idempotencyKey never creates two donations.
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -35,6 +37,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
   const { organizationId, amountCents, message, idempotencyKey } = parsed.data;
+  const plan = checkoutPlan({ amountCents, requested: parsed.data.checkout === true, enabled: checkoutEnabled() });
+  if (plan.kind === "error") return NextResponse.json({ error: plan.error }, { status: plan.status });
 
   try {
     // Rate limits (D-018). Starting a checkout is strict per user AND per IP
@@ -42,7 +46,7 @@ export async function POST(req: Request) {
     // recorded, so a refused request leaves no row behind.
     const ip = clientIp(req.headers);
     const checks: RateCheck[] = [{ rule: RULES.donateUser, identifier: userId }];
-    if (checkoutEnabled()) {
+    if (plan.kind === "checkout") {
       checks.push(
         { rule: RULES.checkoutUserHour, identifier: userId },
         { rule: RULES.checkoutUserDay, identifier: userId },
@@ -56,7 +60,7 @@ export async function POST(req: Request) {
     // Only organizations users can see may receive new gifts (D-012).
     const organization = await prisma.organization.findFirst({
       where: { id: organizationId, ...VISIBLE_ORGANIZATION_WHERE },
-      select: { id: true },
+      select: { id: true, everyOrgSlug: true },
     });
     if (!organization) {
       return NextResponse.json({ error: "This organization isn't available for donations." }, { status: 400 });
@@ -78,18 +82,28 @@ export async function POST(req: Request) {
     }
     const { id, amountCents: cents, currency, status, createdAt } = result.donation;
     const donation = { id, amountCents: cents, currency, status, createdAt };
-    // Milestone 3 groundwork, behind a flag that is always off on production:
-    // a link to pay on Every.org. The donation stays PENDING; only Every.org's
-    // webhook (not built yet) may ever mark it completed.
-    const checkoutUrl = checkoutEnabled() ? await startCheckout(id) : null;
+    // A link to pay on Every.org. The donation stays PENDING; only Every.org's
+    // verified webhook may ever mark it completed. Leaving Every.org without
+    // paying returns the donor to where they started.
+    const exitPath =
+      parsed.data.checkout && organization.everyOrgSlug
+        ? `/give/${encodeURIComponent(organization.everyOrgSlug)}?checkout=cancelled`
+        : undefined;
+    const checkoutUrl = plan.kind === "checkout" ? await startCheckout(id, exitPath) : null;
     // 201 for a new donation; 200 when this exact request was already recorded
     // (double-click or retry): the original is returned and nothing new is created.
+    if (parsed.data.checkout && !checkoutUrl) {
+      // Recorded, but no link (e.g. the organization has neither slug nor EIN
+      // any more). A retry with the same key replays the gift and tries again.
+      return NextResponse.json({ error: "We couldn't start Every.org checkout. Please try again." }, { status: 502 });
+    }
     return NextResponse.json(
       checkoutUrl ? { donation, checkoutUrl } : { donation },
       { status: result.kind === "created" ? 201 : 200 },
     );
   } catch (err) {
-    console.error("Error recording donation:", err);
+    // The error's name only: messages can include query values.
+    console.error("Error recording donation:", err instanceof Error ? err.name : "unknown error");
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

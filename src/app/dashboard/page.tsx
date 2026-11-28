@@ -7,6 +7,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCents } from "@/lib/money";
 import { DASHBOARD_PREVIEW, summarizeDonations } from "@/lib/dashboard";
+import { countedDonationsWhere } from "@/lib/gift-state";
+import { GIFT_ROW_SELECT, toGiftRow } from "@/lib/gift-rows";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { buttonPrimary, buttonSecondary } from "@/components/ui/buttons";
 import DonationForm from "@/components/DonationForm";
@@ -48,10 +50,13 @@ export default async function DashboardPage({
   const userId = session?.user?.id;
   if (!userId) redirect("/signin");
 
-  const [statusGroups, causesFollowed, recentDonations, follows, followCount] = await Promise.all([
+  const now = new Date();
+  const [statusGroups, causesFollowed, recentDonations, giftCount, follows, followCount] = await Promise.all([
+    // Totals: never legacy rows (before real payments) or checkouts Every.org
+    // didn't confirm within 48 hours (src/lib/gift-state.ts).
     prisma.donation.groupBy({
       by: ["status"],
-      where: { userId },
+      where: countedDonationsWhere(userId, now),
       _sum: { amountCents: true },
       _count: { _all: true },
     }),
@@ -60,15 +65,10 @@ export default async function DashboardPage({
       where: { userId },
       orderBy: { createdAt: "desc" },
       take: DASHBOARD_PREVIEW,
-      select: {
-        id: true,
-        amountCents: true,
-        currency: true,
-        status: true,
-        createdAt: true,
-        organization: { select: { name: true } },
-      },
+      select: GIFT_ROW_SELECT,
     }),
+    // Every gift in the history, counted or not (for "See all (N)").
+    prisma.donation.count({ where: { userId } }),
     // Followed organizations users can still see (a hidden one reappears if it's unhidden).
     // Only the first few here; /following lists them all.
     prisma.organizationFollow.findMany({
@@ -81,7 +81,6 @@ export default async function DashboardPage({
   ]);
 
   const summary = summarizeDonations(statusGroups);
-  const giftCount = statusGroups.reduce((n, g) => n + g._count._all, 0);
   // Every.org sends donors here when they leave checkout without paying.
   const params = await searchParams;
   const checkoutCancelled = params.checkout === "cancelled";
@@ -166,7 +165,7 @@ export default async function DashboardPage({
             />
           ) : (
             <>
-              <GiftList gifts={recentDonations} />
+              <GiftList gifts={recentDonations.map((d) => toGiftRow(d, now))} />
               <SeeAll href="/donations" total={giftCount} shown={recentDonations.length} label="gifts" />
             </>
           )}

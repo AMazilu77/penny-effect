@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDonateLink, centsToDollars, checkoutEnabled, donateHost, newCheckoutToken } from "@/lib/checkout";
+import { buildDonateLink, centsToDollars, checkoutEnabled, donateHost, newCheckoutToken, webhookEnvNames, webhookToken } from "@/lib/checkout";
 
 const base = {
   host: "staging.every.org" as const,
@@ -15,11 +15,24 @@ describe("checkoutEnabled (the feature flag)", () => {
     expect(checkoutEnabled({})).toBe(false);
     expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "1" })).toBe(false);
     expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "true" })).toBe(true);
-    expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "true", VERCEL_ENV: "preview" })).toBe(true);
+    expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "true", VERCEL_ENV: "development" })).toBe(true);
   });
 
   it("is always off on Vercel production, whatever the flag says", () => {
     expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "true", VERCEL_ENV: "production" })).toBe(false);
+  });
+
+  it("is always off on Vercel Preview, which uses the production database", () => {
+    expect(checkoutEnabled({ DONATIONS_CHECKOUT_ENABLED: "true", VERCEL_ENV: "preview" })).toBe(false);
+  });
+});
+
+describe("webhook env names", () => {
+  it("staging and www.every.org read different variables", () => {
+    expect(webhookEnvNames({}).secret).toBe("EVERYORG_STAGING_WEBHOOK_SECRET");
+    expect(webhookEnvNames({ EVERYORG_DONATE_HOST: "www.every.org" }).secret).toBe("EVERYORG_WEBHOOK_SECRET");
+    expect(webhookToken({ EVERYORG_STAGING_WEBHOOK_TOKEN: " tok ", EVERYORG_WEBHOOK_TOKEN: "prod" })).toBe("tok");
+    expect(webhookToken({ EVERYORG_DONATE_HOST: "www.every.org", EVERYORG_STAGING_WEBHOOK_TOKEN: "tok" })).toBeUndefined();
   });
 });
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MAX_DONATION_CENTS, MIN_DONATION_CENTS, formatCents, parseDollarsToCents } from "@/lib/money";
+import { CHECKOUT_MIN_CENTS, MAX_DONATION_CENTS, MIN_DONATION_CENTS, formatCents, parseDollarsToCents } from "@/lib/money";
 
 // Request body for POST /api/donate. `amount` is in dollars as the user typed
 // it ("5" or "5.50", or a JSON number). The parsed result has `amountCents`
@@ -33,7 +33,33 @@ export const donationRequestSchema = z
       .max(500, "Keep the message under 500 characters.")
       .optional()
       .transform((m) => (m ? m : undefined)),
+    // Sent by the Give page: the donor wants to pay now on Every.org, so the
+    // gift must meet Every.org's $10 minimum and checkout must be on.
+    checkout: z.literal(true).optional(),
   })
   .transform(({ amount, ...rest }) => ({ ...rest, amountCents: amount }));
 
 export type DonationRequest = z.infer<typeof donationRequestSchema>;
+
+export type CheckoutPlan =
+  | { kind: "record" } // record the intention only, no Donate Link
+  | { kind: "checkout" } // record it and send the donor to Every.org
+  | { kind: "error"; status: 400 | 409; error: string };
+
+/**
+ * Whether a gift gets a Donate Link (D-017):
+ * - with checkout off, nothing is paid; a request that asks to pay is refused;
+ * - with checkout on, $10+ gifts get a link; smaller ones are recorded only
+ *   (the dashboard form), or refused when the donor asked to pay (Give page).
+ */
+export function checkoutPlan(input: { amountCents: number; requested: boolean; enabled: boolean }): CheckoutPlan {
+  const meetsMinimum = input.amountCents >= CHECKOUT_MIN_CENTS;
+  if (input.requested) {
+    if (!input.enabled) return { kind: "error", status: 409, error: "Giving through Every.org isn't open yet." };
+    if (!meetsMinimum) {
+      return { kind: "error", status: 400, error: `Every.org's minimum gift is ${formatCents(CHECKOUT_MIN_CENTS)}.` };
+    }
+    return { kind: "checkout" };
+  }
+  return input.enabled && meetsMinimum ? { kind: "checkout" } : { kind: "record" };
+}

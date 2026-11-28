@@ -2,14 +2,18 @@
 // D-014 update).
 //
 // Every.org sends `Authorization: Bearer <token>` with each partner webhook.
-// The token is ours to keep secret: it lives only in the server-only env var
-// EVERYORG_WEBHOOK_SECRET (never NEXT_PUBLIC_, never in a page or a link).
+// The token is ours to keep secret: it lives only in a server-only env var
+// (never NEXT_PUBLIC_, never in a page or a link): EVERYORG_STAGING_WEBHOOK_SECRET
+// while the staging host is in use, EVERYORG_WEBHOOK_SECRET for www.every.org
+// (src/lib/checkout.ts, webhookEnvNames).
 //
-// Not to be confused with EVERYORG_WEBHOOK_TOKEN (`webhook_token`): that one
-// goes into every Donate Link, so any donor can read it. It routes gifts to
+// Not to be confused with `webhook_token` (EVERYORG_STAGING_WEBHOOK_TOKEN /
+// EVERYORG_WEBHOOK_TOKEN): that one goes into every Donate Link, so any donor
+// can read it. It routes gifts to
 // our webhook and proves nothing. If the two are ever set to the same value,
 // we refuse everything rather than accept a public value as a password.
 import { createHash, timingSafeEqual } from "node:crypto";
+import { webhookEnvNames } from "@/lib/checkout";
 
 /** Shorter secrets are treated as missing (fail closed). */
 export const MIN_WEBHOOK_SECRET_LENGTH = 32;
@@ -18,8 +22,9 @@ type Env = Record<string, string | undefined>;
 
 /** The bearer tokens we currently accept: the main one, plus NEXT during a rotation. */
 export function acceptedWebhookSecrets(env: Env = process.env): string[] {
-  const publicToken = env.EVERYORG_WEBHOOK_TOKEN?.trim();
-  return [env.EVERYORG_WEBHOOK_SECRET, env.EVERYORG_WEBHOOK_SECRET_NEXT]
+  const names = webhookEnvNames(env);
+  const publicToken = env[names.token]?.trim();
+  return [env[names.secret], env[names.secretNext]]
     .map((value) => value?.trim() ?? "")
     .filter((value) => value.length >= MIN_WEBHOOK_SECRET_LENGTH)
     .filter((value) => !publicToken || value !== publicToken);

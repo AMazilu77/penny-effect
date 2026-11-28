@@ -7,6 +7,7 @@ const matchFields = {
   id: true,
   status: true,
   amountCents: true,
+  requestedAmountCents: true,
   currency: true,
   checkoutToken: true,
   checkoutEin: true,
@@ -28,10 +29,12 @@ export const prismaWebhookStore: WebhookStore = {
       // Conditional update: only a still-PENDING, unmatched row changes, so
       // two deliveries racing can't both apply.
       const { count } = await prisma.donation.updateMany({
-        where: { id: donationId, status: "PENDING", externalId: null },
+        where: { id: donationId, status: "PENDING", externalId: null, legacy: false },
         data: {
           status: "COMPLETED",
           externalId: data.chargeId,
+          amountCents: data.amountCents,
+          requestedAmountCents: data.requestedAmountCents,
           completedAt: data.completedAt,
           netAmountCents: data.netAmountCents,
           paymentMethod: data.paymentMethod,
@@ -54,9 +57,12 @@ export const prismaWebhookStore: WebhookStore = {
   },
 
   async recordEvent(event) {
-    try {
-      await prisma.partnerEvent.create({
-        data: {
+    // A retried delivery: the first one is already in the log. skipDuplicates
+    // (ON CONFLICT DO NOTHING) skips it without an error, so Prisma's error
+    // log stays for real failures.
+    await prisma.partnerEvent.createMany({
+      data: [
+        {
           provider: "EVERYORG",
           kind: event.kind,
           status: event.status,
@@ -66,11 +72,8 @@ export const prismaWebhookStore: WebhookStore = {
           donationId: event.donationId,
           payload: event.payload ?? Prisma.JsonNull,
         },
-      });
-    } catch (err) {
-      // A retried delivery: the first one is already in the log.
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") return;
-      throw err;
-    }
+      ],
+      skipDuplicates: true,
+    });
   },
 };
